@@ -1,0 +1,3 @@
+[submodule "gcode-lexer/tests/tinyg"]
+	path = gcode-lexer/tests/tinyg
+	url = https://github.com/synthetos/TinyG.git
