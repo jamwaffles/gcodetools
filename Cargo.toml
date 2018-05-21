@@ -1,5 +1,5 @@
 [workspace]
 
 members = [
-    "gcode-lexer",
+    "gcode-parser",
 ]

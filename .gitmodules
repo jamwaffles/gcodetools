@@ -1,6 +1,6 @@
-[submodule "gcode-lexer/tests/tinyg"]
-	path = gcode-lexer/tests/tinyg
+[submodule "gcode-parser/tests/tinyg"]
+	path = gcode-parser/tests/tinyg
 	url = https://github.com/synthetos/TinyG.git
-[submodule "gcode-lexer/tests/universal-gcode-sender"]
-	path = gcode-lexer/tests/universal-gcode-sender
+[submodule "gcode-parser/tests/universal-gcode-sender"]
+	path = gcode-parser/tests/universal-gcode-sender
 	url = https://github.com/winder/Universal-G-Code-Sender.git
