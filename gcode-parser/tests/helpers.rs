@@ -6,6 +6,7 @@ extern crate nom;
 use chardet::{detect, charset2encoding};
 use encoding::DecoderTrap;
 use encoding::label::encoding_from_whatwg_label;
+use std::error::Error;
 use std::ffi::OsStr;
 use std::fs;
 use std::fs::OpenOptions;
@@ -76,22 +77,18 @@ pub fn test_parse(filepath: &Path) -> Result<(), String> {
     let file = read(filepath);
 
     // let parser = gcode_parser::lexer::from_str(&file);
-    let tokenizer = Tokenizer::new_from_str();
+    let tokenizer = Tokenizer::new_from_str(&file);
 
     let out = tokenizer.tokenize();
 
-    assert!(out.is_ok());
-
-    Ok(())
-
-    // match out {
-    //     Ok((rest, _parsed)) => {
-    //         if rest.len() > 0 {
-    //             Err(format!("{} remaining bytes to parse", rest.len()))
-    //         } else {
-    //             Ok(())
-    //         }
-    //     }
-    //     _ => Err(format!("Other error")),
-    // }
+    match out {
+        Ok((rest, _parsed)) => {
+            if rest.len() > 0 {
+                Err(format!("{} remaining bytes to parse", rest.len()))
+            } else {
+                Ok(())
+            }
+        }
+        Err(e) => Err(e.description().to_string()),
+    }
 }
