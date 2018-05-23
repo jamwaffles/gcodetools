@@ -1,5 +1,8 @@
+mod helpers;
+
 use nom::types::CompleteByteSlice;
-use nom::*;
+
+use self::helpers::*;
 
 pub struct Tokenizer {}
 
@@ -63,18 +66,6 @@ named!(distance_mode<CompleteByteSlice, Token>, map!(
     |res| Token::DistanceMode(res)
 ));
 
-// TODO: Move to helpers file
-named_args!(
-    pub preceded_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, f32>,
-    flat_map!(preceded!(tag_no_case!(preceding), recognize!(recognize_float)), parse_to!(f32))
-);
-
-// TODO: Move to helpers file
-named_args!(
-    pub preceded_i32<'a>(preceding: &str)<CompleteByteSlice<'a>, i32>,
-    flat_map!(preceded!(tag_no_case!(preceding), recognize!(preceded!(opt!(one_of!("+-")), digit))), parse_to!(i32))
-);
-
 named!(path_blending<CompleteByteSlice, Token>, ws!(
     do_parse!(
         tag_no_case!("G64") >>
@@ -88,13 +79,14 @@ named!(path_blending<CompleteByteSlice, Token>, ws!(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nom::types::CompleteByteSlice as Cbs;
 
-    const EMPTY: CompleteByteSlice = CompleteByteSlice(b"");
+    const EMPTY: Cbs = Cbs(b"");
 
     #[test]
     fn it_parses_blending_mode() {
         assert_eq!(
-            path_blending(CompleteByteSlice(b"G64")),
+            path_blending(Cbs(b"G64")),
             Ok((
                 EMPTY,
                 Token::PathBlending(PathBlending { p: None, q: None })
@@ -102,7 +94,7 @@ mod tests {
         );
 
         assert_eq!(
-            path_blending(CompleteByteSlice(b"G64 P0.01")),
+            path_blending(Cbs(b"G64 P0.01")),
             Ok((
                 EMPTY,
                 Token::PathBlending(PathBlending {
@@ -113,7 +105,7 @@ mod tests {
         );
 
         assert_eq!(
-            path_blending(CompleteByteSlice(b"G64 P0.01 Q0.02")),
+            path_blending(Cbs(b"G64 P0.01 Q0.02")),
             Ok((
                 EMPTY,
                 Token::PathBlending(PathBlending {
@@ -125,7 +117,7 @@ mod tests {
 
         // TODO
         // assert_eq!(
-        //     path_blending(CompleteByteSlice(b"G64 Q0.02")),
+        //     path_blending(Cbs(b"G64 Q0.02")),
         //     Ok((
         //         EMPTY,
         //         Token::PathBlending(PathBlending { p: None, q: None })
@@ -136,39 +128,32 @@ mod tests {
     #[test]
     fn it_parses_distance_mode() {
         assert_eq!(
-            distance_mode(CompleteByteSlice(b"G90")),
+            distance_mode(Cbs(b"G90")),
             Ok((EMPTY, Token::DistanceMode(DistanceMode::Absolute)))
         );
 
         assert_eq!(
-            distance_mode(CompleteByteSlice(b"G91")),
+            distance_mode(Cbs(b"G91")),
             Ok((EMPTY, Token::DistanceMode(DistanceMode::Incremental)))
         );
     }
 
     #[test]
     fn it_parses_units() {
-        assert_eq!(
-            units(CompleteByteSlice(b"G20")),
-            Ok((EMPTY, Token::Units(Units::Inch)))
-        );
-
-        assert_eq!(
-            units(CompleteByteSlice(b"G21")),
-            Ok((EMPTY, Token::Units(Units::Mm)))
-        );
+        assert_eq!(units(Cbs(b"G20")), Ok((EMPTY, Token::Units(Units::Inch))));
+        assert_eq!(units(Cbs(b"G21")), Ok((EMPTY, Token::Units(Units::Mm))));
     }
 
     #[test]
     fn it_parses_comments() {
         assert_eq!(
-            comment(CompleteByteSlice(b"(Hello world)")),
+            comment(Cbs(b"(Hello world)")),
             Ok((EMPTY, Token::Comment("Hello world".into())))
         );
 
         // Make sure whitespace is trimmed
         assert_eq!(
-            comment(CompleteByteSlice(b"( Hello world )")),
+            comment(Cbs(b"( Hello world )")),
             Ok((EMPTY, Token::Comment("Hello world".into())))
         );
     }
