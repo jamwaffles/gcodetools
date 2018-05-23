@@ -1,6 +1,8 @@
 use nom::types::CompleteByteSlice;
 use nom::*;
 
+use super::Token;
+
 #[derive(Debug, PartialEq)]
 pub struct Vec9 {
     pub x: Option<f32>,
@@ -31,6 +33,14 @@ impl Default for Vec9 {
         }
     }
 }
+
+named!(pub comment<CompleteByteSlice, Token>, map!(
+    flat_map!(
+        delimited!(tag!("("), take_until!(")"), tag!(")")),
+        parse_to!(String)
+    ),
+    |res| Token::Comment(res.trim().into())
+));
 
 named_args!(
     pub preceded_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, f32>,
@@ -78,9 +88,30 @@ named!(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nom;
     use nom::types::CompleteByteSlice as Cbs;
 
+    fn check_token(
+        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
+        against: Token,
+    ) {
+        assert_eq!(to_check, Ok((EMPTY, against)))
+    }
+
     const EMPTY: Cbs = Cbs(b"");
+
+    #[test]
+    fn it_parses_comments() {
+        check_token(
+            comment(Cbs(b"(Hello world)")),
+            Token::Comment("Hello world".into()),
+        );
+
+        check_token(
+            comment(Cbs(b"( Hello world )")),
+            Token::Comment("Hello world".into()),
+        );
+    }
 
     #[test]
     fn it_parses_vectors() {
