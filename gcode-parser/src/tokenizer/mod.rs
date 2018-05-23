@@ -35,11 +35,17 @@ pub struct PathBlending {
 }
 
 #[derive(Debug, PartialEq)]
+pub enum CutterCompensation {
+    Off,
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Token {
     Comment(String),
     Units(Units),
     DistanceMode(DistanceMode),
     PathBlending(PathBlending),
+    CutterCompensation(CutterCompensation),
 }
 
 named!(comment<CompleteByteSlice, Token>, map!(
@@ -76,43 +82,35 @@ named!(path_blending<CompleteByteSlice, Token>, ws!(
     )
 ));
 
+named!(cutter_compensation<CompleteByteSlice, Token>,
+    map!(
+        alt!(
+            map!(tag_no_case!("G40"), |_| CutterCompensation::Off)
+        ),
+        |res| Token::CutterCompensation(res)
+    )
+);
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nom;
     use nom::types::CompleteByteSlice as Cbs;
 
     const EMPTY: Cbs = Cbs(b"");
 
+    fn check_token(
+        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
+        against: Token,
+    ) {
+        assert_eq!(to_check, Ok((EMPTY, against)))
+    }
+
     #[test]
-    fn it_parses_blending_mode() {
-        assert_eq!(
-            path_blending(Cbs(b"G64")),
-            Ok((
-                EMPTY,
-                Token::PathBlending(PathBlending { p: None, q: None })
-            ))
-        );
-
-        assert_eq!(
-            path_blending(Cbs(b"G64 P0.01")),
-            Ok((
-                EMPTY,
-                Token::PathBlending(PathBlending {
-                    p: Some(0.01f32),
-                    q: None
-                })
-            ))
-        );
-
-        assert_eq!(
-            path_blending(Cbs(b"G64 P0.01 Q0.02")),
-            Ok((
-                EMPTY,
-                Token::PathBlending(PathBlending {
-                    p: Some(0.01f32),
-                    q: Some(0.02f32)
-                })
-            ))
+    fn it_parses_cutter_comp() {
+        check_token(
+            cutter_compensation(Cbs(b"G40")),
+            Token::CutterCompensation(CutterCompensation::Off),
         );
 
         // TODO
@@ -126,35 +124,63 @@ mod tests {
     }
 
     #[test]
-    fn it_parses_distance_mode() {
-        assert_eq!(
-            distance_mode(Cbs(b"G90")),
-            Ok((EMPTY, Token::DistanceMode(DistanceMode::Absolute)))
+    fn it_parses_blending_mode() {
+        check_token(
+            path_blending(Cbs(b"G64")),
+            Token::PathBlending(PathBlending { p: None, q: None }),
         );
 
-        assert_eq!(
-            distance_mode(Cbs(b"G91")),
-            Ok((EMPTY, Token::DistanceMode(DistanceMode::Incremental)))
+        check_token(
+            path_blending(Cbs(b"G64 P0.01")),
+            Token::PathBlending(PathBlending {
+                p: Some(0.01f32),
+                q: None,
+            }),
         );
+
+        check_token(
+            path_blending(Cbs(b"G64 P0.01 Q0.02")),
+            Token::PathBlending(PathBlending {
+                p: Some(0.01f32),
+                q: Some(0.02f32),
+            }),
+        );
+
+        // TODO
+        // check_token(
+        //     path_blending(Cbs(b"G64 Q0.02")),
+        //     Token::PathBlending(PathBlending { p: None, q: None })
+        // );
     }
 
     #[test]
+    fn it_parses_distance_mode() {
+        check_token(
+            distance_mode(Cbs(b"G90")),
+            Token::DistanceMode(DistanceMode::Absolute),
+        );
+
+        check_token(
+            distance_mode(Cbs(b"G91")),
+            Token::DistanceMode(DistanceMode::Incremental),
+        );
+    }
+    #[test]
     fn it_parses_units() {
-        assert_eq!(units(Cbs(b"G20")), Ok((EMPTY, Token::Units(Units::Inch))));
-        assert_eq!(units(Cbs(b"G21")), Ok((EMPTY, Token::Units(Units::Mm))));
+        check_token(units(Cbs(b"G20")), Token::Units(Units::Inch));
+        check_token(units(Cbs(b"G21")), Token::Units(Units::Mm));
     }
 
     #[test]
     fn it_parses_comments() {
-        assert_eq!(
+        check_token(
             comment(Cbs(b"(Hello world)")),
-            Ok((EMPTY, Token::Comment("Hello world".into())))
+            Token::Comment("Hello world".into()),
         );
 
-        // Make sure whitespace is trimmed
-        assert_eq!(
+        check_token(
             comment(Cbs(b"( Hello world )")),
-            Ok((EMPTY, Token::Comment("Hello world".into())))
+            Token::Comment("Hello world".into()),
         );
     }
 }
