@@ -3,6 +3,7 @@ mod helpers;
 mod mcodes;
 mod othercodes;
 
+use nom;
 use nom::types::CompleteByteSlice;
 
 use self::gcodes::*;
@@ -10,15 +11,17 @@ use self::helpers::*;
 use self::mcodes::*;
 use self::othercodes::*;
 
-pub struct Tokenizer {}
+pub struct Tokenizer<'a> {
+    program_string: &'a str,
+}
 
-impl Tokenizer {
-    pub fn new_from_str() -> Self {
-        Tokenizer {}
+impl<'a> Tokenizer<'a> {
+    pub fn new_from_str(program_string: &'a str) -> Self {
+        Tokenizer { program_string }
     }
 
-    pub fn tokenize(&self) -> Result<(), ()> {
-        Ok(())
+    pub fn tokenize(&self) -> Result<(CompleteByteSlice, Program), nom::Err<CompleteByteSlice>> {
+        program(CompleteByteSlice(self.program_string.as_bytes()))
     }
 }
 
@@ -60,9 +63,9 @@ named!(token<CompleteByteSlice, Token>,
 named!(tokens<CompleteByteSlice, Vec<Token>>, many0!(token));
 
 named!(program<CompleteByteSlice, Program>,
-    alt_complete!(
+    alt!(
         ws!(delimited!(tag!("%"), tokens, tag!("%"))) |
-        ws!(terminated!(tokens, tag!("M2")))
+        ws!(terminated!(tokens, alt!(tag!("M30") | tag!("M2"))))
     )
 );
 
@@ -82,6 +85,35 @@ mod tests {
 G0 x0 y0 z0
 G1 Z10
 M2
+"#;
+
+        assert_eq!(
+            program(Cbs(input.as_bytes())),
+            Ok((
+                EMPTY,
+                vec![
+                    Token::Units(Units::Mm),
+                    Token::RapidMove(Vec9 {
+                        x: Some(0.0),
+                        y: Some(0.0),
+                        z: Some(0.0),
+                        ..Default::default()
+                    }),
+                    Token::LinearMove(Vec9 {
+                        z: Some(10.0),
+                        ..Default::default()
+                    }),
+                ]
+            ))
+        );
+    }
+
+    #[test]
+    fn it_parses_a_program_ending_with_m30() {
+        let input = r#"G21
+G0 x0 y0 z0
+G1 Z10
+M30
 "#;
 
         assert_eq!(
