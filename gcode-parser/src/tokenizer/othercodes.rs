@@ -15,9 +15,13 @@ named!(feedrate<CompleteByteSlice, Token>, map!(
     call!(preceded_f32, "F"), |res| Token::FeedRate(res)
 ));
 
+named!(line_number<CompleteByteSlice, Token>, map!(
+    call!(preceded_u32, "N"), |res| Token::LineNumber(res)
+));
+
 named!(pub othercode<CompleteByteSlice, Token>,
     alt_complete!(
-        tool_number | spindle_speed | feedrate
+        tool_number | spindle_speed | feedrate | line_number
     )
 );
 
@@ -54,5 +58,11 @@ mod tests {
     fn it_parses_tool_number() {
         check_token(tool_number(Cbs(b"T0")), Token::ToolSelect(0u32));
         check_token(tool_number(Cbs(b"T99")), Token::ToolSelect(99u32));
+    }
+
+    #[test]
+    fn it_parses_line_numbers() {
+        check_token(line_number(Cbs(b"N10")), Token::LineNumber(10u32));
+        check_token(line_number(Cbs(b"N999")), Token::LineNumber(999u32));
     }
 }

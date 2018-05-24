@@ -41,6 +41,7 @@ pub enum Token {
     SpindleRotation(SpindleRotation),
     SpindleSpeed(i32),
     FeedRate(f32),
+    LineNumber(u32),
 }
 
 pub type Program = Vec<Token>;
@@ -73,6 +74,41 @@ mod tests {
     use nom::types::CompleteByteSlice as Cbs;
 
     const EMPTY: Cbs = Cbs(b"");
+
+    #[test]
+    fn it_parses_programs_with_line_numbers() {
+        let input = r#"N10 G21
+N20 G0 x0 y0 z0
+N30 G1 Z10
+N40 M30
+N50"#;
+
+        assert_eq!(
+            program(Cbs(input.as_bytes())),
+            Ok((
+                Cbs(b"N50"),
+                vec![
+                    Token::LineNumber(10),
+                    Token::Units(Units::Mm),
+                    Token::LineNumber(20),
+                    Token::RapidMove,
+                    Token::Coord(Vec9 {
+                        x: Some(0.0),
+                        y: Some(0.0),
+                        z: Some(0.0),
+                        ..Default::default()
+                    }),
+                    Token::LineNumber(30),
+                    Token::LinearMove,
+                    Token::Coord(Vec9 {
+                        z: Some(10.0),
+                        ..Default::default()
+                    }),
+                    Token::LineNumber(40),
+                ]
+            ))
+        );
+    }
 
     #[test]
     fn it_parses_a_program() {
