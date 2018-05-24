@@ -37,6 +37,11 @@ pub enum Plane {
     Vw,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum ToolLengthCompensation {
+    Disable,
+}
+
 named!(units<CompleteByteSlice, Token>, map!(
     alt!(
         map!(tag_no_case!("G20"), |_| Units::Inch) |
@@ -92,6 +97,13 @@ named!(plane_select<CompleteByteSlice, Token>, map!(
     |res| Token::PlaneSelect(res)
 ));
 
+named!(tool_length_compensation<CompleteByteSlice, Token>, map!(
+    alt!(
+        map!(tag_no_case!("G49"), |_| ToolLengthCompensation::Disable)
+    ),
+    |res| Token::ToolLengthCompensation(res)
+));
+
 named!(pub gcode<CompleteByteSlice, Token>,
     alt_complete!(
         plane_select |
@@ -100,7 +112,8 @@ named!(pub gcode<CompleteByteSlice, Token>,
         path_blending |
         cutter_compensation |
         rapid_move |
-        linear_move
+        linear_move |
+        tool_length_compensation
     )
 );
 

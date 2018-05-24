@@ -43,6 +43,7 @@ pub enum Token {
     FeedRate(f32),
     LineNumber(u32),
     Coolant(Coolant),
+    ToolLengthCompensation(ToolLengthCompensation),
 }
 
 pub type Program = Vec<Token>;
