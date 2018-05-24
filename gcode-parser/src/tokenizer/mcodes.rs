@@ -9,18 +9,22 @@ pub enum SpindleRotation {
     Stop,
 }
 
-named!(pub tool_change<CompleteByteSlice, Token>,
+named!(tool_change<CompleteByteSlice, Token>,
     map!(tag!("M6"), |_| Token::ToolChange)
 );
 
-named!(pub spindle_rotation<CompleteByteSlice, Token>, map!(
+named!(spindle_rotation<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(tag_no_case!("M3"), |_| SpindleRotation::Cw) |
+        map!(terminated!(tag_no_case!("M3"), not!(char!('0'))), |_| SpindleRotation::Cw) |
         map!(tag_no_case!("M4"), |_| SpindleRotation::Ccw) |
         map!(tag_no_case!("M5"), |_| SpindleRotation::Stop)
     ),
     |res| Token::SpindleRotation(res)
 ));
+
+named!(pub mcode<CompleteByteSlice, Token>,
+    alt_complete!(tool_change | spindle_rotation)
+);
 
 #[cfg(test)]
 mod tests {
@@ -50,6 +54,15 @@ mod tests {
         check_token(
             spindle_rotation(Cbs(b"M5")),
             Token::SpindleRotation(SpindleRotation::Stop),
+        );
+
+        // It gets confused with M30
+        assert_eq!(
+            spindle_rotation(Cbs(b"M30")),
+            Err(nom::Err::Error(nom::simple_errors::Context::Code(
+                CompleteByteSlice(b"M30"),
+                nom::ErrorKind::Alt
+            )))
         );
     }
 

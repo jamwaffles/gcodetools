@@ -3,17 +3,23 @@ use nom::types::CompleteByteSlice;
 use super::Token;
 use super::helpers::*;
 
-named!(pub tool_number<CompleteByteSlice, Token>,
+named!(tool_number<CompleteByteSlice, Token>,
     map!(call!(preceded_u32, "T"), |res| Token::ToolSelect(res))
 );
 
-named!(pub spindle_speed<CompleteByteSlice, Token>, map!(
+named!(spindle_speed<CompleteByteSlice, Token>, map!(
     call!(preceded_i32, "S"), |res| Token::SpindleSpeed(res)
 ));
 
-named!(pub feedrate<CompleteByteSlice, Token>, map!(
+named!(feedrate<CompleteByteSlice, Token>, map!(
     call!(preceded_f32, "F"), |res| Token::FeedRate(res)
 ));
+
+named!(pub othercode<CompleteByteSlice, Token>,
+    alt_complete!(
+        tool_number | spindle_speed | feedrate
+    )
+);
 
 #[cfg(test)]
 mod tests {

@@ -32,35 +32,30 @@ pub enum Token {
     DistanceMode(DistanceMode),
     PathBlending(PathBlending),
     CutterCompensation(CutterCompensation),
-    RapidMove(Vec9),
-    LinearMove(Vec9),
+    RapidMove,
+    LinearMove,
+    Coord(Vec9),
     ToolSelect(u32),
     ToolChange,
     PlaneSelect(Plane),
     SpindleRotation(SpindleRotation),
     SpindleSpeed(i32),
+    FeedRate(f32),
 }
 
 pub type Program = Vec<Token>;
 
 named!(token<CompleteByteSlice, Token>,
     alt_complete!(
-        comment |
-        units |
-        distance_mode |
-        path_blending |
-        cutter_compensation |
-        rapid_move |
-        linear_move |
-        tool_number |
-        tool_change |
-        plane_select |
-        spindle_rotation |
-        spindle_speed
+        gcode |
+        mcode |
+        othercode |
+        coord |
+        comment
     )
 );
 
-named!(tokens<CompleteByteSlice, Vec<Token>>, many0!(token));
+named!(tokens<CompleteByteSlice, Vec<Token>>, ws!(many0!(token)));
 
 named!(program<CompleteByteSlice, Program>,
     alt!(
@@ -82,7 +77,7 @@ mod tests {
     #[test]
     fn it_parses_a_program() {
         let input = r#"G21
-G0 x0 y0 z0
+G0 f500 x0 y0 z0
 G1 Z10
 M2
 "#;
@@ -93,13 +88,16 @@ M2
                 EMPTY,
                 vec![
                     Token::Units(Units::Mm),
-                    Token::RapidMove(Vec9 {
+                    Token::RapidMove,
+                    Token::FeedRate(500.0f32),
+                    Token::Coord(Vec9 {
                         x: Some(0.0),
                         y: Some(0.0),
                         z: Some(0.0),
                         ..Default::default()
                     }),
-                    Token::LinearMove(Vec9 {
+                    Token::LinearMove,
+                    Token::Coord(Vec9 {
                         z: Some(10.0),
                         ..Default::default()
                     }),
@@ -122,13 +120,15 @@ M30
                 EMPTY,
                 vec![
                     Token::Units(Units::Mm),
-                    Token::RapidMove(Vec9 {
+                    Token::RapidMove,
+                    Token::Coord(Vec9 {
                         x: Some(0.0),
                         y: Some(0.0),
                         z: Some(0.0),
                         ..Default::default()
                     }),
-                    Token::LinearMove(Vec9 {
+                    Token::LinearMove,
+                    Token::Coord(Vec9 {
                         z: Some(10.0),
                         ..Default::default()
                     }),
@@ -156,13 +156,15 @@ G0 Z10
                 Cbs(b"G0 Z10\n"),
                 vec![
                     Token::Units(Units::Mm),
-                    Token::RapidMove(Vec9 {
+                    Token::RapidMove,
+                    Token::Coord(Vec9 {
                         x: Some(0.0),
                         y: Some(0.0),
                         z: Some(0.0),
                         ..Default::default()
                     }),
-                    Token::LinearMove(Vec9 {
+                    Token::LinearMove,
+                    Token::Coord(Vec9 {
                         z: Some(10.0),
                         ..Default::default()
                     }),

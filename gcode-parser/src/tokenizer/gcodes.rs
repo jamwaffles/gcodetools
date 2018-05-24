@@ -37,7 +37,7 @@ pub enum Plane {
     Vw,
 }
 
-named!(pub units<CompleteByteSlice, Token>, map!(
+named!(units<CompleteByteSlice, Token>, map!(
     alt!(
         map!(tag_no_case!("G20"), |_| Units::Inch) |
         map!(tag_no_case!("G21"), |_| Units::Mm)
@@ -45,7 +45,7 @@ named!(pub units<CompleteByteSlice, Token>, map!(
     |res| Token::Units(res)
 ));
 
-named!(pub distance_mode<CompleteByteSlice, Token>, map!(
+named!(distance_mode<CompleteByteSlice, Token>, map!(
     alt!(
         map!(tag_no_case!("G90"), |_| DistanceMode::Absolute) |
         map!(tag_no_case!("G91"), |_| DistanceMode::Incremental)
@@ -53,7 +53,7 @@ named!(pub distance_mode<CompleteByteSlice, Token>, map!(
     |res| Token::DistanceMode(res)
 ));
 
-named!(pub path_blending<CompleteByteSlice, Token>, ws!(
+named!(path_blending<CompleteByteSlice, Token>, ws!(
     do_parse!(
         tag_no_case!("G64") >>
         p: opt!(call!(preceded_f32, "P")) >>
@@ -63,7 +63,7 @@ named!(pub path_blending<CompleteByteSlice, Token>, ws!(
     )
 ));
 
-named!(pub cutter_compensation<CompleteByteSlice, Token>,
+named!(cutter_compensation<CompleteByteSlice, Token>,
     map!(
         alt!(
             map!(tag_no_case!("G40"), |_| CutterCompensation::Off)
@@ -72,15 +72,15 @@ named!(pub cutter_compensation<CompleteByteSlice, Token>,
     )
 );
 
-named!(pub rapid_move<CompleteByteSlice, Token>,
-    map!(ws!(preceded!(tag!("G0"), vec9)), |res| Token::RapidMove(res))
+named!(rapid_move<CompleteByteSlice, Token>,
+    map!(tag!("G0"), |_| Token::RapidMove)
 );
 
-named!(pub linear_move<CompleteByteSlice, Token>,
-    map!(ws!(preceded!(tag!("G1"), vec9)), |res| Token::LinearMove(res))
+named!(linear_move<CompleteByteSlice, Token>,
+    map!(tag!("G1"), |_| Token::LinearMove)
 );
 
-named!(pub plane_select<CompleteByteSlice, Token>, map!(
+named!(plane_select<CompleteByteSlice, Token>, map!(
     alt!(
         map!(tag_no_case!("G17.1"), |_| Plane::Uv) |
         map!(tag_no_case!("G18.1"), |_| Plane::Wu) |
@@ -91,6 +91,18 @@ named!(pub plane_select<CompleteByteSlice, Token>, map!(
     ),
     |res| Token::PlaneSelect(res)
 ));
+
+named!(pub gcode<CompleteByteSlice, Token>,
+    alt_complete!(
+        plane_select |
+        units |
+        distance_mode |
+        path_blending |
+        cutter_compensation |
+        rapid_move |
+        linear_move
+    )
+);
 
 #[cfg(test)]
 mod tests {
@@ -119,28 +131,12 @@ mod tests {
 
     #[test]
     fn it_parses_rapids() {
-        check_token(
-            rapid_move(Cbs(b"G0 X0 Y1 Z2")),
-            Token::RapidMove(Vec9 {
-                x: Some(0.0f32),
-                y: Some(1.0f32),
-                z: Some(2.0f32),
-                ..Default::default()
-            }),
-        );
+        check_token(rapid_move(Cbs(b"G0")), Token::RapidMove);
     }
 
     #[test]
     fn it_parses_linear_moves() {
-        check_token(
-            linear_move(Cbs(b"G1 X0 Y1 Z2")),
-            Token::LinearMove(Vec9 {
-                x: Some(0.0f32),
-                y: Some(1.0f32),
-                z: Some(2.0f32),
-                ..Default::default()
-            }),
-        );
+        check_token(linear_move(Cbs(b"G1")), Token::LinearMove);
     }
 
     #[test]

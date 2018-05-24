@@ -48,6 +48,11 @@ named_args!(
 );
 
 named_args!(
+    pub preceded_one_of_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, (char, f32)>,
+    tuple!(one_of!(preceding), flat_map!(recognize!(recognize_float), parse_to!(f32)))
+);
+
+named_args!(
     pub preceded_i32<'a>(preceding: &str)<CompleteByteSlice<'a>, i32>,
     flat_map!(preceded!(tag_no_case!(preceding), recognize!(preceded!(opt!(one_of!("+-")), digit))), parse_to!(i32))
 );
@@ -59,30 +64,32 @@ named_args!(
 
 named!(
     pub vec9<CompleteByteSlice, Vec9>,
-    ws!(do_parse!(
-        x: opt!(call!(preceded_f32, "X")) >>
-        y: opt!(call!(preceded_f32, "Y")) >>
-        z: opt!(call!(preceded_f32, "Z")) >>
-        a: opt!(call!(preceded_f32, "A")) >>
-        b: opt!(call!(preceded_f32, "B")) >>
-        c: opt!(call!(preceded_f32, "C")) >>
-        u: opt!(call!(preceded_f32, "U")) >>
-        v: opt!(call!(preceded_f32, "V")) >>
-        w: opt!(call!(preceded_f32, "W")) >>
-        r: opt!(call!(preceded_f32, "R")) >>
-        (Vec9 {
-            x,
-            y,
-            z,
-            a,
-            b,
-            c,
-            u,
-            v,
-            w,
-            r,
-        })
-    ))
+    map!(
+        ws!(many1!(call!(preceded_one_of_f32, "XYZABCUVWxyzabcuvw"))),
+        |res| {
+            res.iter().fold(Vec9 { ..Default::default() }, |mut acc, (axis, value)| {
+                match axis.to_ascii_uppercase() {
+                    'X' => acc.x = Some(*value),
+                    'Y' => acc.y = Some(*value),
+                    'Z' => acc.z = Some(*value),
+                    'A' => acc.a = Some(*value),
+                    'B' => acc.b = Some(*value),
+                    'C' => acc.c = Some(*value),
+                    'U' => acc.u = Some(*value),
+                    'V' => acc.v = Some(*value),
+                    'W' => acc.w = Some(*value),
+                    _ => ()
+                }
+
+                acc
+            })
+        }
+    )
+);
+
+named!(
+    pub coord<CompleteByteSlice, Token>,
+    map!(vec9, |res| Token::Coord(res))
 );
 
 #[cfg(test)]
@@ -117,6 +124,19 @@ mod tests {
     fn it_parses_vectors() {
         assert_eq!(
             vec9(Cbs(b"X0 Y1 Z2")),
+            Ok((
+                EMPTY,
+                Vec9 {
+                    x: Some(0.0f32),
+                    y: Some(1.0f32),
+                    z: Some(2.0f32),
+                    ..Default::default()
+                }
+            ))
+        );
+
+        assert_eq!(
+            vec9(Cbs(b"X0Y1Z2")),
             Ok((
                 EMPTY,
                 Vec9 {
