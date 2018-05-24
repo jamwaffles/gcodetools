@@ -9,8 +9,27 @@ pub enum SpindleRotation {
     Stop,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum Coolant {
+    Mist,
+    Flood,
+    Off,
+}
+
 named!(tool_change<CompleteByteSlice, Token>,
     map!(tag!("M6"), |_| Token::ToolChange)
+);
+
+named!(mist_coolant<CompleteByteSlice, Token>,
+    map!(tag!("M7"), |_| Token::Coolant(Coolant::Mist))
+);
+
+named!(flood_coolant<CompleteByteSlice, Token>,
+    map!(tag!("M8"), |_| Token::Coolant(Coolant::Flood))
+);
+
+named!(disable_coolant<CompleteByteSlice, Token>,
+    map!(tag!("M9"), |_| Token::Coolant(Coolant::Off))
 );
 
 named!(spindle_rotation<CompleteByteSlice, Token>, map!(
@@ -23,7 +42,7 @@ named!(spindle_rotation<CompleteByteSlice, Token>, map!(
 ));
 
 named!(pub mcode<CompleteByteSlice, Token>,
-    alt_complete!(tool_change | spindle_rotation)
+    alt_complete!(tool_change | spindle_rotation | mist_coolant | flood_coolant | disable_coolant)
 );
 
 #[cfg(test)]
@@ -39,6 +58,13 @@ mod tests {
         against: Token,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
+    }
+
+    #[test]
+    fn it_parses_coolant() {
+        check_token(mist_coolant(Cbs(b"M7")), Token::Coolant(Coolant::Mist));
+        check_token(flood_coolant(Cbs(b"M8")), Token::Coolant(Coolant::Flood));
+        check_token(disable_coolant(Cbs(b"M9")), Token::Coolant(Coolant::Off));
     }
 
     #[test]

@@ -42,6 +42,7 @@ pub enum Token {
     SpindleSpeed(i32),
     FeedRate(f32),
     LineNumber(u32),
+    Coolant(Coolant),
 }
 
 pub type Program = Vec<Token>;
