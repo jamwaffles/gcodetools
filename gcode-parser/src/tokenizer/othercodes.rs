@@ -11,6 +11,10 @@ named!(pub spindle_speed<CompleteByteSlice, Token>, map!(
     call!(preceded_i32, "S"), |res| Token::SpindleSpeed(res)
 ));
 
+named!(pub feedrate<CompleteByteSlice, Token>, map!(
+    call!(preceded_f32, "F"), |res| Token::FeedRate(res)
+));
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -24,6 +28,13 @@ mod tests {
         against: Token,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
+    }
+
+    #[test]
+    fn it_parses_feed_rate() {
+        check_token(feedrate(Cbs(b"F100")), Token::FeedRate(100.0f32));
+        check_token(feedrate(Cbs(b"F36.4")), Token::FeedRate(36.4f32));
+        check_token(feedrate(Cbs(b"F-200")), Token::FeedRate(-200.0f32));
     }
 
     #[test]
