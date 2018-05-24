@@ -210,4 +210,32 @@ G0 Z10
             ))
         );
     }
+
+    #[test]
+    fn it_parses_distinct_moves() {
+        let moves = r#"G1 x10 y20
+x20 y30 M2"#;
+
+        let moves_program = program(Cbs(moves.as_bytes()));
+
+        assert_eq!(
+            moves_program,
+            Ok((
+                EMPTY,
+                vec![
+                    Token::LinearMove,
+                    Token::Coord(Vec9 {
+                        x: Some(10.0),
+                        y: Some(20.0),
+                        ..Default::default()
+                    }),
+                    Token::Coord(Vec9 {
+                        x: Some(20.0),
+                        y: Some(30.0),
+                        ..Default::default()
+                    }),
+                ]
+            ))
+        );
+    }
 }
