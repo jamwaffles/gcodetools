@@ -1,6 +1,5 @@
 (This is un-tested.  Riley)
 G20 G90 G54
-G28.2 x0 y0
 G55	(zero st center of table)
 G0 x0 y0 (position to center)
 N1 (CNC Spirograph)
