@@ -60,6 +60,7 @@ pub enum Token {
     WorkOffset(WorkOffset),
     Dwell(f32),
     CoordinateSystemOffset,
+    FeedrateMode(FeedrateMode),
 }
 
 /// List of parsed GCode tokens

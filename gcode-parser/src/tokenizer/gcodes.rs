@@ -49,6 +49,13 @@ pub enum WorkOffset {
     G54,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum FeedrateMode {
+    InverseTime,
+    UnitsPerMinute,
+    UnitsPerRevolution,
+}
+
 named!(units<CompleteByteSlice, Token>, map!(
     alt!(
         map!(call!(g, 20.0), |_| Units::Inch) |
@@ -151,6 +158,15 @@ named!(dwell<CompleteByteSlice, Token>, map!(
     |res| Token::Dwell(res)
 ));
 
+named!(feedrate_mode<CompleteByteSlice, Token>, map!(
+    alt!(
+        map!(call!(g, 93.0), |_| FeedrateMode::InverseTime) |
+        map!(call!(g, 94.0), |_| FeedrateMode::UnitsPerMinute) |
+        map!(call!(g, 95.0), |_| FeedrateMode::UnitsPerRevolution)
+    ),
+    |res| Token::FeedrateMode(res)
+));
+
 named!(pub gcode<CompleteByteSlice, Token>,
     alt_complete!(
         plane_select |
@@ -166,7 +182,8 @@ named!(pub gcode<CompleteByteSlice, Token>,
         canned_cycle |
         work_offset |
         dwell |
-        coordinate_system_offset
+        coordinate_system_offset |
+        feedrate_mode
     )
 );
 
@@ -292,5 +309,21 @@ mod tests {
     #[test]
     fn it_parses_canned_cycles() {
         check_token(canned_cycle(Cbs(b"G80")), Token::CancelCannedCycle);
+    }
+
+    #[test]
+    fn it_parses_feedrate_mode() {
+        check_token(
+            feedrate_mode(Cbs(b"G93")),
+            Token::FeedrateMode(FeedrateMode::InverseTime),
+        );
+        check_token(
+            feedrate_mode(Cbs(b"G94")),
+            Token::FeedrateMode(FeedrateMode::UnitsPerMinute),
+        );
+        check_token(
+            feedrate_mode(Cbs(b"G95")),
+            Token::FeedrateMode(FeedrateMode::UnitsPerRevolution),
+        );
     }
 }
