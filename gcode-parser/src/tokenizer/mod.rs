@@ -66,12 +66,19 @@ named!(token<CompleteByteSlice, Token>,
 
 named!(tokens<CompleteByteSlice, Vec<Token>>, ws!(many0!(token)));
 
-named!(program<CompleteByteSlice, Program>,
-    alt!(
-        ws!(delimited!(tag!("%"), tokens, tag!("%"))) |
-        ws!(terminated!(tokens, alt_complete!(tag!("M30") | tag!("M2"))))
+named!(program<CompleteByteSlice, Program>, ws!(
+    preceded!(
+        opt!(tag!("%")),
+        terminated!(
+            tokens,
+            many1!(alt_complete!(
+                recognize!(call!(m, 2.0)) |
+                recognize!(call!(m, 30.0)) |
+                recognize!(tag!("%"))
+            ))
+        )
     )
-);
+));
 
 // Note: programs are either dlimited by % signs or stop at M2/M30. Anything after a trailing %/M2/
 // M30 MUST be ignored
@@ -83,6 +90,24 @@ mod tests {
     use nom::types::CompleteByteSlice as Cbs;
 
     const EMPTY: Cbs = Cbs(b"");
+
+    #[test]
+    fn it_handles_program_endings() {
+        let programs = vec![
+            "%\nG0 Z0\n%\n",
+            "G0 Z0\n%\n",
+            "G0 Z0\nM2\n",
+            "G0 Z0\nM30\n",
+            "G0 Z0\nM30\n%\n",
+            "G0 Z0\nM2\n%\n",
+            "%\nG0 Z0\nM30\n%\n",
+            "%\nG0 Z0\nM2\n%\n",
+        ];
+
+        for p in programs {
+            assert!(program(Cbs(p.as_bytes())).is_ok());
+        }
+    }
 
     #[test]
     fn it_parses_programs_with_line_numbers() {
