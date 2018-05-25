@@ -84,7 +84,11 @@ pub fn test_parse(filepath: &Path) -> Result<(), String> {
     match out {
         Ok((rest, _parsed)) => {
             if rest.len() > 0 {
-                Err(format!("{} remaining bytes to parse", rest.len()))
+                Err(format!(
+                    "{} remaining bytes to parse: {:?}",
+                    rest.len(),
+                    String::from_utf8(rest.to_vec()).unwrap_or("(error)".to_string())
+                ))
             } else {
                 Ok(())
             }
