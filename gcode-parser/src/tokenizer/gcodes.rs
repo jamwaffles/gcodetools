@@ -17,9 +17,10 @@ pub enum DistanceMode {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct PathBlending {
-    pub p: Option<f32>,
-    pub q: Option<f32>,
+pub enum PathBlendingMode {
+    Blended((Option<f32>, Option<f32>)),
+    ExactPath,
+    // ExactStop,
 }
 
 #[derive(Debug, PartialEq)]
@@ -43,6 +44,11 @@ pub enum ToolLengthCompensation {
     ToolNumberOffset,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum WorkOffset {
+    G54,
+}
+
 named!(units<CompleteByteSlice, Token>, map!(
     alt!(
         map!(call!(g, 20.0), |_| Units::Inch) |
@@ -59,14 +65,18 @@ named!(distance_mode<CompleteByteSlice, Token>, map!(
     |res| Token::DistanceMode(res)
 ));
 
-named!(path_blending<CompleteByteSlice, Token>, ws!(
-    do_parse!(
-        call!(g, 64.0) >>
-        p: opt!(call!(preceded_f32, "P")) >>
-        q: opt!(call!(preceded_f32, "Q")) >> ({
-            Token::PathBlending(PathBlending { p, q })
-        })
-    )
+named!(path_blending<CompleteByteSlice, Token>, map!(
+    alt!(
+        ws!(do_parse!(
+            call!(g, 64.0) >>
+            p: opt!(call!(preceded_f32, "P")) >>
+            q: opt!(call!(preceded_f32, "Q")) >> ({
+                PathBlendingMode::Blended((p, q))
+            })
+        )) |
+        map!(call!(g, 61.0), |_| PathBlendingMode::ExactPath)
+    ),
+    |res| Token::PathBlendingMode(res)
 ));
 
 named!(cutter_compensation<CompleteByteSlice, Token>,
@@ -120,6 +130,27 @@ named!(canned_cycle<CompleteByteSlice, Token>,
     )
 );
 
+named!(coordinate_system_offset<CompleteByteSlice, Token>,
+    alt!(
+        map!(call!(g, 92.0), |_| Token::CoordinateSystemOffset)
+    )
+);
+
+named!(work_offset<CompleteByteSlice, Token>, map!(
+    alt!(
+        map!(call!(g, 54.0), |_| WorkOffset::G54)
+    ),
+    |res| Token::WorkOffset(res)
+));
+
+named!(dwell<CompleteByteSlice, Token>, map!(
+    ws!(preceded!(
+        call!(g, 4.0),
+        call!(preceded_f32, "P")
+    )),
+    |res| Token::Dwell(res)
+));
+
 named!(pub gcode<CompleteByteSlice, Token>,
     alt_complete!(
         plane_select |
@@ -132,7 +163,10 @@ named!(pub gcode<CompleteByteSlice, Token>,
         tool_length_compensation |
         cw_arc |
         ccw_arc |
-        canned_cycle
+        canned_cycle |
+        work_offset |
+        dwell |
+        coordinate_system_offset
     )
 );
 
@@ -159,6 +193,20 @@ mod tests {
         check_token(plane_select(Cbs(b"G17.1")), Token::PlaneSelect(Plane::Uv));
         check_token(plane_select(Cbs(b"G18.1")), Token::PlaneSelect(Plane::Wu));
         check_token(plane_select(Cbs(b"G19.1")), Token::PlaneSelect(Plane::Vw));
+    }
+
+    #[test]
+    fn it_parses_dwells() {
+        check_token(dwell(Cbs(b"G04 P10")), Token::Dwell(10.0));
+        check_token(dwell(Cbs(b"G04 P3")), Token::Dwell(3.0));
+        check_token(dwell(Cbs(b"G04 P0.5")), Token::Dwell(0.5));
+        check_token(dwell(Cbs(b"G4 P0.5")), Token::Dwell(0.5));
+        check_token(dwell(Cbs(b"g4p0.5")), Token::Dwell(0.5));
+    }
+
+    #[test]
+    fn it_parses_work_offsets() {
+        check_token(work_offset(Cbs(b"G54")), Token::WorkOffset(WorkOffset::G54));
     }
 
     #[test]
@@ -202,29 +250,23 @@ mod tests {
     fn it_parses_blending_mode() {
         check_token(
             path_blending(Cbs(b"G64")),
-            Token::PathBlending(PathBlending { p: None, q: None }),
+            Token::PathBlendingMode(PathBlendingMode::Blended((None, None))),
         );
 
         check_token(
             path_blending(Cbs(b"G64 P0.01")),
-            Token::PathBlending(PathBlending {
-                p: Some(0.01f32),
-                q: None,
-            }),
+            Token::PathBlendingMode(PathBlendingMode::Blended((Some(0.01f32), None))),
         );
 
         check_token(
             path_blending(Cbs(b"G64 P0.01 Q0.02")),
-            Token::PathBlending(PathBlending {
-                p: Some(0.01f32),
-                q: Some(0.02f32),
-            }),
+            Token::PathBlendingMode(PathBlendingMode::Blended((Some(0.01f32), Some(0.02f32)))),
         );
 
         // TODO
         // check_token(
         //     path_blending(Cbs(b"G64 Q0.02")),
-        //     Token::PathBlending(PathBlending { p: None, q: None })
+        //     Token::PathBlendingMode(PathBlendingMode { p: None, q: None })
         // );
     }
 
