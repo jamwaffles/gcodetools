@@ -14,7 +14,6 @@ pub struct Vec9 {
     pub u: Option<f32>,
     pub v: Option<f32>,
     pub w: Option<f32>,
-    pub r: Option<f32>,
 }
 
 impl Default for Vec9 {
@@ -29,7 +28,6 @@ impl Default for Vec9 {
             u: None,
             v: None,
             w: None,
-            r: None,
         }
     }
 }
@@ -48,11 +46,6 @@ named_args!(
 );
 
 named_args!(
-    pub preceded_one_of_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, (char, f32)>,
-    tuple!(one_of!(preceding), flat_map!(recognize!(recognize_float), parse_to!(f32)))
-);
-
-named_args!(
     pub preceded_i32<'a>(preceding: &str)<CompleteByteSlice<'a>, i32>,
     flat_map!(preceded!(tag_no_case!(preceding), recognize!(preceded!(opt!(one_of!("+-")), digit))), parse_to!(i32))
 );
@@ -64,25 +57,39 @@ named_args!(
 
 named!(
     pub vec9<CompleteByteSlice, Vec9>,
-    map!(
-        ws!(many1!(call!(preceded_one_of_f32, "XYZABCUVWxyzabcuvw"))),
-        |res| {
-            res.iter().fold(Vec9 { ..Default::default() }, |mut acc, (axis, value)| {
-                match axis.to_ascii_uppercase() {
-                    'X' => acc.x = Some(*value),
-                    'Y' => acc.y = Some(*value),
-                    'Z' => acc.z = Some(*value),
-                    'A' => acc.a = Some(*value),
-                    'B' => acc.b = Some(*value),
-                    'C' => acc.c = Some(*value),
-                    'U' => acc.u = Some(*value),
-                    'V' => acc.v = Some(*value),
-                    'W' => acc.w = Some(*value),
-                    _ => ()
+    map_res!(
+        ws!(do_parse!(
+            x: opt!(call!(preceded_f32, "X")) >>
+            y: opt!(call!(preceded_f32, "Y")) >>
+            z: opt!(call!(preceded_f32, "Z")) >>
+            a: opt!(call!(preceded_f32, "A")) >>
+            b: opt!(call!(preceded_f32, "B")) >>
+            c: opt!(call!(preceded_f32, "C")) >>
+            u: opt!(call!(preceded_f32, "U")) >>
+            v: opt!(call!(preceded_f32, "V")) >>
+            w: opt!(call!(preceded_f32, "W")) >>
+            (
+                Vec9 {
+                    x,
+                    y,
+                    z,
+                    a,
+                    b,
+                    c,
+                    u,
+                    v,
+                    w,
                 }
+            )
+        )),
+        |vec| {
+            let empty = Vec9 { ..Default::default() };
 
-                acc
-            })
+            if vec == empty {
+                Err(())
+            } else {
+                Ok(vec)
+            }
         }
     )
 );
@@ -180,6 +187,18 @@ mod tests {
                     u: Some(2.5f32),
                     v: Some(3.5f32),
                     w: Some(4.5f32),
+                    ..Default::default()
+                }
+            ))
+        );
+
+        assert_eq!(
+            vec9(Cbs(b"X10 Y20 X30 Y40")),
+            Ok((
+                Cbs(b"X30 Y40"),
+                Vec9 {
+                    x: Some(10.0f32),
+                    y: Some(20.0f32),
                     ..Default::default()
                 }
             ))

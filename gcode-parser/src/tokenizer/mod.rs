@@ -63,7 +63,7 @@ named!(tokens<CompleteByteSlice, Vec<Token>>, ws!(many0!(token)));
 named!(program<CompleteByteSlice, Program>,
     alt!(
         ws!(delimited!(tag!("%"), tokens, tag!("%"))) |
-        ws!(terminated!(tokens, alt!(tag!("M30") | tag!("M2"))))
+        ws!(terminated!(tokens, alt_complete!(tag!("M30") | tag!("M2"))))
     )
 );
 
@@ -214,7 +214,10 @@ G0 Z10
     #[test]
     fn it_parses_distinct_moves() {
         let moves = r#"G1 x10 y20
-x20 y30 M2"#;
+x20 y30
+G0 y30 z10
+y40 z20
+M2"#;
 
         let moves_program = program(Cbs(moves.as_bytes()));
 
@@ -232,6 +235,17 @@ x20 y30 M2"#;
                     Token::Coord(Vec9 {
                         x: Some(20.0),
                         y: Some(30.0),
+                        ..Default::default()
+                    }),
+                    Token::RapidMove,
+                    Token::Coord(Vec9 {
+                        y: Some(30.0),
+                        z: Some(10.0),
+                        ..Default::default()
+                    }),
+                    Token::Coord(Vec9 {
+                        y: Some(40.0),
+                        z: Some(20.0),
                         ..Default::default()
                     }),
                 ]
