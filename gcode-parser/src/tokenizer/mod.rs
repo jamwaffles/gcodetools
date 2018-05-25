@@ -1,3 +1,4 @@
+mod arc;
 mod gcodes;
 mod helpers;
 mod mcodes;
@@ -6,6 +7,7 @@ mod othercodes;
 use nom;
 use nom::types::CompleteByteSlice;
 
+use self::arc::*;
 use self::gcodes::*;
 use self::helpers::*;
 use self::mcodes::*;
@@ -34,6 +36,7 @@ pub enum Token {
     CutterCompensation(CutterCompensation),
     RapidMove,
     LinearMove,
+    CenterFormatArc(CenterFormatArc),
     Coord(Vec9),
     ToolSelect(u32),
     ToolChange,
@@ -44,6 +47,8 @@ pub enum Token {
     LineNumber(u32),
     Coolant(Coolant),
     ToolLengthCompensation(ToolLengthCompensation),
+    ClockwiseArc,
+    CounterclockwiseArc,
 }
 
 pub type Program = Vec<Token>;
@@ -53,6 +58,7 @@ named!(token<CompleteByteSlice, Token>,
         gcode |
         mcode |
         othercode |
+        center_format_arc |
         coord |
         comment
     )
@@ -70,6 +76,7 @@ named!(program<CompleteByteSlice, Program>,
 // Note: programs are either dlimited by % signs or stop at M2/M30. Anything after a trailing %/M2/
 // M30 MUST be ignored
 
+// TODO: Move these tests out into the tests/ folder
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -246,6 +253,31 @@ M2"#;
                     Token::Coord(Vec9 {
                         y: Some(40.0),
                         z: Some(20.0),
+                        ..Default::default()
+                    }),
+                ]
+            ))
+        );
+    }
+
+    #[test]
+    fn it_parses_arcs() {
+        let arcs = r#"G2X5.0417Y1.9427I-0.3979J0.3028
+M2"#;
+
+        let arcs_program = program(Cbs(arcs.as_bytes()));
+
+        assert_eq!(
+            arcs_program,
+            Ok((
+                EMPTY,
+                vec![
+                    Token::ClockwiseArc,
+                    Token::CenterFormatArc(CenterFormatArc {
+                        x: Some(5.0417),
+                        y: Some(1.9427),
+                        i: Some(-0.3979),
+                        j: Some(0.3028),
                         ..Default::default()
                     }),
                 ]

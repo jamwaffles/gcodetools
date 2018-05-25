@@ -85,6 +85,14 @@ named!(linear_move<CompleteByteSlice, Token>,
     map!(tag!("G1"), |_| Token::LinearMove)
 );
 
+named!(clockwise_arc<CompleteByteSlice, Token>,
+    map!(tag!("G2"), |_| Token::ClockwiseArc)
+);
+
+named!(counterclockwise_arc<CompleteByteSlice, Token>,
+    map!(tag!("G3"), |_| Token::CounterclockwiseArc)
+);
+
 named!(plane_select<CompleteByteSlice, Token>, map!(
     alt!(
         map!(tag_no_case!("G17.1"), |_| Plane::Uv) |
@@ -113,7 +121,9 @@ named!(pub gcode<CompleteByteSlice, Token>,
         cutter_compensation |
         rapid_move |
         linear_move |
-        tool_length_compensation
+        tool_length_compensation |
+        clockwise_arc |
+        counterclockwise_arc
     )
 );
 
