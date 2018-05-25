@@ -61,6 +61,7 @@ pub enum Token {
     Dwell(f32),
     CoordinateSystemOffset,
     FeedrateMode(FeedrateMode),
+    GoToPredefinedPosition,
 }
 
 /// List of parsed GCode tokens

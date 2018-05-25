@@ -167,6 +167,10 @@ named!(feedrate_mode<CompleteByteSlice, Token>, map!(
     |res| Token::FeedrateMode(res)
 ));
 
+named!(go_to_predefined_position<CompleteByteSlice, Token>,
+    map!(call!(g, 28.0), |_| Token::GoToPredefinedPosition)
+);
+
 named!(pub gcode<CompleteByteSlice, Token>,
     alt_complete!(
         plane_select |
@@ -183,7 +187,8 @@ named!(pub gcode<CompleteByteSlice, Token>,
         work_offset |
         dwell |
         coordinate_system_offset |
-        feedrate_mode
+        feedrate_mode |
+        go_to_predefined_position
     )
 );
 
@@ -324,6 +329,14 @@ mod tests {
         check_token(
             feedrate_mode(Cbs(b"G95")),
             Token::FeedrateMode(FeedrateMode::UnitsPerRevolution),
+        );
+    }
+
+    #[test]
+    fn it_goes_to_predefined_position() {
+        check_token(
+            go_to_predefined_position(Cbs(b"G28")),
+            Token::GoToPredefinedPosition,
         );
     }
 }
