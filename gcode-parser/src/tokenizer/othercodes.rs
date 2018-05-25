@@ -8,7 +8,7 @@ named!(tool_number<CompleteByteSlice, Token>,
 );
 
 named!(spindle_speed<CompleteByteSlice, Token>, map!(
-    call!(preceded_i32, "S"), |res| Token::SpindleSpeed(res)
+    call!(preceded_f32, "S"), |res| Token::SpindleSpeed(res as i32)
 ));
 
 named!(feedrate<CompleteByteSlice, Token>, map!(
@@ -55,6 +55,10 @@ mod tests {
     fn it_parses_spindle_speed() {
         check_token(spindle_speed(Cbs(b"S0")), Token::SpindleSpeed(0i32));
         check_token(spindle_speed(Cbs(b"S1000")), Token::SpindleSpeed(1000i32));
+        check_token(
+            spindle_speed(Cbs(b"S1000.0000")),
+            Token::SpindleSpeed(1000i32),
+        );
         check_token(spindle_speed(Cbs(b"S-250")), Token::SpindleSpeed(-250i32));
     }
 
