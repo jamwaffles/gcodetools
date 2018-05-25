@@ -26,7 +26,7 @@ pub fn collect_source_files(dir: &Path) -> io::Result<Vec<PathBuf>> {
 
             if path.is_file() {
                 match path.extension().unwrap_or(OsStr::new("")).to_str() {
-                    Some("ngc") | Some("gcode") | Some("nc") | Some("txt") => {
+                    Some("ngc") | Some("gcode") | Some("nc") | Some("txt") | Some("tap") => {
                         files.push(path.to_path_buf())
                     }
                     _ => (),
