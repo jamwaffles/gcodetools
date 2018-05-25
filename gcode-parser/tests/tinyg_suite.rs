@@ -11,7 +11,7 @@ use helpers::*;
 
 #[test]
 fn it_parses_all_tinyg_samples() {
-    let dir = Path::new("./tests/tinyg/gcode_samples")
+    let dir = Path::new("./tests/test_files/tinyg")
         .canonicalize()
         .unwrap();
 
