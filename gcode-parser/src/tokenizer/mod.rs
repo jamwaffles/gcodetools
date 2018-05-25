@@ -63,6 +63,7 @@ pub enum Token {
     FeedrateMode(FeedrateMode),
     GoToPredefinedPosition,
     StorePredefinedPosition,
+    Pause,
 }
 
 /// List of parsed GCode tokens

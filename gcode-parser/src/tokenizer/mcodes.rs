@@ -17,6 +17,10 @@ pub enum Coolant {
     Off,
 }
 
+named!(pause<CompleteByteSlice, Token>,
+    map!(call!(m, 0.0), |_| Token::Pause)
+);
+
 named!(tool_change<CompleteByteSlice, Token>,
     map!(call!(m, 6.0), |_| Token::ToolChange)
 );
@@ -43,7 +47,14 @@ named!(spindle_rotation<CompleteByteSlice, Token>, map!(
 ));
 
 named!(pub mcode<CompleteByteSlice, Token>,
-    alt_complete!(tool_change | spindle_rotation | mist_coolant | flood_coolant | disable_coolant)
+    alt_complete!(
+        tool_change |
+        spindle_rotation |
+        mist_coolant |
+        flood_coolant |
+        disable_coolant |
+        pause
+    )
 );
 
 #[cfg(test)]
@@ -59,6 +70,12 @@ mod tests {
         against: Token,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
+    }
+
+    #[test]
+    fn it_parses_pauses() {
+        check_token(pause(Cbs(b"M0")), Token::Pause);
+        check_token(pause(Cbs(b"M00")), Token::Pause);
     }
 
     #[test]
