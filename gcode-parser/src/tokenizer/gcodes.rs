@@ -47,6 +47,7 @@ pub enum ToolLengthCompensation {
 #[derive(Debug, PartialEq)]
 pub enum WorkOffset {
     G54,
+    G55,
 }
 
 #[derive(Debug, PartialEq)]
@@ -145,7 +146,8 @@ named!(coordinate_system_offset<CompleteByteSlice, Token>,
 
 named!(work_offset<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(call!(g, 54.0), |_| WorkOffset::G54)
+        map!(call!(g, 54.0), |_| WorkOffset::G54) |
+        map!(call!(g, 55.0), |_| WorkOffset::G55)
     ),
     |res| Token::WorkOffset(res)
 ));
@@ -171,6 +173,10 @@ named!(go_to_predefined_position<CompleteByteSlice, Token>,
     map!(call!(g, 28.0), |_| Token::GoToPredefinedPosition)
 );
 
+named!(store_predefined_position<CompleteByteSlice, Token>,
+    map!(call!(g, 28.1), |_| Token::StorePredefinedPosition)
+);
+
 named!(pub gcode<CompleteByteSlice, Token>,
     alt_complete!(
         plane_select |
@@ -188,7 +194,8 @@ named!(pub gcode<CompleteByteSlice, Token>,
         dwell |
         coordinate_system_offset |
         feedrate_mode |
-        go_to_predefined_position
+        go_to_predefined_position |
+        store_predefined_position
     )
 );
 
@@ -229,6 +236,7 @@ mod tests {
     #[test]
     fn it_parses_work_offsets() {
         check_token(work_offset(Cbs(b"G54")), Token::WorkOffset(WorkOffset::G54));
+        check_token(work_offset(Cbs(b"G55")), Token::WorkOffset(WorkOffset::G55));
     }
 
     #[test]
@@ -337,6 +345,14 @@ mod tests {
         check_token(
             go_to_predefined_position(Cbs(b"G28")),
             Token::GoToPredefinedPosition,
+        );
+    }
+
+    #[test]
+    fn it_stores_predefined_position() {
+        check_token(
+            store_predefined_position(Cbs(b"G28.1")),
+            Token::StorePredefinedPosition,
         );
     }
 }

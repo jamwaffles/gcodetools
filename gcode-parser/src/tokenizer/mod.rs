@@ -62,6 +62,7 @@ pub enum Token {
     CoordinateSystemOffset,
     FeedrateMode(FeedrateMode),
     GoToPredefinedPosition,
+    StorePredefinedPosition,
 }
 
 /// List of parsed GCode tokens
