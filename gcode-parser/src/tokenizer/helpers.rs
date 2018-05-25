@@ -55,6 +55,32 @@ named_args!(
     flat_map!(preceded!(tag_no_case!(preceding), recognize!(digit)), parse_to!(u32))
 );
 
+named_args!(
+    pub preceded_code<'a>(preceding: char, code: f32)<CompleteByteSlice<'a>, (char, f32)>,
+    map_res!(
+        flat_map!(
+            preceded!(tag_no_case!(preceding.to_string().as_str()), recognize_float), parse_to!(f32)
+        ),
+        |res| {
+            if res == code {
+                Ok((preceding.to_ascii_uppercase(), res))
+            } else {
+                Err(())
+            }
+        }
+    )
+);
+
+named_args!(
+    pub g<'a>(c: f32)<CompleteByteSlice<'a>, (char, f32)>,
+    call!(preceded_code, 'G', c)
+);
+
+named_args!(
+    pub m<'a>(c: f32)<CompleteByteSlice<'a>, (char, f32)>,
+    call!(preceded_code, 'M', c)
+);
+
 named!(
     pub vec9<CompleteByteSlice, Vec9>,
     map_res!(
@@ -236,5 +262,33 @@ mod tests {
 
         assert!(preceded_u32(Cbs(b"y-123"), "Y").is_err());
         assert!(preceded_u32(Cbs(b"Y-123"), "Y").is_err());
+    }
+
+    #[test]
+    fn it_parses_preceded_codes() {
+        assert_eq!(
+            preceded_code(Cbs(b"G54"), 'G', 54.0),
+            Ok((EMPTY, ('G', 54.0)))
+        );
+
+        assert_eq!(
+            preceded_code(Cbs(b"G17.1"), 'G', 17.1),
+            Ok((EMPTY, ('G', 17.1)))
+        );
+
+        assert_eq!(
+            preceded_code(Cbs(b"g00"), 'g', 0.0),
+            Ok((EMPTY, ('G', 0.0)))
+        );
+    }
+
+    #[test]
+    fn it_parses_gcodes() {
+        assert_eq!(g(Cbs(b"G54"), 54.0), Ok((EMPTY, ('G', 54.0))));
+    }
+
+    #[test]
+    fn it_parses_mcodes() {
+        assert_eq!(m(Cbs(b"M30"), 30.0), Ok((EMPTY, ('M', 30.0))));
     }
 }

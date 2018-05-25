@@ -1,6 +1,7 @@
 use nom::types::CompleteByteSlice;
 
 use super::Token;
+use super::helpers::*;
 
 #[derive(Debug, PartialEq)]
 pub enum SpindleRotation {
@@ -17,26 +18,26 @@ pub enum Coolant {
 }
 
 named!(tool_change<CompleteByteSlice, Token>,
-    map!(tag!("M6"), |_| Token::ToolChange)
+    map!(call!(m, 6.0), |_| Token::ToolChange)
 );
 
 named!(mist_coolant<CompleteByteSlice, Token>,
-    map!(tag!("M7"), |_| Token::Coolant(Coolant::Mist))
+    map!(call!(m, 7.0), |_| Token::Coolant(Coolant::Mist))
 );
 
 named!(flood_coolant<CompleteByteSlice, Token>,
-    map!(tag!("M8"), |_| Token::Coolant(Coolant::Flood))
+    map!(call!(m, 8.0), |_| Token::Coolant(Coolant::Flood))
 );
 
 named!(disable_coolant<CompleteByteSlice, Token>,
-    map!(tag!("M9"), |_| Token::Coolant(Coolant::Off))
+    map!(call!(m, 9.0), |_| Token::Coolant(Coolant::Off))
 );
 
 named!(spindle_rotation<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(terminated!(tag_no_case!("M3"), not!(char!('0'))), |_| SpindleRotation::Cw) |
-        map!(tag_no_case!("M4"), |_| SpindleRotation::Ccw) |
-        map!(tag_no_case!("M5"), |_| SpindleRotation::Stop)
+        map!(call!(m, 3.0), |_| SpindleRotation::Cw) |
+        map!(call!(m, 4.0), |_| SpindleRotation::Ccw) |
+        map!(call!(m, 5.0), |_| SpindleRotation::Stop)
     ),
     |res| Token::SpindleRotation(res)
 ));

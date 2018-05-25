@@ -44,23 +44,23 @@ pub enum ToolLengthCompensation {
 
 named!(units<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(tag_no_case!("G20"), |_| Units::Inch) |
-        map!(tag_no_case!("G21"), |_| Units::Mm)
+        map!(call!(g, 20.0), |_| Units::Inch) |
+        map!(call!(g, 21.0), |_| Units::Mm)
     ),
     |res| Token::Units(res)
 ));
 
 named!(distance_mode<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(tag_no_case!("G90"), |_| DistanceMode::Absolute) |
-        map!(tag_no_case!("G91"), |_| DistanceMode::Incremental)
+        map!(call!(g, 90.0), |_| DistanceMode::Absolute) |
+        map!(call!(g, 91.0), |_| DistanceMode::Incremental)
     ),
     |res| Token::DistanceMode(res)
 ));
 
 named!(path_blending<CompleteByteSlice, Token>, ws!(
     do_parse!(
-        tag_no_case!("G64") >>
+        call!(g, 64.0) >>
         p: opt!(call!(preceded_f32, "P")) >>
         q: opt!(call!(preceded_f32, "Q")) >> ({
             Token::PathBlending(PathBlending { p, q })
@@ -71,43 +71,43 @@ named!(path_blending<CompleteByteSlice, Token>, ws!(
 named!(cutter_compensation<CompleteByteSlice, Token>,
     map!(
         alt!(
-            map!(tag_no_case!("G40"), |_| CutterCompensation::Off)
+            map!(call!(g, 40.0), |_| CutterCompensation::Off)
         ),
         |res| Token::CutterCompensation(res)
     )
 );
 
 named!(rapid_move<CompleteByteSlice, Token>,
-    map!(tag!("G0"), |_| Token::RapidMove)
+    map!(call!(g, 0.0), |_| Token::RapidMove)
 );
 
 named!(linear_move<CompleteByteSlice, Token>,
-    map!(tag!("G1"), |_| Token::LinearMove)
+    map!(call!(g, 1.0), |_| Token::LinearMove)
 );
 
-named!(clockwise_arc<CompleteByteSlice, Token>,
-    map!(tag!("G2"), |_| Token::ClockwiseArc)
+named!(cw_arc<CompleteByteSlice, Token>,
+    map!(call!(g, 2.0), |_| Token::ClockwiseArc)
 );
 
-named!(counterclockwise_arc<CompleteByteSlice, Token>,
-    map!(tag!("G3"), |_| Token::CounterclockwiseArc)
+named!(ccw_arc<CompleteByteSlice, Token>,
+    map!(call!(g, 3.0), |_| Token::CounterclockwiseArc)
 );
 
 named!(plane_select<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(tag_no_case!("G17.1"), |_| Plane::Uv) |
-        map!(tag_no_case!("G18.1"), |_| Plane::Wu) |
-        map!(tag_no_case!("G19.1"), |_| Plane::Vw) |
-        map!(tag_no_case!("G17"), |_| Plane::Xy) |
-        map!(tag_no_case!("G18"), |_| Plane::Zx) |
-        map!(tag_no_case!("G19"), |_| Plane::Yz)
+        map!(call!(g, 17.1), |_| Plane::Uv) |
+        map!(call!(g, 18.1), |_| Plane::Wu) |
+        map!(call!(g, 19.1), |_| Plane::Vw) |
+        map!(call!(g, 17.0), |_| Plane::Xy) |
+        map!(call!(g, 18.0), |_| Plane::Zx) |
+        map!(call!(g, 19.0), |_| Plane::Yz)
     ),
     |res| Token::PlaneSelect(res)
 ));
 
 named!(tool_length_compensation<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(tag_no_case!("G49"), |_| ToolLengthCompensation::Disable)
+        map!(call!(g, 49.0), |_| ToolLengthCompensation::Disable)
     ),
     |res| Token::ToolLengthCompensation(res)
 ));
@@ -122,8 +122,8 @@ named!(pub gcode<CompleteByteSlice, Token>,
         rapid_move |
         linear_move |
         tool_length_compensation |
-        clockwise_arc |
-        counterclockwise_arc
+        cw_arc |
+        ccw_arc
     )
 );
 
@@ -155,11 +155,21 @@ mod tests {
     #[test]
     fn it_parses_rapids() {
         check_token(rapid_move(Cbs(b"G0")), Token::RapidMove);
+        check_token(rapid_move(Cbs(b"G00")), Token::RapidMove);
     }
 
     #[test]
     fn it_parses_linear_moves() {
         check_token(linear_move(Cbs(b"G1")), Token::LinearMove);
+        check_token(linear_move(Cbs(b"G01")), Token::LinearMove);
+    }
+
+    #[test]
+    fn it_parses_arcs() {
+        check_token(cw_arc(Cbs(b"G2")), Token::ClockwiseArc);
+        check_token(cw_arc(Cbs(b"G02")), Token::ClockwiseArc);
+        check_token(ccw_arc(Cbs(b"G3")), Token::CounterclockwiseArc);
+        check_token(ccw_arc(Cbs(b"G03")), Token::CounterclockwiseArc);
     }
 
     #[test]
