@@ -32,13 +32,27 @@ impl Default for Vec9 {
     }
 }
 
-named!(pub comment<CompleteByteSlice, Token>, map!(
+named!(take_until_line_ending<CompleteByteSlice, CompleteByteSlice>, alt_complete!(take_until!("\r\n") | take_until!("\n")));
+
+named!(bracketed_comment<CompleteByteSlice, Token>, map!(
     flat_map!(
         delimited!(tag!("("), take_until!(")"), tag!(")")),
         parse_to!(String)
     ),
     |res| Token::Comment(res.trim().into())
 ));
+
+named!(semicolon_comment<CompleteByteSlice, Token>, map!(
+    flat_map!(
+        preceded!(tag!(";"), take_until_line_ending),
+        parse_to!(String)
+    ),
+    |res| Token::Comment(res.trim().into())
+));
+
+named!(pub comment<CompleteByteSlice, Token>,
+    alt_complete!(bracketed_comment | semicolon_comment)
+);
 
 named_args!(
     pub preceded_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, f32>,
@@ -141,6 +155,25 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     #[test]
+    fn it_takes_until_any_line_ending() {
+        assert_eq!(
+            take_until_line_ending(CompleteByteSlice(b"Unix line endings\n")),
+            Ok((
+                CompleteByteSlice(b"\n"),
+                CompleteByteSlice(b"Unix line endings")
+            ))
+        );
+
+        assert_eq!(
+            take_until_line_ending(CompleteByteSlice(b"Windows line endings\r\n")),
+            Ok((
+                CompleteByteSlice(b"\r\n"),
+                CompleteByteSlice(b"Windows line endings")
+            ))
+        );
+    }
+
+    #[test]
     fn it_parses_comments() {
         check_token(
             comment(Cbs(b"(Hello world)")),
@@ -150,6 +183,15 @@ mod tests {
         check_token(
             comment(Cbs(b"( Hello world )")),
             Token::Comment("Hello world".into()),
+        );
+
+        assert_eq!(
+            comment(Cbs(b"; Hello world\n")),
+            Ok((Cbs(b"\n"), Token::Comment("Hello world".into())))
+        );
+        assert_eq!(
+            comment(Cbs(b";Hello world\n")),
+            Ok((Cbs(b"\n"), Token::Comment("Hello world".into())))
         );
     }
 
