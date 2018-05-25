@@ -19,9 +19,13 @@ named!(line_number<CompleteByteSlice, Token>, map!(
     call!(preceded_u32, "N"), |res| Token::LineNumber(res)
 ));
 
+named!(tool_length_compensation_tool_number<CompleteByteSlice, Token>, map!(
+    call!(preceded_u32, "H"), |res| Token::ToolLengthCompensationToolNumber(res)
+));
+
 named!(pub othercode<CompleteByteSlice, Token>,
     alt_complete!(
-        tool_number | spindle_speed | feedrate | line_number
+        tool_number | spindle_speed | feedrate | line_number | tool_length_compensation_tool_number
     )
 );
 
@@ -64,5 +68,17 @@ mod tests {
     fn it_parses_line_numbers() {
         check_token(line_number(Cbs(b"N10")), Token::LineNumber(10u32));
         check_token(line_number(Cbs(b"N999")), Token::LineNumber(999u32));
+    }
+
+    #[test]
+    fn it_parses_tool_length_offset_values() {
+        check_token(
+            tool_length_compensation_tool_number(Cbs(b"H10")),
+            Token::ToolLengthCompensationToolNumber(10u32),
+        );
+        check_token(
+            tool_length_compensation_tool_number(Cbs(b"H0")),
+            Token::ToolLengthCompensationToolNumber(0u32),
+        );
     }
 }

@@ -40,6 +40,7 @@ pub enum Plane {
 #[derive(Debug, PartialEq)]
 pub enum ToolLengthCompensation {
     Disable,
+    ToolNumberOffset,
 }
 
 named!(units<CompleteByteSlice, Token>, map!(
@@ -107,6 +108,7 @@ named!(plane_select<CompleteByteSlice, Token>, map!(
 
 named!(tool_length_compensation<CompleteByteSlice, Token>, map!(
     alt!(
+        map!(call!(g, 43.0), |_| ToolLengthCompensation::ToolNumberOffset) |
         map!(call!(g, 49.0), |_| ToolLengthCompensation::Disable)
     ),
     |res| Token::ToolLengthCompensation(res)
