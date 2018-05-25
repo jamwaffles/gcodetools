@@ -50,6 +50,7 @@ pub enum Token {
     ClockwiseArc,
     CounterclockwiseArc,
     ToolLengthCompensationToolNumber(u32),
+    CancelCannedCycle,
 }
 
 pub type Program = Vec<Token>;

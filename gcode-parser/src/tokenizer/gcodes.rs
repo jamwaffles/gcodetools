@@ -114,6 +114,12 @@ named!(tool_length_compensation<CompleteByteSlice, Token>, map!(
     |res| Token::ToolLengthCompensation(res)
 ));
 
+named!(canned_cycle<CompleteByteSlice, Token>,
+    alt!(
+        map!(call!(g, 80.0), |_| Token::CancelCannedCycle)
+    )
+);
+
 named!(pub gcode<CompleteByteSlice, Token>,
     alt_complete!(
         plane_select |
@@ -125,7 +131,8 @@ named!(pub gcode<CompleteByteSlice, Token>,
         linear_move |
         tool_length_compensation |
         cw_arc |
-        ccw_arc
+        ccw_arc |
+        canned_cycle
     )
 );
 
@@ -233,9 +240,15 @@ mod tests {
             Token::DistanceMode(DistanceMode::Incremental),
         );
     }
+
     #[test]
     fn it_parses_units() {
         check_token(units(Cbs(b"G20")), Token::Units(Units::Inch));
         check_token(units(Cbs(b"G21")), Token::Units(Units::Mm));
+    }
+
+    #[test]
+    fn it_parses_canned_cycles() {
+        check_token(canned_cycle(Cbs(b"G80")), Token::CancelCannedCycle);
     }
 }
