@@ -28,57 +28,38 @@ impl Default for CenterFormatArc {
     }
 }
 
-named!(xy_plane<CompleteByteSlice, CenterFormatArc>,
-    ws!(do_parse!(
-        x: call!(preceded_f32, "X") >>
-        y: call!(preceded_f32, "Y") >>
-        z: opt!(call!(preceded_f32, "Z")) >>
-        i: call!(preceded_f32, "I") >>
-        j: call!(preceded_f32, "J") >>
-        p: opt!(call!(preceded_u32, "P")) >>
-        ({
-            CenterFormatArc {
-                x: Some(x), y: Some(y), z, i: Some(i), j: Some(j), k: None, p
-            }
-        })
-    ))
-);
+named!(pub center_format_arc<CompleteByteSlice, Token>, map_res!(
+    map!(
+        complete!(tuple!(
+            ws!(many1!(call!(preceded_one_of_f32, "XYZ"))),
+            ws!(many1!(call!(preceded_one_of_f32, "IJK"))),
+            opt!(call!(preceded_u32, "P"))
+        )),
+        |(coords, params, p)| {
+            let mut arc = CenterFormatArc { p, ..Default::default() };
 
-named!(xz_plane<CompleteByteSlice, CenterFormatArc>,
-    ws!(do_parse!(
-        x: call!(preceded_f32, "X") >>
-        z: call!(preceded_f32, "Z") >>
-        y: opt!(call!(preceded_f32, "Y")) >>
-        i: call!(preceded_f32, "I") >>
-        k: call!(preceded_f32, "K") >>
-        p: opt!(call!(preceded_u32, "P")) >>
-        ({
-            CenterFormatArc {
-                x: Some(x), y, z: Some(z), i: Some(i), j: None, k: Some(k), p
-            }
-        })
-    ))
-);
+            for (letter, value) in coords.into_iter().chain(params.into_iter()) {
+                match letter {
+                    'X' => arc.x = Some(value),
+                    'Y' => arc.y = Some(value),
+                    'Z' => arc.z = Some(value),
+                    'I' => arc.i = Some(value),
+                    'J' => arc.j = Some(value),
+                    'K' => arc.k = Some(value),
+                    _ => ()
+                }
+            };
 
-named!(yz_plane<CompleteByteSlice, CenterFormatArc>,
-    ws!(do_parse!(
-        y: call!(preceded_f32, "Y") >>
-        z: call!(preceded_f32, "Z") >>
-        x: opt!(call!(preceded_f32, "X")) >>
-        j: call!(preceded_f32, "J") >>
-        k: call!(preceded_f32, "K") >>
-        p: opt!(call!(preceded_u32, "P")) >>
-        ({
-            CenterFormatArc {
-                x, y: Some(y), z: Some(z), i: None, j: Some(j), k: Some(k), p
-            }
-        })
-    ))
-);
-
-named!(pub center_format_arc<CompleteByteSlice, Token>, map!(
-    alt_complete!(xy_plane | xz_plane | yz_plane),
-    |res| Token::CenterFormatArc(res)
+            arc
+        }
+    ),
+    |res: CenterFormatArc| {
+        if res.i.is_none() && res.j.is_none()&& res.k.is_none() {
+            Err(())
+        } else {
+            Ok(Token::CenterFormatArc(res))
+        }
+    }
 ));
 
 #[cfg(test)]
@@ -95,6 +76,12 @@ mod tests {
     }
 
     const EMPTY: Cbs = Cbs(b"");
+
+    #[test]
+    fn it_ignores_linear_moves() {
+        assert!(center_format_arc(Cbs(b"X0Y0Z0")).is_err());
+        assert!(center_format_arc(Cbs(b"Y0Z0")).is_err());
+    }
 
     #[test]
     fn it_handles_no_whitespace() {
@@ -195,6 +182,19 @@ mod tests {
                 j: Some(3.0),
                 k: Some(4.0),
                 p: Some(6),
+            }),
+        );
+
+        check_token(
+            center_format_arc(Cbs(b"Y20.9595 Z-0.5838 I-1.5875 J0.0066")),
+            Token::CenterFormatArc(CenterFormatArc {
+                x: None,
+                y: Some(20.9595),
+                z: Some(-0.5838),
+                i: Some(-1.5875),
+                j: Some(0.0066),
+                k: None,
+                p: None,
             }),
         );
     }

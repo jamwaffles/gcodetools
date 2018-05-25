@@ -56,7 +56,7 @@ named!(pub comment<CompleteByteSlice, Token>,
 
 named_args!(
     pub preceded_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, f32>,
-    flat_map!(preceded!(tag_no_case!(preceding), recognize!(recognize_float)), parse_to!(f32))
+    flat_map!(preceded!(tag_no_case!(preceding), recognize_float), parse_to!(f32))
 );
 
 named_args!(
@@ -70,10 +70,22 @@ named_args!(
 );
 
 named_args!(
+    pub preceded_one_of_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, (char, f32)>,
+    tuple!(
+        alt!(
+            one_of!(preceding) |
+            one_of!(preceding.to_uppercase().as_str())
+        ),
+        flat_map!(recognize_float, parse_to!(f32))
+    )
+);
+
+named_args!(
     pub preceded_code<'a>(preceding: char, code: f32)<CompleteByteSlice<'a>, (char, f32)>,
     map_res!(
         flat_map!(
-            preceded!(tag_no_case!(preceding.to_string().as_str()), recognize_float), parse_to!(f32)
+            preceded!(tag_no_case!(preceding.to_string().as_str()), recognize_float),
+            parse_to!(f32)
         ),
         |res| {
             if res == code {
