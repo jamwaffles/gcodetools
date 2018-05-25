@@ -51,6 +51,7 @@ pub enum Token {
     CounterclockwiseArc,
     ToolLengthCompensationToolNumber(u32),
     CancelCannedCycle,
+    EndProgram,
 }
 
 pub type Program = Vec<Token>;
@@ -62,7 +63,8 @@ named!(token<CompleteByteSlice, Token>,
         othercode |
         center_format_arc |
         coord |
-        comment
+        comment |
+        end_program
     )
 );
 
@@ -71,14 +73,7 @@ named!(tokens<CompleteByteSlice, Vec<Token>>, ws!(many0!(token)));
 named!(program<CompleteByteSlice, Program>, ws!(
     preceded!(
         opt!(tag!("%")),
-        terminated!(
-            tokens,
-            many1!(alt_complete!(
-                recognize!(call!(m, 2.0)) |
-                recognize!(call!(m, 30.0)) |
-                recognize!(tag!("%"))
-            ))
-        )
+        tokens
     )
 ));
 
@@ -122,7 +117,7 @@ N50"#;
         assert_eq!(
             program(Cbs(input.as_bytes())),
             Ok((
-                Cbs(b"N50"),
+                EMPTY,
                 vec![
                     Token::LineNumber(10),
                     Token::Units(Units::Mm),
@@ -141,6 +136,8 @@ N50"#;
                         ..Default::default()
                     }),
                     Token::LineNumber(40),
+                    Token::EndProgram,
+                    Token::LineNumber(50),
                 ]
             ))
         );
@@ -173,6 +170,7 @@ M2
                         z: Some(10.0),
                         ..Default::default()
                     }),
+                    Token::EndProgram,
                 ]
             ))
         );
@@ -204,6 +202,7 @@ M30
                         z: Some(10.0),
                         ..Default::default()
                     }),
+                    Token::EndProgram,
                 ]
             ))
         );
@@ -224,8 +223,7 @@ G0 Z10
         assert_eq!(
             percents_program,
             Ok((
-                // Ignore anything after last %
-                Cbs(b"G0 Z10\n"),
+                EMPTY,
                 vec![
                     Token::Units(Units::Mm),
                     Token::RapidMove,
@@ -236,6 +234,12 @@ G0 Z10
                         ..Default::default()
                     }),
                     Token::LinearMove,
+                    Token::Coord(Vec9 {
+                        z: Some(10.0),
+                        ..Default::default()
+                    }),
+                    Token::EndProgram,
+                    Token::RapidMove,
                     Token::Coord(Vec9 {
                         z: Some(10.0),
                         ..Default::default()
@@ -282,6 +286,7 @@ M2"#;
                         z: Some(20.0),
                         ..Default::default()
                     }),
+                    Token::EndProgram,
                 ]
             ))
         );
@@ -307,6 +312,7 @@ M2"#;
                         j: Some(0.3028),
                         ..Default::default()
                     }),
+                    Token::EndProgram,
                 ]
             ))
         );

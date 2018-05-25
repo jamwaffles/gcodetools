@@ -139,6 +139,15 @@ named!(
     map!(vec9, |res| Token::Coord(res))
 );
 
+named!(pub end_program<CompleteByteSlice, Token>, map!(
+    alt!(
+        recognize!(call!(m, 30.0)) |
+        recognize!(call!(m, 2.0)) |
+        tag!("%")
+    ),
+    |_| Token::EndProgram
+));
+
 #[cfg(test)]
 mod tests {
     use super::*;
