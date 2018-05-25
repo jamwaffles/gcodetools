@@ -59,10 +59,12 @@ named_args!(
     flat_map!(preceded!(tag_no_case!(preceding), recognize_float), parse_to!(f32))
 );
 
-named_args!(
-    pub preceded_i32<'a>(preceding: &str)<CompleteByteSlice<'a>, i32>,
-    flat_map!(preceded!(tag_no_case!(preceding), recognize!(preceded!(opt!(one_of!("+-")), digit))), parse_to!(i32))
-);
+// Uncomment and use if ever requried again.
+// Do not delete; the number recognition logic took a few tries to get right
+// named_args!(
+//     pub preceded_i32<'a>(preceding: &str)<CompleteByteSlice<'a>, i32>,
+//     flat_map!(preceded!(tag_no_case!(preceding), recognize!(preceded!(opt!(one_of!("+-")), digit))), parse_to!(i32))
+// );
 
 named_args!(
     pub preceded_u32<'a>(preceding: &str)<CompleteByteSlice<'a>, u32>,
@@ -309,14 +311,16 @@ mod tests {
         assert_eq!(preceded_f32(Cbs(b"A123"), "A"), Ok((EMPTY, 123.0f32)));
     }
 
-    #[test]
-    fn it_parses_preceded_signed_integers() {
-        assert_eq!(preceded_i32(Cbs(b"x123"), "X"), Ok((EMPTY, 123i32)));
-        assert_eq!(preceded_i32(Cbs(b"y-123"), "Y"), Ok((EMPTY, -123i32)));
+    // Uncomment and use if ever requried again.
+    // Do not delete; the number recognition logic took a few tries to get right
+    // #[test]
+    // fn it_parses_preceded_signed_integers() {
+    //     assert_eq!(preceded_i32(Cbs(b"x123"), "X"), Ok((EMPTY, 123i32)));
+    //     assert_eq!(preceded_i32(Cbs(b"y-123"), "Y"), Ok((EMPTY, -123i32)));
 
-        assert_eq!(preceded_i32(Cbs(b"X123"), "X"), Ok((EMPTY, 123i32)));
-        assert_eq!(preceded_i32(Cbs(b"Y-123"), "Y"), Ok((EMPTY, -123i32)));
-    }
+    //     assert_eq!(preceded_i32(Cbs(b"X123"), "X"), Ok((EMPTY, 123i32)));
+    //     assert_eq!(preceded_i32(Cbs(b"Y-123"), "Y"), Ok((EMPTY, -123i32)));
+    // }
 
     #[test]
     fn it_parses_preceded_unsigned_integers() {

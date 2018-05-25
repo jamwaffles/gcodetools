@@ -3,4 +3,4 @@ pub use super::gcodes::{CutterCompensation, DistanceMode, PathBlendingMode, Plan
                         ToolLengthCompensation, Units, WorkOffset};
 pub use super::helpers::Vec9;
 pub use super::mcodes::{Coolant, SpindleRotation};
-pub use super::{Program, Token};
+pub use super::{ProgramTokens, Token};
