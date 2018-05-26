@@ -1,11 +1,11 @@
 G17 G20 G90 G94
-;G17 Select the XY plane (for arcs) 
-;G20 After this, units will be in inches 
+;G17 Select the XY plane (for arcs)
+;G20 After this, units will be in inches
 ; 21 for mm
-;G90 Switch to absolute distance mode 
-    ; disable incremental moves
-;G94 Set units per minute feed rate mode 
-F500.00000 ;    Defines feed rate 
+;G90 Switch to absolute distance mode
+; disable incremental moves
+;G94 Set units per minute feed rate mode
+F500.00000 ;    Defines feed rate
 S1000.00000 ; Defines speed, either spindle speed or surface speed depending on mode
 G0 Z0.1250 ; lift spindle
 X-0.0 Y0.
