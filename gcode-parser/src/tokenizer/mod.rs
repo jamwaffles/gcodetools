@@ -93,3 +93,5 @@ named!(pub program<CompleteByteSlice, ProgramTokens>, ws!(
         tokens
     )
 ));
+
+pub mod test_prelude;

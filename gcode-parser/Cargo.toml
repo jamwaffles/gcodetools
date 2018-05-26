@@ -1,11 +1,15 @@
 [package]
+authors = ["James Waples <jamwaffles@gmail.com>"]
 name = "gcode-parser"
 version = "0.1.0"
-authors = ["James Waples <jamwaffles@gmail.com>"]
+[[bench]]
+harness = false
+name = "tokenizer"
 
 [dependencies]
 nom = "4.0.0"
 
 [dev-dependencies]
 chardet = "0.2.4"
+criterion = "0.2.3"
 encoding = "0.2.33"
