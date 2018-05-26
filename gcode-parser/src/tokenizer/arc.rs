@@ -126,6 +126,19 @@ mod tests {
                 p: Some(6),
             }),
         );
+
+        check_token(
+            center_format_arc(Cbs(b"X1 Y1 z 20 I20 J0")),
+            Token::CenterFormatArc(CenterFormatArc {
+                x: Some(1.0),
+                y: Some(1.0),
+                z: Some(20.0),
+                i: Some(20.0),
+                j: Some(0.0),
+                k: None,
+                p: None,
+            }),
+        );
     }
 
     #[test]

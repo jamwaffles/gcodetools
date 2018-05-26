@@ -56,7 +56,7 @@ named!(pub comment<CompleteByteSlice, Token>,
 
 named_args!(
     pub preceded_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, f32>,
-    flat_map!(preceded!(tag_no_case!(preceding), recognize_float), parse_to!(f32))
+    flat_map!(ws!(preceded!(tag_no_case!(preceding), recognize_float)), parse_to!(f32))
 );
 
 // Uncomment and use if ever requried again.
@@ -73,13 +73,16 @@ named_args!(
 
 named_args!(
     pub preceded_one_of_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, (char, f32)>,
-    tuple!(
-        alt!(
-            one_of!(preceding) |
-            one_of!(preceding.to_uppercase().as_str())
+    ws!(tuple!(
+        map!(
+            alt!(
+                one_of!(preceding.to_lowercase().as_str()) |
+                one_of!(preceding.to_uppercase().as_str())
+            ),
+            |res| res.to_ascii_uppercase()
         ),
         flat_map!(recognize_float, parse_to!(f32))
-    )
+    ))
 );
 
 named_args!(
@@ -297,7 +300,33 @@ mod tests {
     }
 
     #[test]
+    fn it_parses_floats_preceding_one_of() {
+        assert_eq!(
+            preceded_one_of_f32(Cbs(b"X12"), "XYZ"),
+            Ok((EMPTY, ('X', 12.0f32)))
+        );
+        assert_eq!(
+            preceded_one_of_f32(Cbs(b"X 12"), "XYZ"),
+            Ok((EMPTY, ('X', 12.0f32)))
+        );
+        assert_eq!(
+            preceded_one_of_f32(Cbs(b"x 12"), "XYZ"),
+            Ok((EMPTY, ('X', 12.0f32)))
+        );
+        assert_eq!(
+            preceded_one_of_f32(Cbs(b"a 12"), "XYZ"),
+            Err(nom::Err::Error(nom::simple_errors::Context::Code(
+                CompleteByteSlice(b"a 12"),
+                nom::ErrorKind::Alt
+            )))
+        );
+    }
+
+    #[test]
     fn it_parses_preceded_floats() {
+        assert_eq!(preceded_f32(Cbs(b"J0"), "J"), Ok((EMPTY, 0.0f32)));
+        assert_eq!(preceded_f32(Cbs(b"I20"), "I"), Ok((EMPTY, 20.0f32)));
+        assert_eq!(preceded_f32(Cbs(b"x 1."), "X"), Ok((EMPTY, 1.0f32)));
         assert_eq!(preceded_f32(Cbs(b"x1."), "X"), Ok((EMPTY, 1.0f32)));
 
         assert_eq!(preceded_f32(Cbs(b"x1.23"), "X"), Ok((EMPTY, 1.23f32)));
