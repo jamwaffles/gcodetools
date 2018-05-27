@@ -32,7 +32,7 @@ impl Default for Vec9 {
     }
 }
 
-named!(take_until_line_ending<CompleteByteSlice, CompleteByteSlice>, alt_complete!(take_until!("\r\n") | take_until!("\n")));
+named!(pub take_until_line_ending<CompleteByteSlice, CompleteByteSlice>, alt_complete!(take_until!("\r\n") | take_until!("\n")));
 
 named!(bracketed_comment<CompleteByteSlice, Token>, map!(
     flat_map!(

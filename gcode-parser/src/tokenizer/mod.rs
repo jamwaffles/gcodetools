@@ -7,6 +7,7 @@ pub mod prelude;
 
 use nom;
 use nom::types::CompleteByteSlice;
+use nom::*;
 
 use self::arc::*;
 use self::gcodes::*;
@@ -64,6 +65,7 @@ pub enum Token {
     GoToPredefinedPosition,
     StorePredefinedPosition,
     Pause,
+    BlockDelete(Vec<Token>),
 }
 
 /// List of parsed GCode tokens
@@ -71,6 +73,7 @@ pub type ProgramTokens = Vec<Token>;
 
 named!(token<CompleteByteSlice, Token>,
     alt_complete!(
+        block_delete |
         gcode |
         mcode |
         othercode |
@@ -82,6 +85,14 @@ named!(token<CompleteByteSlice, Token>,
 );
 
 named!(tokens<CompleteByteSlice, Vec<Token>>, ws!(many0!(token)));
+
+named!(block_delete<CompleteByteSlice, Token>, map!(
+    flat_map!(
+        delimited!(tag!("/"), take_until_line_ending, line_ending),
+        tokens
+    ),
+    |tokens| Token::BlockDelete(tokens)
+));
 
 /// Raw GCode parser
 ///

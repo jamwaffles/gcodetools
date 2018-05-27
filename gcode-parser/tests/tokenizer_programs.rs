@@ -26,6 +26,39 @@ fn it_handles_program_endings() {
 }
 
 #[test]
+fn it_parses_block_deletes() {
+    let input = r#"G21
+/G0 X0 Y1 Z10 F500
+G0 X3 Y4"#;
+
+    assert_eq!(
+        program(Cbs(input.as_bytes())),
+        Ok((
+            EMPTY,
+            vec![
+                Token::Units(Units::Mm),
+                Token::BlockDelete(vec![
+                    Token::RapidMove,
+                    Token::Coord(Vec9 {
+                        x: Some(0.0),
+                        y: Some(1.0),
+                        z: Some(10.0),
+                        ..Default::default()
+                    }),
+                    Token::FeedRate(500.0),
+                ]),
+                Token::RapidMove,
+                Token::Coord(Vec9 {
+                    x: Some(3.0),
+                    y: Some(4.0),
+                    ..Default::default()
+                }),
+            ]
+        ))
+    );
+}
+
+#[test]
 fn it_parses_programs_with_line_numbers() {
     let input = r#"N10 G21
 N20 G0 x0 y0 z0
