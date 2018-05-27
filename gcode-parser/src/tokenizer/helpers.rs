@@ -1,5 +1,6 @@
 use nom::types::CompleteByteSlice;
 use nom::*;
+use nom::{need_more, Err, ErrorKind, IResult, Needed};
 
 use super::Token;
 
@@ -42,14 +43,29 @@ named_args!(
     flat_map!(preceded!(tag_no_case!(preceding), recognize!(digit)), parse_to!(u32))
 );
 
+fn one_of_no_case<'a>(i: CompleteByteSlice<'a>, inp: &str) -> IResult<CompleteByteSlice<'a>, char> {
+    let inp_lower = inp.to_lowercase();
+
+    match i
+        .iter_elements()
+        .next()
+        .map(|c| (c, inp_lower.as_str().find_token(c.to_ascii_lowercase())))
+    {
+        None => need_more(i, Needed::Size(1)),
+        Some((_, false)) => Err(Err::Error(error_position!(i, ErrorKind::OneOf::<u32>))),
+        //the unwrap should be safe here
+        Some((c, true)) => Ok((
+            i.slice(c.len()..),
+            i.iter_elements().next().unwrap().as_char(),
+        )),
+    }
+}
+
 named_args!(
     pub preceded_one_of_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, (char, f32)>,
     ws!(tuple!(
         map!(
-            alt!(
-                one_of!(preceding.to_lowercase().as_str()) |
-                one_of!(preceding.to_uppercase().as_str())
-            ),
+            call!(one_of_no_case, preceding),
             |res| res.to_ascii_uppercase()
         ),
         flat_map!(recognize_float, parse_to!(f32))
@@ -166,7 +182,7 @@ mod tests {
             preceded_one_of_f32(Cbs(b"a 12"), "XYZ"),
             Err(nom::Err::Error(nom::simple_errors::Context::Code(
                 CompleteByteSlice(b"a 12"),
-                nom::ErrorKind::Alt
+                nom::ErrorKind::OneOf
             )))
         );
     }

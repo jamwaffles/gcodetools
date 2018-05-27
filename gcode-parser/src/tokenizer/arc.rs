@@ -1,7 +1,7 @@
 use nom::types::CompleteByteSlice;
 
-use super::Token;
 use super::helpers::*;
+use super::Token;
 
 #[derive(Debug, PartialEq)]
 pub struct CenterFormatArc {
@@ -29,13 +29,11 @@ impl Default for CenterFormatArc {
 }
 
 named!(pub center_format_arc<CompleteByteSlice, Token>, map_res!(
-    map!(
-        complete!(tuple!(
-            ws!(many1!(call!(preceded_one_of_f32, "XYZ"))),
-            ws!(many1!(call!(preceded_one_of_f32, "IJK"))),
-            opt!(call!(preceded_u32, "P"))
-        )),
-        |(coords, params, p)| {
+    do_parse!(
+        coords: ws!(many_m_n!(1, 3, call!(preceded_one_of_f32, "XYZ"))) >>
+        params: ws!(many_m_n!(1, 2, call!(preceded_one_of_f32, "IJK"))) >>
+        p: opt!(call!(preceded_u32, "P")) >>
+        ({
             let mut arc = CenterFormatArc { p, ..Default::default() };
 
             for (letter, value) in coords.into_iter().chain(params.into_iter()) {
@@ -51,7 +49,7 @@ named!(pub center_format_arc<CompleteByteSlice, Token>, map_res!(
             };
 
             arc
-        }
+        })
     ),
     |res: CenterFormatArc| {
         if res.i.is_none() && res.j.is_none()&& res.k.is_none() {
