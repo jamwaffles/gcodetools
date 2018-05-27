@@ -13,6 +13,7 @@ use gcode_parser::tokenizer::Tokenizer;
 fn parse_linear_program(c: &mut Criterion) {
     c.bench_function("Parse simple linear program", |b| {
         let program = r#"
+            (test program)
             G21 G54
             M3 S1000
             G0 X0 Y0 Z10
@@ -24,6 +25,7 @@ fn parse_linear_program(c: &mut Criterion) {
             X0 Y0
             G1 Z10
             G0 Z20
+            G2 X10.5555 Y20.111111 I2.0 J3.0
             M5
             M2
         "#;
