@@ -4,6 +4,7 @@ mod helpers;
 mod mcodes;
 mod othercodes;
 pub mod prelude;
+mod vec9;
 
 use nom;
 use nom::types::CompleteByteSlice;
@@ -14,6 +15,7 @@ use self::gcodes::*;
 use self::helpers::*;
 use self::mcodes::*;
 use self::othercodes::*;
+use self::vec9::*;
 
 pub struct Tokenizer<'a> {
     program_string: &'a str,
