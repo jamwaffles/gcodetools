@@ -19,6 +19,7 @@ before_install:
 script:
   - cargo build --release
   - cargo test --release
+  - cargo bench
 
 # after_success:
 #   - cargo doc --release
