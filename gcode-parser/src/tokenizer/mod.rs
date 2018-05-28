@@ -3,6 +3,7 @@ mod gcodes;
 mod helpers;
 mod mcodes;
 mod othercodes;
+mod parameter;
 pub mod prelude;
 mod vec9;
 
@@ -15,6 +16,7 @@ use self::gcodes::*;
 use self::helpers::*;
 use self::mcodes::*;
 use self::othercodes::*;
+use self::parameter::*;
 use self::vec9::*;
 
 pub struct Tokenizer<'a> {
@@ -68,6 +70,9 @@ pub enum Token {
     StorePredefinedPosition,
     Pause,
     BlockDelete(Vec<Token>),
+    // TODO: ParameterValue needs to become an Expression for general purpose float/expression support
+    ParameterAssignment((Parameter, ParameterValue)),
+    Parameter(Parameter),
 }
 
 /// List of parsed GCode tokens
@@ -82,7 +87,8 @@ named!(token<CompleteByteSlice, Token>,
         center_format_arc |
         coord |
         comment |
-        end_program
+        end_program |
+        parameters
     )
 );
 
