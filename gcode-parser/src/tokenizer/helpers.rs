@@ -61,6 +61,10 @@ fn one_of_no_case<'a>(i: CompleteByteSlice<'a>, inp: &str) -> IResult<CompleteBy
     }
 }
 
+named_args!(char_no_case(search: char)<CompleteByteSlice, char>,
+    alt!(char!(search.to_ascii_lowercase()) | char!(search.to_ascii_uppercase()))
+);
+
 named_args!(
     pub preceded_one_of_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, (char, f32)>,
     ws!(tuple!(
@@ -73,10 +77,10 @@ named_args!(
 );
 
 named_args!(
-    pub preceded_code<'a>(preceding: char, code: f32)<CompleteByteSlice<'a>, (char, f32)>,
+    preceded_code<'a>(preceding: char, code: f32)<CompleteByteSlice<'a>, (char, f32)>,
     map_res!(
         flat_map!(
-            preceded!(tag_no_case!(preceding.to_string().as_str()), recognize_float),
+            preceded!(call!(char_no_case, preceding), recognize_float),
             parse_to!(f32)
         ),
         |res| {
@@ -90,13 +94,13 @@ named_args!(
 );
 
 named_args!(
-    pub g<'a>(c: f32)<CompleteByteSlice<'a>, (char, f32)>,
-    call!(preceded_code, 'G', c)
+    pub g<'a>(c: f32)<CompleteByteSlice<'a>, CompleteByteSlice<'a>>,
+    recognize!(call!(preceded_code, 'G', c))
 );
 
 named_args!(
-    pub m<'a>(c: f32)<CompleteByteSlice<'a>, (char, f32)>,
-    call!(preceded_code, 'M', c)
+    pub m<'a>(c: f32)<CompleteByteSlice<'a>, CompleteByteSlice<'a>>,
+    recognize!(call!(preceded_code, 'M', c))
 );
 
 named!(pub end_program<CompleteByteSlice, Token>, map!(
@@ -245,11 +249,11 @@ mod tests {
 
     #[test]
     fn it_parses_gcodes() {
-        assert_eq!(g(Cbs(b"G54"), 54.0), Ok((EMPTY, ('G', 54.0))));
+        assert_eq!(g(Cbs(b"G54"), 54.0), Ok((EMPTY, Cbs(b"G54"))));
     }
 
     #[test]
     fn it_parses_mcodes() {
-        assert_eq!(m(Cbs(b"M30"), 30.0), Ok((EMPTY, ('M', 30.0))));
+        assert_eq!(m(Cbs(b"M30"), 30.0), Ok((EMPTY, Cbs(b"M30"))));
     }
 }
