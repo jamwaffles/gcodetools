@@ -6,14 +6,17 @@ extern crate nom;
 use nom::types::CompleteByteSlice as Cbs;
 
 use criterion::Criterion;
-use gcode_parser::tokenizer::test_prelude::*;
 use gcode_parser::tokenizer::Tokenizer;
+use gcode_parser::tokenizer::test_prelude::*;
 
 /// Benchmark parsing a contrived, but real-world-ish example
 fn parse_linear_program(c: &mut Criterion) {
     c.bench_function("Parse simple linear program", |b| {
         let program = r#"
             (test program)
+            #1234 = 100.0
+            #<named_param> = 2
+            #<_global_param> = 3.0 ; test comment
             G21 G54
             M3 S1000
             G0 X0 Y0 Z10
@@ -61,5 +64,28 @@ fn parse_arc(c: &mut Criterion) {
     });
 }
 
-criterion_group!(tokenizer, parse_linear_program, parse_vec9, parse_arc);
+/// Parse a center format arc
+fn parse_expression(c: &mut Criterion) {
+    c.bench_function("Parse expressions", |b| {
+        let program = r#"#<var> = 100.0
+        G0 X[#<var> * 2] Y[#<var> + 3] Z[SIN[#<var>]]
+        G1 X[#<var> * 1.1] X[#<var> + 2.2] X[#<var> / 3.3]
+        M30
+        "#;
+
+        b.iter(|| {
+            let tokenizer = Tokenizer::new_from_str(&program);
+
+            tokenizer.tokenize().unwrap();
+        })
+    });
+}
+
+criterion_group!(
+    tokenizer,
+    parse_linear_program,
+    parse_vec9,
+    parse_arc,
+    parse_expression
+);
 criterion_main!(tokenizer);
