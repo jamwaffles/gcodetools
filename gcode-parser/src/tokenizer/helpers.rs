@@ -43,7 +43,10 @@ named_args!(
     flat_map!(preceded!(tag_no_case!(preceding), recognize!(digit)), parse_to!(u32))
 );
 
-fn one_of_no_case<'a>(i: CompleteByteSlice<'a>, inp: &str) -> IResult<CompleteByteSlice<'a>, char> {
+pub fn one_of_no_case<'a>(
+    i: CompleteByteSlice<'a>,
+    inp: &str,
+) -> IResult<CompleteByteSlice<'a>, char> {
     let inp_lower = inp.to_lowercase();
 
     match i

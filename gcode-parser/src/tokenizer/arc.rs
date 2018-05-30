@@ -1,17 +1,17 @@
 use nom::types::CompleteByteSlice;
 
-use super::helpers::*;
+use super::value::*;
 use super::Token;
 
 #[derive(Debug, PartialEq)]
 pub struct CenterFormatArc {
-    pub x: Option<f32>,
-    pub y: Option<f32>,
-    pub z: Option<f32>,
-    pub i: Option<f32>,
-    pub j: Option<f32>,
-    pub k: Option<f32>,
-    pub p: Option<u32>,
+    pub x: Option<Value>,
+    pub y: Option<Value>,
+    pub z: Option<Value>,
+    pub i: Option<Value>,
+    pub j: Option<Value>,
+    pub k: Option<Value>,
+    pub p: Option<Value>,
 }
 
 impl Default for CenterFormatArc {
@@ -30,9 +30,9 @@ impl Default for CenterFormatArc {
 
 named!(pub center_format_arc<CompleteByteSlice, Token>, map_res!(
     do_parse!(
-        coords: ws!(many_m_n!(1, 3, call!(preceded_one_of_f32, "XYZ"))) >>
-        params: ws!(many_m_n!(1, 2, call!(preceded_one_of_f32, "IJK"))) >>
-        p: opt!(call!(preceded_u32, "P")) >>
+        coords: ws!(many_m_n!(1, 3, call!(preceded_one_of_float_value, "XYZ"))) >>
+        params: ws!(many_m_n!(1, 2, call!(preceded_one_of_float_value, "IJK"))) >>
+        p: opt!(call!(preceded_unsigned_value, "P")) >>
         ({
             let mut arc = CenterFormatArc { p, ..Default::default() };
 
@@ -86,11 +86,11 @@ mod tests {
         check_token(
             center_format_arc(Cbs(b"X5.0417Y1.9427I-0.3979J0.3028")),
             Token::CenterFormatArc(CenterFormatArc {
-                x: Some(5.0417),
-                y: Some(1.9427),
+                x: Some(Value::Float(5.0417)),
+                y: Some(Value::Float(1.9427)),
                 k: None,
-                i: Some(-0.3979),
-                j: Some(0.3028),
+                i: Some(Value::Float(-0.3979)),
+                j: Some(Value::Float(0.3028)),
                 z: None,
                 p: None,
             }),
@@ -102,11 +102,11 @@ mod tests {
         check_token(
             center_format_arc(Cbs(b"X1 Y2 I3 J4")),
             Token::CenterFormatArc(CenterFormatArc {
-                x: Some(1.0),
-                y: Some(2.0),
+                x: Some(Value::Float(1.0)),
+                y: Some(Value::Float(2.0)),
                 z: None,
-                i: Some(3.0),
-                j: Some(4.0),
+                i: Some(Value::Float(3.0)),
+                j: Some(Value::Float(4.0)),
                 k: None,
                 p: None,
             }),
@@ -115,24 +115,24 @@ mod tests {
         check_token(
             center_format_arc(Cbs(b"X1 Y2 Z5 I3 J4 P6")),
             Token::CenterFormatArc(CenterFormatArc {
-                x: Some(1.0),
-                y: Some(2.0),
-                z: Some(5.0),
-                i: Some(3.0),
-                j: Some(4.0),
+                x: Some(Value::Float(1.0)),
+                y: Some(Value::Float(2.0)),
+                z: Some(Value::Float(5.0)),
+                i: Some(Value::Float(3.0)),
+                j: Some(Value::Float(4.0)),
                 k: None,
-                p: Some(6),
+                p: Some(Value::Unsigned(6)),
             }),
         );
 
         check_token(
             center_format_arc(Cbs(b"X1 Y1 z 20 I20 J0")),
             Token::CenterFormatArc(CenterFormatArc {
-                x: Some(1.0),
-                y: Some(1.0),
-                z: Some(20.0),
-                i: Some(20.0),
-                j: Some(0.0),
+                x: Some(Value::Float(1.0)),
+                y: Some(Value::Float(1.0)),
+                z: Some(Value::Float(20.0)),
+                i: Some(Value::Float(20.0)),
+                j: Some(Value::Float(0.0)),
                 k: None,
                 p: None,
             }),
@@ -144,12 +144,12 @@ mod tests {
         check_token(
             center_format_arc(Cbs(b"X1 Z2 I3 K4")),
             Token::CenterFormatArc(CenterFormatArc {
-                x: Some(1.0),
+                x: Some(Value::Float(1.0)),
                 y: None,
-                z: Some(2.0),
-                i: Some(3.0),
+                z: Some(Value::Float(2.0)),
+                i: Some(Value::Float(3.0)),
                 j: None,
-                k: Some(4.0),
+                k: Some(Value::Float(4.0)),
                 p: None,
             }),
         );
@@ -157,13 +157,13 @@ mod tests {
         check_token(
             center_format_arc(Cbs(b"X1 Z2 Y5 I3 K4 P6")),
             Token::CenterFormatArc(CenterFormatArc {
-                x: Some(1.0),
-                y: Some(5.0),
-                z: Some(2.0),
-                i: Some(3.0),
+                x: Some(Value::Float(1.0)),
+                y: Some(Value::Float(5.0)),
+                z: Some(Value::Float(2.0)),
+                i: Some(Value::Float(3.0)),
                 j: None,
-                k: Some(4.0),
-                p: Some(6),
+                k: Some(Value::Float(4.0)),
+                p: Some(Value::Unsigned(6)),
             }),
         );
     }
@@ -174,11 +174,11 @@ mod tests {
             center_format_arc(Cbs(b"Y1 Z2 J3 K4")),
             Token::CenterFormatArc(CenterFormatArc {
                 x: None,
-                y: Some(1.0),
-                z: Some(2.0),
+                y: Some(Value::Float(1.0)),
+                z: Some(Value::Float(2.0)),
                 i: None,
-                j: Some(3.0),
-                k: Some(4.0),
+                j: Some(Value::Float(3.0)),
+                k: Some(Value::Float(4.0)),
                 p: None,
             }),
         );
@@ -186,13 +186,13 @@ mod tests {
         check_token(
             center_format_arc(Cbs(b"Y1 Z2 X5 J3 K4 P6")),
             Token::CenterFormatArc(CenterFormatArc {
-                x: Some(5.0),
-                y: Some(1.0),
-                z: Some(2.0),
+                x: Some(Value::Float(5.0)),
+                y: Some(Value::Float(1.0)),
+                z: Some(Value::Float(2.0)),
                 i: None,
-                j: Some(3.0),
-                k: Some(4.0),
-                p: Some(6),
+                j: Some(Value::Float(3.0)),
+                k: Some(Value::Float(4.0)),
+                p: Some(Value::Unsigned(6)),
             }),
         );
 
@@ -200,10 +200,10 @@ mod tests {
             center_format_arc(Cbs(b"Y20.9595 Z-0.5838 I-1.5875 J0.0066")),
             Token::CenterFormatArc(CenterFormatArc {
                 x: None,
-                y: Some(20.9595),
-                z: Some(-0.5838),
-                i: Some(-1.5875),
-                j: Some(0.0066),
+                y: Some(Value::Float(20.9595)),
+                z: Some(Value::Float(-0.5838)),
+                i: Some(Value::Float(-1.5875)),
+                j: Some(Value::Float(0.0066)),
                 k: None,
                 p: None,
             }),

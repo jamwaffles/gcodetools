@@ -2,6 +2,7 @@ use nom::types::CompleteByteSlice;
 use nom::*;
 
 use super::expression::*;
+use super::helpers::one_of_no_case;
 use super::parameter::{parameter, Parameter};
 
 #[derive(Debug, PartialEq)]
@@ -103,6 +104,16 @@ named_args!(
         value_expression
     )
 ));
+
+named_args!(
+    pub preceded_one_of_float_value<'a>(preceding: &str)<CompleteByteSlice<'a>, (char, Value)>, ws!(tuple!(
+    map!(call!(one_of_no_case, preceding), |letter| letter.to_ascii_uppercase()),
+    alt_complete!(
+        value_float |
+        value_parameter |
+        value_expression
+    )
+)));
 
 #[cfg(test)]
 mod tests {

@@ -5,5 +5,6 @@ pub use super::gcodes::{
 };
 pub use super::mcodes::{Coolant, SpindleRotation};
 pub use super::parameter::{Parameter, ParameterValue};
+pub use super::value::Value;
 pub use super::vec9::Vec9;
 pub use super::{ProgramTokens, Token};
