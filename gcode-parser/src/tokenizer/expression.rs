@@ -12,6 +12,19 @@ pub enum ArithmeticOperator {
 #[derive(Debug, PartialEq)]
 pub enum Function {
     Atan((Expression, Expression)),
+    Abs(Expression),
+    Acos(Expression),
+    Asin(Expression),
+    Cos(Expression),
+    Exp(Expression),
+    Fix(Expression),
+    Fup(Expression),
+    Round(Expression),
+    Ln(Expression),
+    Sin(Expression),
+    Sqrt(Expression),
+    Tan(Expression),
+    Exists(Expression),
 }
 
 #[derive(Debug, PartialEq)]
@@ -46,51 +59,38 @@ named!(arithmetic<CompleteByteSlice, ExpressionToken>, map!(
 // Special snowflake ATAN with two "args"
 named!(atan<CompleteByteSlice, Function>, map!(
     preceded!(
-        tag_no_case_s!("ATAN"),
+        tag_no_case!("ATAN"),
         ws!(separated_pair!(expression, char!('/'), expression))
     ),
     |(left, right)| Function::Atan((left, right))
 ));
 
-// named_args!(function_call<'a>(func_ident: &str)<CompleteByteSlice<'a>, Function>, map!(
-//     tuple!(tag_no_case!(func_ident), expression),
-//     |(name, arg)| {
+named_args!(function_call<'a>(func_ident: &str)<CompleteByteSlice<'a>, Expression>,
+    preceded!(tag_no_case!(func_ident), expression)
+);
 
-//         Function::Atan((ExpressionToken::Literal(0.0), ExpressionToken::Literal(0.0)))
-//     }
-// ));
-
-// named!(function<CompleteByteSlice, ExpressionToken>, map!(
-//     tuple!(
-//         alt_complete!(
-//             call!("", atan_args) |
-//             tag_no_case_s!("ABS") |
-//             tag_no_case_s!("ACOS") |
-//             tag_no_case_s!("ASIN") |
-//             tag_no_case_s!("COS") |
-//             tag_no_case_s!("EXP") |
-//             tag_no_case_s!("FIX") |
-//             tag_no_case_s!("FUP") |
-//             tag_no_case_s!("ROUND") |
-//             tag_no_case_s!("LN") |
-//             tag_no_case_s!("SIN") |
-//             tag_no_case_s!("SQRT") |
-//             tag_no_case_s!("TAN") |
-//             tag_no_case_s!("EXISTS")
-//         ),
-//         expression
-//     ),
-//     |(function, arg)| {
-//         println!("{:?}, {:?}", function, arg);
-//         // match function.to_lowercase() {
-
-//         // }
-//         ExpressionToken::Literal(0.0)
-//     }
-// ));
+named!(function<CompleteByteSlice, ExpressionToken>, map!(
+    alt_complete!(
+        atan |
+        map!(call!(function_call, "ABS"), |args| Function::Abs(args)) |
+        map!(call!(function_call, "ACOS"), |args| Function::Acos(args)) |
+        map!(call!(function_call, "ASIN"), |args| Function::Asin(args)) |
+        map!(call!(function_call, "COS"), |args| Function::Cos(args)) |
+        map!(call!(function_call, "EXP"), |args| Function::Exp(args)) |
+        map!(call!(function_call, "FIX"), |args| Function::Fix(args)) |
+        map!(call!(function_call, "FUP"), |args| Function::Fup(args)) |
+        map!(call!(function_call, "ROUND"), |args| Function::Round(args)) |
+        map!(call!(function_call, "LN"), |args| Function::Ln(args)) |
+        map!(call!(function_call, "SIN"), |args| Function::Sin(args)) |
+        map!(call!(function_call, "SQRT"), |args| Function::Sqrt(args)) |
+        map!(call!(function_call, "TAN"), |args| Function::Tan(args)) |
+        map!(call!(function_call, "EXISTS"), |args| Function::Exists(args))
+    ),
+    |res| ExpressionToken::Function(res)
+));
 
 named!(expression_token<CompleteByteSlice, ExpressionToken>, alt_complete!(
-    map!(atan, |res| ExpressionToken::Function(res)) |
+    function |
     literal |
     arithmetic |
     map!(expression, |res| ExpressionToken::Expression(res))
@@ -183,6 +183,44 @@ mod tests {
                 vec![ExpressionToken::Literal(5.0)],
             )))],
         );
+    }
+
+    #[test]
+    fn it_parses_a_function() {
+        let input = Cbs(b"[ABS[1.0]]");
+
+        check_expression(
+            expression(input),
+            vec![ExpressionToken::Function(Function::Abs(vec![
+                ExpressionToken::Literal(1.0),
+            ]))],
+        );
+    }
+
+    #[test]
+    fn it_parses_functions() {
+        let inputs: Vec<String> = vec![
+            "[ABS[1.0]]".into(),
+            "[ACOS[1.0]]".into(),
+            "[ASIN[1.0]]".into(),
+            "[COS[1.0]]".into(),
+            "[EXP[1.0]]".into(),
+            "[FIX[1.0]]".into(),
+            "[FUP[1.0]]".into(),
+            "[ROUND[1.0]]".into(),
+            "[LN[1.0]]".into(),
+            "[SIN[1.0]]".into(),
+            "[SQRT[1.0]]".into(),
+            "[TAN[1.0]]".into(),
+            "[EXISTS[1.0]]".into(),
+        ];
+
+        for input in inputs.into_iter() {
+            let parsed = expression(Cbs(input.as_bytes()));
+
+            assert!(parsed.is_ok());
+            assert_eq!(parsed.unwrap().0, EMPTY);
+        }
     }
 
     #[test]
