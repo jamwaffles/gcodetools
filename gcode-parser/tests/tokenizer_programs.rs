@@ -45,7 +45,7 @@ G0 X3 Y4"#;
                         z: Some(10.0),
                         ..Default::default()
                     }),
-                    Token::FeedRate(500.0),
+                    Token::FeedRate(500.0.into()),
                 ]),
                 Token::RapidMove,
                 Token::Coord(Vec9 {
@@ -110,7 +110,7 @@ M2
             vec![
                 Token::Units(Units::Mm),
                 Token::RapidMove,
-                Token::FeedRate(500.0f32),
+                Token::FeedRate(500.0.into()),
                 Token::Coord(Vec9 {
                     x: Some(0.0),
                     y: Some(0.0),

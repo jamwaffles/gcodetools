@@ -26,7 +26,7 @@ named!(global_parameter<CompleteByteSlice, Parameter>, map!(
 ));
 
 named!(
-    parameter<CompleteByteSlice, Parameter>,
+    pub parameter<CompleteByteSlice, Parameter>,
     // Order is significant
     alt_complete!(numbered_parameter | global_parameter | named_parameter)
 );

@@ -6,6 +6,7 @@ mod mcodes;
 mod othercodes;
 mod parameter;
 pub mod prelude;
+mod value;
 mod vec9;
 
 use nom;
@@ -18,6 +19,7 @@ use self::helpers::*;
 use self::mcodes::*;
 use self::othercodes::*;
 use self::parameter::*;
+use self::value::*;
 use self::vec9::*;
 
 pub struct Tokenizer<'a> {
@@ -49,18 +51,18 @@ pub enum Token {
     LinearMove,
     CenterFormatArc(CenterFormatArc),
     Coord(Vec9),
-    ToolSelect(u32),
+    ToolSelect(Value),
     ToolChange,
     PlaneSelect(Plane),
     SpindleRotation(SpindleRotation),
-    SpindleSpeed(i32),
-    FeedRate(f32),
+    SpindleSpeed(Value),
+    FeedRate(Value),
     LineNumber(u32),
     Coolant(Coolant),
     ToolLengthCompensation(ToolLengthCompensation),
     ClockwiseArc,
     CounterclockwiseArc,
-    ToolLengthCompensationToolNumber(u32),
+    ToolLengthCompensationToolNumber(Value),
     CancelCannedCycle,
     EndProgram,
     WorkOffset(WorkOffset),

@@ -31,11 +31,11 @@ named_args!(
     flat_map!(ws!(preceded!(tag_no_case!(preceding), recognize_float)), parse_to!(f32))
 );
 
-// Uncomment and use if ever requried again.
-// Do not delete; the number recognition logic took a few tries to get right
+// named!(pub parse_i32<CompleteByteSlice, i32>, flat_map!(recognize!(preceded!(opt!(one_of!("+-")), digit)), parse_to!(i32)));
+
 // named_args!(
 //     pub preceded_i32<'a>(preceding: &str)<CompleteByteSlice<'a>, i32>,
-//     flat_map!(preceded!(tag_no_case!(preceding), recognize!(preceded!(opt!(one_of!("+-")), digit))), parse_to!(i32))
+//     preceded!(tag_no_case!(preceding), parse_i32)
 // );
 
 named_args!(
