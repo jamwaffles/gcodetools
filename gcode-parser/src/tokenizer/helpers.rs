@@ -6,37 +6,10 @@ use super::Token;
 
 named!(pub take_until_line_ending<CompleteByteSlice, CompleteByteSlice>, alt_complete!(take_until!("\r\n") | take_until!("\n")));
 
-named!(bracketed_comment<CompleteByteSlice, Token>, map!(
-    flat_map!(
-        delimited!(tag!("("), take_until!(")"), tag!(")")),
-        parse_to!(String)
-    ),
-    |res| Token::Comment(res.trim().into())
-));
-
-named!(semicolon_comment<CompleteByteSlice, Token>, map!(
-    flat_map!(
-        preceded!(tag!(";"), take_until_line_ending),
-        parse_to!(String)
-    ),
-    |res| Token::Comment(res.trim().into())
-));
-
-named!(pub comment<CompleteByteSlice, Token>,
-    alt_complete!(bracketed_comment | semicolon_comment)
-);
-
 named_args!(
     pub preceded_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, f32>,
     flat_map!(ws!(preceded!(tag_no_case!(preceding), recognize_float)), parse_to!(f32))
 );
-
-// named!(pub parse_i32<CompleteByteSlice, i32>, flat_map!(recognize!(preceded!(opt!(one_of!("+-")), digit)), parse_to!(i32)));
-
-// named_args!(
-//     pub preceded_i32<'a>(preceding: &str)<CompleteByteSlice<'a>, i32>,
-//     preceded!(tag_no_case!(preceding), parse_i32)
-// );
 
 named_args!(
     pub preceded_u32<'a>(preceding: &str)<CompleteByteSlice<'a>, u32>,
@@ -66,17 +39,6 @@ pub fn one_of_no_case<'a>(
 
 named_args!(char_no_case(search: char)<CompleteByteSlice, char>,
     alt!(char!(search.to_ascii_lowercase()) | char!(search.to_ascii_uppercase()))
-);
-
-named_args!(
-    pub preceded_one_of_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, (char, f32)>,
-    ws!(tuple!(
-        map!(
-            call!(one_of_no_case, preceding),
-            |res| res.to_ascii_uppercase()
-        ),
-        flat_map!(recognize_float, parse_to!(f32))
-    ))
 );
 
 named_args!(
@@ -118,15 +80,7 @@ named!(pub end_program<CompleteByteSlice, Token>, map!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
 
     const EMPTY: Cbs = Cbs(b"");
 
@@ -150,51 +104,6 @@ mod tests {
     }
 
     #[test]
-    fn it_parses_comments() {
-        check_token(
-            comment(Cbs(b"(Hello world)")),
-            Token::Comment("Hello world".into()),
-        );
-
-        check_token(
-            comment(Cbs(b"( Hello world )")),
-            Token::Comment("Hello world".into()),
-        );
-
-        assert_eq!(
-            comment(Cbs(b"; Hello world\n")),
-            Ok((Cbs(b"\n"), Token::Comment("Hello world".into())))
-        );
-        assert_eq!(
-            comment(Cbs(b";Hello world\n")),
-            Ok((Cbs(b"\n"), Token::Comment("Hello world".into())))
-        );
-    }
-
-    #[test]
-    fn it_parses_floats_preceding_one_of() {
-        assert_eq!(
-            preceded_one_of_f32(Cbs(b"X12"), "XYZ"),
-            Ok((EMPTY, ('X', 12.0f32)))
-        );
-        assert_eq!(
-            preceded_one_of_f32(Cbs(b"X 12"), "XYZ"),
-            Ok((EMPTY, ('X', 12.0f32)))
-        );
-        assert_eq!(
-            preceded_one_of_f32(Cbs(b"x 12"), "XYZ"),
-            Ok((EMPTY, ('X', 12.0f32)))
-        );
-        assert_eq!(
-            preceded_one_of_f32(Cbs(b"a 12"), "XYZ"),
-            Err(nom::Err::Error(nom::simple_errors::Context::Code(
-                CompleteByteSlice(b"a 12"),
-                nom::ErrorKind::OneOf
-            )))
-        );
-    }
-
-    #[test]
     fn it_parses_preceded_floats() {
         assert_eq!(preceded_f32(Cbs(b"J0"), "J"), Ok((EMPTY, 0.0f32)));
         assert_eq!(preceded_f32(Cbs(b"I20"), "I"), Ok((EMPTY, 20.0f32)));
@@ -211,17 +120,6 @@ mod tests {
         assert_eq!(preceded_f32(Cbs(b"Z+1.23"), "Z"), Ok((EMPTY, 1.23f32)));
         assert_eq!(preceded_f32(Cbs(b"A123"), "A"), Ok((EMPTY, 123.0f32)));
     }
-
-    // Uncomment and use if ever requried again.
-    // Do not delete; the number recognition logic took a few tries to get right
-    // #[test]
-    // fn it_parses_preceded_signed_integers() {
-    //     assert_eq!(preceded_i32(Cbs(b"x123"), "X"), Ok((EMPTY, 123i32)));
-    //     assert_eq!(preceded_i32(Cbs(b"y-123"), "Y"), Ok((EMPTY, -123i32)));
-
-    //     assert_eq!(preceded_i32(Cbs(b"X123"), "X"), Ok((EMPTY, 123i32)));
-    //     assert_eq!(preceded_i32(Cbs(b"Y-123"), "Y"), Ok((EMPTY, -123i32)));
-    // }
 
     #[test]
     fn it_parses_preceded_unsigned_integers() {

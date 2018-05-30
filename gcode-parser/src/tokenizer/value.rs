@@ -156,4 +156,27 @@ mod tests {
             ]),
         );
     }
+
+    #[test]
+    fn it_parses_preceded_one_of_floats() {
+        assert_eq!(
+            preceded_one_of_float_value(Cbs(b"X12"), "XYZ"),
+            Ok((EMPTY, ('X', Value::Float(12.0f32))))
+        );
+        assert_eq!(
+            preceded_one_of_float_value(Cbs(b"X 12"), "XYZ"),
+            Ok((EMPTY, ('X', Value::Float(12.0f32))))
+        );
+        assert_eq!(
+            preceded_one_of_float_value(Cbs(b"x 12"), "XYZ"),
+            Ok((EMPTY, ('X', Value::Float(12.0f32))))
+        );
+        assert_eq!(
+            preceded_one_of_float_value(Cbs(b"a 12"), "XYZ"),
+            Err(nom::Err::Error(nom::simple_errors::Context::Code(
+                CompleteByteSlice(b"a 12"),
+                nom::ErrorKind::OneOf
+            )))
+        );
+    }
 }

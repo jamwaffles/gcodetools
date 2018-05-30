@@ -1,4 +1,5 @@
 mod arc;
+mod comment;
 mod expression;
 mod gcodes;
 mod helpers;
@@ -14,6 +15,7 @@ use nom::types::CompleteByteSlice;
 use nom::*;
 
 use self::arc::*;
+use self::comment::*;
 use self::gcodes::*;
 use self::helpers::*;
 use self::mcodes::*;
