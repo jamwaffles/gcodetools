@@ -1,6 +1,8 @@
 use nom::types::CompleteByteSlice;
 use nom::*;
 
+use super::parameter::{parameter, Parameter};
+
 #[derive(Debug, PartialEq)]
 pub enum ArithmeticOperator {
     Add,
@@ -33,6 +35,7 @@ pub enum ExpressionToken {
     Literal(f32),
     ArithmeticOperator(ArithmeticOperator),
     Function(Function),
+    Parameter(Parameter),
 }
 
 pub type Expression = Vec<ExpressionToken>;
@@ -93,6 +96,7 @@ named!(expression_token<CompleteByteSlice, ExpressionToken>, alt_complete!(
     function |
     literal |
     arithmetic |
+    map!(parameter, |res| ExpressionToken::Parameter(res)) |
     map!(expression, |res| ExpressionToken::Expression(res))
 ));
 
@@ -174,14 +178,16 @@ mod tests {
 
         check_expression(
             expression(input),
-            vec![ExpressionToken::Function(Function::Atan((
-                vec![
-                    ExpressionToken::Literal(3.0),
-                    ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-                    ExpressionToken::Literal(4.0),
-                ],
-                vec![ExpressionToken::Literal(5.0)],
-            )))],
+            vec![
+                ExpressionToken::Function(Function::Atan((
+                    vec![
+                        ExpressionToken::Literal(3.0),
+                        ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                        ExpressionToken::Literal(4.0),
+                    ],
+                    vec![ExpressionToken::Literal(5.0)],
+                ))),
+            ],
         );
     }
 
@@ -191,9 +197,9 @@ mod tests {
 
         check_expression(
             expression(input),
-            vec![ExpressionToken::Function(Function::Abs(vec![
-                ExpressionToken::Literal(1.0),
-            ]))],
+            vec![
+                ExpressionToken::Function(Function::Abs(vec![ExpressionToken::Literal(1.0)])),
+            ],
         );
     }
 
@@ -221,6 +227,20 @@ mod tests {
             assert!(parsed.is_ok());
             assert_eq!(parsed.unwrap().0, EMPTY);
         }
+    }
+
+    #[test]
+    fn it_parses_negative_numbers_as_negative_numbers() {
+        let input = Cbs(b"[-10.0*-12]");
+
+        check_expression(
+            expression(input),
+            vec![
+                ExpressionToken::Literal(-10.0),
+                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
+                ExpressionToken::Literal(-12.0),
+            ],
+        );
     }
 
     #[test]

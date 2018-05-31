@@ -179,4 +179,16 @@ mod tests {
             )))
         );
     }
+
+    #[test]
+    fn it_parses_preceded_expressions() {
+        assert_eq!(
+            preceded_float_value(Cbs(b"Z[#<zscale>*10.]"), "Z"),
+            Ok((EMPTY, Value::Expression(vec![
+                ExpressionToken::Parameter(Parameter::Named("zscale".into())),
+                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
+                ExpressionToken::Literal(10.0),
+            ])))
+        );
+    }
 }

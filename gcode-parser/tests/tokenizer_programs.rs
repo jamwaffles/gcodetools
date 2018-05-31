@@ -40,17 +40,17 @@ G0 X3 Y4"#;
                 Token::BlockDelete(vec![
                     Token::RapidMove,
                     Token::Coord(Vec9 {
-                        x: Some(0.0),
-                        y: Some(1.0),
-                        z: Some(10.0),
+                        x: Some(Value::Float(0.0)),
+                        y: Some(Value::Float(1.0)),
+                        z: Some(Value::Float(10.0)),
                         ..Default::default()
                     }),
                     Token::FeedRate(500.0.into()),
                 ]),
                 Token::RapidMove,
                 Token::Coord(Vec9 {
-                    x: Some(3.0),
-                    y: Some(4.0),
+                    x: Some(Value::Float(3.0)),
+                    y: Some(Value::Float(4.0)),
                     ..Default::default()
                 }),
             ]
@@ -76,15 +76,15 @@ N50"#;
                 Token::LineNumber(20),
                 Token::RapidMove,
                 Token::Coord(Vec9 {
-                    x: Some(0.0),
-                    y: Some(0.0),
-                    z: Some(0.0),
+                    x: Some(Value::Float(0.0)),
+                    y: Some(Value::Float(0.0)),
+                    z: Some(Value::Float(0.0)),
                     ..Default::default()
                 }),
                 Token::LineNumber(30),
                 Token::LinearMove,
                 Token::Coord(Vec9 {
-                    z: Some(10.0),
+                    z: Some(Value::Float(10.0)),
                     ..Default::default()
                 }),
                 Token::LineNumber(40),
@@ -112,14 +112,14 @@ M2
                 Token::RapidMove,
                 Token::FeedRate(500.0.into()),
                 Token::Coord(Vec9 {
-                    x: Some(0.0),
-                    y: Some(0.0),
-                    z: Some(0.0),
+                    x: Some(Value::Float(0.0)),
+                    y: Some(Value::Float(0.0)),
+                    z: Some(Value::Float(0.0)),
                     ..Default::default()
                 }),
                 Token::LinearMove,
                 Token::Coord(Vec9 {
-                    z: Some(10.0),
+                    z: Some(Value::Float(10.0)),
                     ..Default::default()
                 }),
                 Token::EndProgram,
@@ -144,14 +144,14 @@ M30
                 Token::Units(Units::Mm),
                 Token::RapidMove,
                 Token::Coord(Vec9 {
-                    x: Some(0.0),
-                    y: Some(0.0),
-                    z: Some(0.0),
+                    x: Some(Value::Float(0.0)),
+                    y: Some(Value::Float(0.0)),
+                    z: Some(Value::Float(0.0)),
                     ..Default::default()
                 }),
                 Token::LinearMove,
                 Token::Coord(Vec9 {
-                    z: Some(10.0),
+                    z: Some(Value::Float(10.0)),
                     ..Default::default()
                 }),
                 Token::EndProgram,
@@ -180,20 +180,20 @@ G0 Z10
                 Token::Units(Units::Mm),
                 Token::RapidMove,
                 Token::Coord(Vec9 {
-                    x: Some(0.0),
-                    y: Some(0.0),
-                    z: Some(0.0),
+                    x: Some(Value::Float(0.0)),
+                    y: Some(Value::Float(0.0)),
+                    z: Some(Value::Float(0.0)),
                     ..Default::default()
                 }),
                 Token::LinearMove,
                 Token::Coord(Vec9 {
-                    z: Some(10.0),
+                    z: Some(Value::Float(10.0)),
                     ..Default::default()
                 }),
                 Token::EndProgram,
                 Token::RapidMove,
                 Token::Coord(Vec9 {
-                    z: Some(10.0),
+                    z: Some(Value::Float(10.0)),
                     ..Default::default()
                 }),
             ]
@@ -218,24 +218,24 @@ M2"#;
             vec![
                 Token::LinearMove,
                 Token::Coord(Vec9 {
-                    x: Some(10.0),
-                    y: Some(20.0),
+                    x: Some(Value::Float(10.0)),
+                    y: Some(Value::Float(20.0)),
                     ..Default::default()
                 }),
                 Token::Coord(Vec9 {
-                    x: Some(20.0),
-                    y: Some(30.0),
+                    x: Some(Value::Float(20.0)),
+                    y: Some(Value::Float(30.0)),
                     ..Default::default()
                 }),
                 Token::RapidMove,
                 Token::Coord(Vec9 {
-                    y: Some(30.0),
-                    z: Some(10.0),
+                    y: Some(Value::Float(30.0)),
+                    z: Some(Value::Float(10.0)),
                     ..Default::default()
                 }),
                 Token::Coord(Vec9 {
-                    y: Some(40.0),
-                    z: Some(20.0),
+                    y: Some(Value::Float(40.0)),
+                    z: Some(Value::Float(20.0)),
                     ..Default::default()
                 }),
                 Token::EndProgram,

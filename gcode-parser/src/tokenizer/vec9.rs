@@ -1,21 +1,21 @@
 //! 9-dimension vector used for all linear moves
 
+use super::value::*;
 use nom::types::CompleteByteSlice;
 
-use super::helpers::*;
 use super::Token;
 
 #[derive(Debug, PartialEq)]
 pub struct Vec9 {
-    pub x: Option<f32>,
-    pub y: Option<f32>,
-    pub z: Option<f32>,
-    pub a: Option<f32>,
-    pub b: Option<f32>,
-    pub c: Option<f32>,
-    pub u: Option<f32>,
-    pub v: Option<f32>,
-    pub w: Option<f32>,
+    pub x: Option<Value>,
+    pub y: Option<Value>,
+    pub z: Option<Value>,
+    pub a: Option<Value>,
+    pub b: Option<Value>,
+    pub c: Option<Value>,
+    pub u: Option<Value>,
+    pub v: Option<Value>,
+    pub w: Option<Value>,
 }
 
 impl Default for Vec9 {
@@ -38,15 +38,15 @@ named!(
     pub vec9<CompleteByteSlice, Vec9>,
     map_res!(
         ws!(do_parse!(
-            x: opt!(call!(preceded_f32, "X")) >>
-            y: opt!(call!(preceded_f32, "Y")) >>
-            z: opt!(call!(preceded_f32, "Z")) >>
-            a: opt!(call!(preceded_f32, "A")) >>
-            b: opt!(call!(preceded_f32, "B")) >>
-            c: opt!(call!(preceded_f32, "C")) >>
-            u: opt!(call!(preceded_f32, "U")) >>
-            v: opt!(call!(preceded_f32, "V")) >>
-            w: opt!(call!(preceded_f32, "W")) >>
+            x: opt!(call!(preceded_float_value, "X")) >>
+            y: opt!(call!(preceded_float_value, "Y")) >>
+            z: opt!(call!(preceded_float_value, "Z")) >>
+            a: opt!(call!(preceded_float_value, "A")) >>
+            b: opt!(call!(preceded_float_value, "B")) >>
+            c: opt!(call!(preceded_float_value, "C")) >>
+            u: opt!(call!(preceded_float_value, "U")) >>
+            v: opt!(call!(preceded_float_value, "V")) >>
+            w: opt!(call!(preceded_float_value, "W")) >>
             (
                 Vec9 {
                     x,
@@ -92,9 +92,9 @@ mod tests {
             Ok((
                 EMPTY,
                 Vec9 {
-                    x: Some(0.0f32),
-                    y: Some(1.0f32),
-                    z: Some(2.0f32),
+                    x: Some(Value::Float(0.0f32)),
+                    y: Some(Value::Float(1.0f32)),
+                    z: Some(Value::Float(2.0f32)),
                     ..Default::default()
                 }
             ))
@@ -105,9 +105,9 @@ mod tests {
             Ok((
                 EMPTY,
                 Vec9 {
-                    x: Some(0.0f32),
-                    y: Some(1.0f32),
-                    z: Some(2.0f32),
+                    x: Some(Value::Float(0.0f32)),
+                    y: Some(Value::Float(1.0f32)),
+                    z: Some(Value::Float(2.0f32)),
                     ..Default::default()
                 }
             ))
@@ -118,9 +118,9 @@ mod tests {
             Ok((
                 EMPTY,
                 Vec9 {
-                    x: Some(-0.5f32),
-                    y: Some(-2.0f32),
-                    z: Some(100.0f32),
+                    x: Some(Value::Float(-0.5f32)),
+                    y: Some(Value::Float(-2.0f32)),
+                    z: Some(Value::Float(100.0f32)),
                     ..Default::default()
                 }
             ))
@@ -131,7 +131,7 @@ mod tests {
             Ok((
                 EMPTY,
                 Vec9 {
-                    z: Some(1.0f32),
+                    z: Some(Value::Float(1.0f32)),
                     ..Default::default()
                 }
             ))
@@ -142,9 +142,9 @@ mod tests {
             Ok((
                 EMPTY,
                 Vec9 {
-                    u: Some(2.5f32),
-                    v: Some(3.5f32),
-                    w: Some(4.5f32),
+                    u: Some(Value::Float(2.5f32)),
+                    v: Some(Value::Float(3.5f32)),
+                    w: Some(Value::Float(4.5f32)),
                     ..Default::default()
                 }
             ))
@@ -155,8 +155,8 @@ mod tests {
             Ok((
                 Cbs(b"X30 Y40"),
                 Vec9 {
-                    x: Some(10.0f32),
-                    y: Some(20.0f32),
+                    x: Some(Value::Float(10.0f32)),
+                    y: Some(Value::Float(20.0f32)),
                     ..Default::default()
                 }
             ))
