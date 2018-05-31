@@ -51,7 +51,8 @@ pub enum Token {
     CutterCompensation(CutterCompensation),
     RapidMove,
     LinearMove,
-    CenterFormatArc(CenterFormatArc),
+    CenterArc(CenterArc),
+    RadiusArc(RadiusArc),
     Coord(Vec9),
     ToolSelect(Value),
     ToolChange,
@@ -89,7 +90,7 @@ named!(token<CompleteByteSlice, Token>,
         gcode |
         mcode |
         othercode |
-        center_format_arc |
+        arc |
         coord |
         comment |
         end_program |

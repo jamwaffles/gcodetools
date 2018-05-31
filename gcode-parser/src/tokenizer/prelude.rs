@@ -1,4 +1,4 @@
-pub use super::arc::CenterFormatArc;
+pub use super::arc::CenterArc;
 pub use super::gcodes::{
     CutterCompensation, DistanceMode, FeedrateMode, PathBlendingMode, Plane,
     ToolLengthCompensation, Units, WorkOffset,

@@ -257,7 +257,7 @@ M2"#;
             EMPTY,
             vec![
                 Token::ClockwiseArc,
-                Token::CenterFormatArc(CenterFormatArc {
+                Token::CenterArc(CenterArc {
                     x: Some(Value::Float(5.0417)),
                     y: Some(Value::Float(1.9427)),
                     i: Some(Value::Float(-0.3979)),
