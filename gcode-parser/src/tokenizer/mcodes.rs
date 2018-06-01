@@ -1,7 +1,7 @@
 use nom::types::CompleteByteSlice;
 
-use super::Token;
 use super::helpers::*;
+use super::Token;
 
 #[derive(Debug, PartialEq)]
 pub enum SpindleRotation {
@@ -46,6 +46,22 @@ named!(spindle_rotation<CompleteByteSlice, Token>, map!(
     |res| Token::SpindleRotation(res)
 ));
 
+named!(modal_state_save<CompleteByteSlice, Token>,
+    map!(call!(m, 70.0), |_| Token::ModalStateSave)
+);
+
+named!(modal_state_invalidate<CompleteByteSlice, Token>,
+    map!(call!(m, 71.0), |_| Token::ModalStateInvalidate)
+);
+
+named!(modal_state_restore<CompleteByteSlice, Token>,
+    map!(call!(m, 72.0), |_| Token::ModalStateRestore)
+);
+
+named!(modal_state_autorestore<CompleteByteSlice, Token>,
+    map!(call!(m, 73.0), |_| Token::ModalStateAutoRestore)
+);
+
 named!(pub mcode<CompleteByteSlice, Token>,
     alt_complete!(
         tool_change |
@@ -53,7 +69,11 @@ named!(pub mcode<CompleteByteSlice, Token>,
         mist_coolant |
         flood_coolant |
         disable_coolant |
-        pause
+        pause |
+        modal_state_save |
+        modal_state_restore |
+        modal_state_invalidate |
+        modal_state_autorestore
     )
 );
 

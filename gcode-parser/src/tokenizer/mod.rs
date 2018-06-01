@@ -79,6 +79,10 @@ pub enum Token {
     // TODO: ParameterValue needs to become an Expression for general purpose float/expression support
     ParameterAssignment((Parameter, ParameterValue)),
     Parameter(Parameter),
+    ModalStateSave,
+    ModalStateRestore,
+    ModalStateInvalidate,
+    ModalStateAutoRestore,
 }
 
 /// List of parsed GCode tokens
