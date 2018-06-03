@@ -3,12 +3,12 @@ use nom::*;
 
 use super::parameter::{parameter, Parameter};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum ArithmeticOperator {
-    Add,
-    Div,
-    Mul,
     Sub,
+    Add,
+    Mul,
+    Div,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -121,6 +121,13 @@ mod tests {
         against: Expression,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
+    }
+
+    #[test]
+    fn arithmetic_operators_have_the_right_precedence() {
+        assert!(ArithmeticOperator::Div > ArithmeticOperator::Mul);
+        assert!(ArithmeticOperator::Mul > ArithmeticOperator::Add);
+        assert!(ArithmeticOperator::Add > ArithmeticOperator::Sub);
     }
 
     #[test]
