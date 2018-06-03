@@ -6,35 +6,35 @@ use super::parameter::{parameter, Parameter};
 #[derive(Debug, PartialEq)]
 pub enum ArithmeticOperator {
     Add,
-    Sub,
-    Mul,
     Div,
+    Mul,
+    Sub,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Function {
-    Atan((Expression, Expression)),
     Abs(Expression),
     Acos(Expression),
     Asin(Expression),
+    Atan((Expression, Expression)),
     Cos(Expression),
+    Exists(Expression),
     Exp(Expression),
     Fix(Expression),
     Fup(Expression),
-    Round(Expression),
     Ln(Expression),
+    Round(Expression),
     Sin(Expression),
     Sqrt(Expression),
     Tan(Expression),
-    Exists(Expression),
 }
 
 #[derive(Debug, PartialEq)]
 pub enum ExpressionToken {
-    Expression(Expression),
-    Literal(f32),
     ArithmeticOperator(ArithmeticOperator),
+    Expression(Expression),
     Function(Function),
+    Literal(f32),
     Parameter(Parameter),
 }
 
@@ -178,16 +178,14 @@ mod tests {
 
         check_expression(
             expression(input),
-            vec![
-                ExpressionToken::Function(Function::Atan((
-                    vec![
-                        ExpressionToken::Literal(3.0),
-                        ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-                        ExpressionToken::Literal(4.0),
-                    ],
-                    vec![ExpressionToken::Literal(5.0)],
-                ))),
-            ],
+            vec![ExpressionToken::Function(Function::Atan((
+                vec![
+                    ExpressionToken::Literal(3.0),
+                    ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                    ExpressionToken::Literal(4.0),
+                ],
+                vec![ExpressionToken::Literal(5.0)],
+            )))],
         );
     }
 
@@ -197,9 +195,9 @@ mod tests {
 
         check_expression(
             expression(input),
-            vec![
-                ExpressionToken::Function(Function::Abs(vec![ExpressionToken::Literal(1.0)])),
-            ],
+            vec![ExpressionToken::Function(Function::Abs(vec![
+                ExpressionToken::Literal(1.0),
+            ]))],
         );
     }
 
