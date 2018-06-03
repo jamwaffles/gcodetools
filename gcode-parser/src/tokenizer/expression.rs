@@ -3,7 +3,7 @@ use nom::*;
 
 use super::parameter::{parameter, Parameter};
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ArithmeticOperator {
     Add,
     Div,
@@ -11,7 +11,7 @@ pub enum ArithmeticOperator {
     Sub,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Function {
     Abs(Expression),
     Acos(Expression),
@@ -29,7 +29,7 @@ pub enum Function {
     Tan(Expression),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ExpressionToken {
     ArithmeticOperator(ArithmeticOperator),
     Expression(Expression),
