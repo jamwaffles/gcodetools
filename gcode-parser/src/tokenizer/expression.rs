@@ -3,7 +3,7 @@ use nom::*;
 
 use super::parameter::{parameter, Parameter};
 
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub enum ArithmeticOperator {
     Sub,
     Add,
@@ -128,6 +128,7 @@ mod tests {
         assert!(ArithmeticOperator::Div > ArithmeticOperator::Mul);
         assert!(ArithmeticOperator::Mul > ArithmeticOperator::Add);
         assert!(ArithmeticOperator::Add > ArithmeticOperator::Sub);
+        assert!(ArithmeticOperator::Add == ArithmeticOperator::Add);
     }
 
     #[test]
