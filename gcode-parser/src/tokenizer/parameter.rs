@@ -31,6 +31,11 @@ named!(
     alt_complete!(numbered_parameter | global_parameter | named_parameter)
 );
 
+named!(
+    pub not_numbered_parameter<CompleteByteSlice, Parameter>,
+    alt_complete!(global_parameter | named_parameter)
+);
+
 named!(parameter_assignment<CompleteByteSlice, (Parameter, ParameterValue)>, ws!(
     do_parse!(
         parameter: parameter >>
@@ -59,6 +64,13 @@ mod tests {
             named_parameter(Cbs(b"#<foo_bar>")),
             Ok((EMPTY, Parameter::Named("foo_bar".into())))
         );
+    }
+
+    #[test]
+    fn it_parses_not_numbered_parameters() {
+        assert!(not_numbered_parameter(Cbs(b"#<foo_bar>")).is_ok());
+        assert!(not_numbered_parameter(Cbs(b"#<_global>")).is_ok());
+        assert!(not_numbered_parameter(Cbs(b"#1234")).is_err());
     }
 
     #[test]

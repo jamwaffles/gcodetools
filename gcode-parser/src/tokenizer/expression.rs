@@ -1,7 +1,7 @@
 use nom::types::CompleteByteSlice;
 use nom::*;
 
-use super::parameter::{parameter, Parameter};
+use super::parameter::{not_numbered_parameter, parameter, Parameter};
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub enum ArithmeticOperator {
@@ -18,7 +18,8 @@ pub enum Function {
     Asin(Expression),
     Atan((Expression, Expression)),
     Cos(Expression),
-    Exists(Expression),
+    // TODO: "It is an error if you use a **numbered parameter** ~or an expression.~"
+    Exists(Parameter),
     Exp(Expression),
     Fix(Expression),
     Fup(Expression),
@@ -68,6 +69,12 @@ named!(atan<CompleteByteSlice, Function>, map!(
     |(left, right)| Function::Atan((left, right))
 ));
 
+// Exists is a function, but only allows named/global params as args
+named!(exists<CompleteByteSlice, Parameter>, preceded!(
+    tag_no_case!("EXISTS"),
+    ws!(delimited!(char!('['), not_numbered_parameter, char!(']')))
+));
+
 named_args!(function_call<'a>(func_ident: &str)<CompleteByteSlice<'a>, Expression>,
     preceded!(tag_no_case!(func_ident), expression)
 );
@@ -75,6 +82,7 @@ named_args!(function_call<'a>(func_ident: &str)<CompleteByteSlice<'a>, Expressio
 named!(function<CompleteByteSlice, ExpressionToken>, map!(
     alt_complete!(
         atan |
+        map!(exists, |param| Function::Exists(param)) |
         map!(call!(function_call, "ABS"), |args| Function::Abs(args)) |
         map!(call!(function_call, "ACOS"), |args| Function::Acos(args)) |
         map!(call!(function_call, "ASIN"), |args| Function::Asin(args)) |
@@ -86,8 +94,7 @@ named!(function<CompleteByteSlice, ExpressionToken>, map!(
         map!(call!(function_call, "LN"), |args| Function::Ln(args)) |
         map!(call!(function_call, "SIN"), |args| Function::Sin(args)) |
         map!(call!(function_call, "SQRT"), |args| Function::Sqrt(args)) |
-        map!(call!(function_call, "TAN"), |args| Function::Tan(args)) |
-        map!(call!(function_call, "EXISTS"), |args| Function::Exists(args))
+        map!(call!(function_call, "TAN"), |args| Function::Tan(args))
     ),
     |res| ExpressionToken::Function(res)
 ));
@@ -224,7 +231,7 @@ mod tests {
             "[SIN[1.0]]".into(),
             "[SQRT[1.0]]".into(),
             "[TAN[1.0]]".into(),
-            "[EXISTS[1.0]]".into(),
+            "[EXISTS[#<named>]]".into(),
         ];
 
         for input in inputs.into_iter() {
@@ -257,5 +264,15 @@ mod tests {
     #[test]
     fn it_parses_function_calls() {
         let _input = Cbs(b"[SIN[10]]");
+    }
+
+    #[test]
+    fn it_parses_exists_calls() {
+        check_expression(
+            expression(Cbs(b"[EXISTS[#<named_param>]]")),
+            vec![ExpressionToken::Function(Function::Exists(
+                Parameter::Named("named_param".into()),
+            ))],
+        );
     }
 }
