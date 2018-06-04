@@ -3,7 +3,7 @@ use nom::*;
 
 use super::Token;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Eq, Hash, Clone, Debug, PartialEq)]
 pub enum Parameter {
     Numbered(u32),
     Named(String),

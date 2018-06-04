@@ -1,6 +1,10 @@
+use super::super::tokenizer::prelude::*;
+use std::collections::HashMap;
 use tokenizer::expression::*;
 
-fn shunting_yard(tokens: Expression) -> Vec<ExpressionToken> {
+pub type Context = HashMap<Parameter, f32>;
+
+fn shunting_yard(tokens: Expression, context: Option<&Context>) -> Vec<ExpressionToken> {
     let mut output: Vec<ExpressionToken> = Vec::new();
     let mut operators: Vec<ExpressionToken> = Vec::new();
 
@@ -26,10 +30,11 @@ fn shunting_yard(tokens: Expression) -> Vec<ExpressionToken> {
             }
             // Behaves the same as a literal; a number is produced
             ExpressionToken::Expression(nested_expr) => {
-                let res = evaluate(nested_expr);
+                let res = evaluate(nested_expr, context);
 
                 output.push(ExpressionToken::Literal(res.unwrap()));
             }
+            ExpressionToken::Parameter(_) => output.push(token),
             _ => unimplemented!(),
         }
     }
@@ -43,7 +48,7 @@ fn shunting_yard(tokens: Expression) -> Vec<ExpressionToken> {
     output
 }
 
-fn calculate(postfix_tokens: Vec<ExpressionToken>) -> Result<f32, ()> {
+fn calculate(postfix_tokens: Vec<ExpressionToken>, context: Option<&Context>) -> Result<f32, ()> {
     let mut stack = Vec::new();
 
     for token in postfix_tokens {
@@ -65,6 +70,11 @@ fn calculate(postfix_tokens: Vec<ExpressionToken>) -> Result<f32, ()> {
                     }
                 }
             }
+            ExpressionToken::Parameter(param) => {
+                let value = context.unwrap().get(&param).unwrap();
+
+                stack.push(*value)
+            }
             _ => unimplemented!(),
         }
     }
@@ -74,10 +84,10 @@ fn calculate(postfix_tokens: Vec<ExpressionToken>) -> Result<f32, ()> {
     Ok(stack.pop().unwrap())
 }
 
-pub fn evaluate(expression: Expression) -> Result<f32, ()> {
-    let postfix_tokens = shunting_yard(expression);
+pub fn evaluate(expression: Expression, context: Option<&Context>) -> Result<f32, ()> {
+    let postfix_tokens = shunting_yard(expression, context);
 
-    calculate(postfix_tokens)
+    calculate(postfix_tokens, context)
 }
 
 #[cfg(test)]
@@ -92,7 +102,7 @@ mod tests {
             ExpressionToken::Literal(2.0),
         ];
 
-        assert_eq!(evaluate(expr), Ok(3.0));
+        assert_eq!(evaluate(expr, None), Ok(3.0));
     }
 
     #[test]
@@ -107,6 +117,27 @@ mod tests {
             ]),
         ];
 
-        assert_eq!(evaluate(expr), Ok(6.0));
+        assert_eq!(evaluate(expr, None), Ok(6.0));
+    }
+
+    #[test]
+    fn it_evaluates_parameters() {
+        let expr = vec![
+            ExpressionToken::Parameter(Parameter::Numbered(1234)),
+            ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+            ExpressionToken::Expression(vec![
+                ExpressionToken::Parameter(Parameter::Named("named".into())),
+                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                ExpressionToken::Parameter(Parameter::Global("global".into())),
+            ]),
+        ];
+
+        let context: Context = hashmap!{
+            Parameter::Numbered(1234) => 1.2,
+            Parameter::Named("named".into()) => 3.4,
+            Parameter::Global("global".into()) => 5.6,
+        };
+
+        assert_eq!(evaluate(expr, Some(&context)), Ok(10.2));
     }
 }
