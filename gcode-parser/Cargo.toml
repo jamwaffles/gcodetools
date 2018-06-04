@@ -6,6 +6,10 @@ version = "0.1.0"
 harness = false
 name = "tokenizer"
 
+[[bench]]
+harness = false
+name = "expression"
+
 [dependencies]
 nom = "4.0.0"
 
