@@ -21,8 +21,8 @@ pub enum Function {
     // TODO: "It is an error if you use a **numbered parameter** ~or an expression.~"
     Exists(Parameter),
     Exp(Expression),
-    Fix(Expression),
-    Fup(Expression),
+    Floor(Expression),
+    Ceil(Expression),
     Ln(Expression),
     Round(Expression),
     Sin(Expression),
@@ -88,8 +88,8 @@ named!(function<CompleteByteSlice, ExpressionToken>, map!(
         map!(call!(function_call, "ASIN"), |args| Function::Asin(args)) |
         map!(call!(function_call, "COS"), |args| Function::Cos(args)) |
         map!(call!(function_call, "EXP"), |args| Function::Exp(args)) |
-        map!(call!(function_call, "FIX"), |args| Function::Fix(args)) |
-        map!(call!(function_call, "FUP"), |args| Function::Fup(args)) |
+        map!(call!(function_call, "FIX"), |args| Function::Floor(args)) |
+        map!(call!(function_call, "FUP"), |args| Function::Ceil(args)) |
         map!(call!(function_call, "ROUND"), |args| Function::Round(args)) |
         map!(call!(function_call, "LN"), |args| Function::Ln(args)) |
         map!(call!(function_call, "SIN"), |args| Function::Sin(args)) |
