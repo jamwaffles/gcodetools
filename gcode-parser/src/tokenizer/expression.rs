@@ -18,7 +18,6 @@ pub enum Function {
     Asin(Expression),
     Atan((Expression, Expression)),
     Cos(Expression),
-    // TODO: "It is an error if you use a **numbered parameter** ~or an expression.~"
     Exists(Parameter),
     Exp(Expression),
     Floor(Expression),

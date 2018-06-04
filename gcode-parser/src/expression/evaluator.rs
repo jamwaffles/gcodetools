@@ -28,14 +28,43 @@ fn shunting_yard(tokens: Expression, context: Option<&Context>) -> Vec<Expressio
                 }
                 operators.push(token);
             }
-            // Behaves the same as a literal; a number is produced
             ExpressionToken::Expression(nested_expr) => {
                 let res = evaluate(nested_expr, context);
 
                 output.push(ExpressionToken::Literal(res.unwrap()));
             }
             ExpressionToken::Parameter(_) => output.push(token),
-            _ => unimplemented!(),
+            ExpressionToken::Function(func) => {
+                let res = match func {
+                    Function::Abs(arg) => evaluate(arg, context).unwrap().abs(),
+                    Function::Acos(arg) => evaluate(arg, context).unwrap().acos(),
+                    Function::Asin(arg) => evaluate(arg, context).unwrap().asin(),
+                    Function::Atan((arg1, arg2)) => {
+                        let res1 = evaluate(arg1, context).unwrap();
+                        let res2 = evaluate(arg2, context).unwrap();
+
+                        res1.atan2(res2)
+                    }
+                    Function::Cos(arg) => evaluate(arg, context).unwrap().cos(),
+                    Function::Exists(arg) => match context {
+                        Some(ctx) => match ctx.contains_key(&arg) {
+                            true => 1.0,
+                            false => 0.0,
+                        },
+                        None => 0.0,
+                    },
+                    Function::Exp(arg) => evaluate(arg, context).unwrap().exp(),
+                    Function::Floor(arg) => evaluate(arg, context).unwrap().floor(),
+                    Function::Ceil(arg) => evaluate(arg, context).unwrap().ceil(),
+                    Function::Ln(arg) => evaluate(arg, context).unwrap().ln(),
+                    Function::Round(arg) => evaluate(arg, context).unwrap().round(),
+                    Function::Sin(arg) => evaluate(arg, context).unwrap().sin(),
+                    Function::Sqrt(arg) => evaluate(arg, context).unwrap().sqrt(),
+                    Function::Tan(arg) => evaluate(arg, context).unwrap().tan(),
+                };
+
+                output.push(ExpressionToken::Literal(res))
+            }
         }
     }
 
@@ -139,5 +168,104 @@ mod tests {
         };
 
         assert_eq!(evaluate(expr, Some(&context)), Ok(10.2));
+    }
+
+    #[test]
+    fn it_evaluates_exists() {
+        let good_ctx: Context = hashmap!{
+            Parameter::Named("foo_bar".into()) => 1.0,
+        };
+        let bad_ctx: Context = hashmap!{
+            Parameter::Named("baz_quux".into()) => 1.0,
+            Parameter::Global("foo_bar".into()) => 1.0,
+        };
+
+        assert_eq!(
+            evaluate(
+                vec![ExpressionToken::Function(Function::Exists(
+                    Parameter::Named("foo_bar".into()),
+                ))],
+                Some(&good_ctx)
+            ),
+            Ok(1.0)
+        );
+
+        assert_eq!(
+            evaluate(
+                vec![ExpressionToken::Function(Function::Exists(
+                    Parameter::Named("foo_bar".into()),
+                ))],
+                Some(&bad_ctx)
+            ),
+            Ok(0.0)
+        );
+
+        assert_eq!(
+            evaluate(
+                vec![ExpressionToken::Function(Function::Exists(
+                    Parameter::Named("foo_bar".into()),
+                ))],
+                None
+            ),
+            Ok(0.0)
+        );
+    }
+
+    #[test]
+    fn it_evaluates_atan() {
+        let atan = vec![ExpressionToken::Function(Function::Atan((
+            vec![ExpressionToken::Literal(1.0)],
+            vec![ExpressionToken::Literal(2.0)],
+        )))];
+
+        assert_eq!(evaluate(atan, None), Ok(0.4636476));
+    }
+
+    // Not an exhaustive test by any means, but it should get us in the ballpark
+    #[test]
+    fn it_evaluates_functions() {
+        let funcs: Vec<(Function, f32)> = vec![
+            (Function::Abs(vec![ExpressionToken::Literal(-1.5)]), 1.5),
+            (Function::Acos(vec![ExpressionToken::Literal(1.0)]), 0.0),
+            (
+                Function::Asin(vec![ExpressionToken::Literal(1.0)]),
+                1.5707964,
+            ),
+            (
+                Function::Cos(vec![ExpressionToken::Literal(1.0)]),
+                0.5403023,
+            ),
+            (
+                Function::Exp(vec![ExpressionToken::Literal(1.0)]),
+                2.7182817,
+            ),
+            (Function::Floor(vec![ExpressionToken::Literal(2.8)]), 2.0),
+            (Function::Floor(vec![ExpressionToken::Literal(-2.8)]), -3.0),
+            (Function::Ceil(vec![ExpressionToken::Literal(2.8)]), 3.0),
+            (Function::Ceil(vec![ExpressionToken::Literal(-2.8)]), -2.0),
+            (Function::Ln(vec![ExpressionToken::Literal(2.0)]), 0.6931472),
+            (Function::Round(vec![ExpressionToken::Literal(1.4)]), 1.0),
+            (Function::Round(vec![ExpressionToken::Literal(1.5)]), 2.0),
+            (Function::Round(vec![ExpressionToken::Literal(1.6)]), 2.0),
+            (
+                Function::Sin(vec![ExpressionToken::Literal(1.0)]),
+                0.84147096,
+            ),
+            (
+                Function::Sqrt(vec![ExpressionToken::Literal(3.0)]),
+                1.7320508,
+            ),
+            (
+                Function::Tan(vec![ExpressionToken::Literal(1.0)]),
+                1.5574077,
+            ),
+        ];
+
+        for (func, expected) in funcs {
+            assert_eq!(
+                evaluate(vec![ExpressionToken::Function(func)], None).unwrap(),
+                expected
+            );
+        }
     }
 }
