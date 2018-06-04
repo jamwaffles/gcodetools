@@ -6,7 +6,8 @@ mod gcodes;
 mod helpers;
 mod mcodes;
 mod othercodes;
-mod parameter;
+// FIXME: Should not be pub
+pub mod parameter;
 pub mod prelude;
 mod value;
 mod vec9;
