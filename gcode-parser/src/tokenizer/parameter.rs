@@ -1,3 +1,4 @@
+use super::helpers::float_no_exponent;
 use nom::types::CompleteByteSlice;
 use nom::*;
 
@@ -40,7 +41,7 @@ named!(parameter_assignment<CompleteByteSlice, (Parameter, ParameterValue)>, ws!
     do_parse!(
         parameter: parameter >>
         char!('=') >>
-        value: flat_map!(recognize_float, parse_to!(f32)) >>
+        value: float_no_exponent >>
         ((parameter, value))
     )
 ));

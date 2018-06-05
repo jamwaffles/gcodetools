@@ -2,7 +2,7 @@ use nom::types::CompleteByteSlice;
 use nom::*;
 
 use super::expression::*;
-use super::helpers::one_of_no_case;
+use super::helpers::{float_no_exponent, one_of_no_case};
 use super::parameter::{parameter, Parameter};
 
 #[derive(Debug, PartialEq)]
@@ -61,7 +61,7 @@ named!(value_unsigned<CompleteByteSlice, Value>, map!(
 ));
 
 named!(value_float<CompleteByteSlice, Value>, map!(
-    flat_map!(recognize_float, parse_to!(f32)),
+    float_no_exponent,
     |res| Value::Float(res)
 ));
 
@@ -184,11 +184,14 @@ mod tests {
     fn it_parses_preceded_expressions() {
         assert_eq!(
             preceded_float_value(Cbs(b"Z[#<zscale>*10.]"), "Z"),
-            Ok((EMPTY, Value::Expression(vec![
-                ExpressionToken::Parameter(Parameter::Named("zscale".into())),
-                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
-                ExpressionToken::Literal(10.0),
-            ])))
+            Ok((
+                EMPTY,
+                Value::Expression(vec![
+                    ExpressionToken::Parameter(Parameter::Named("zscale".into())),
+                    ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
+                    ExpressionToken::Literal(10.0),
+                ])
+            ))
         );
     }
 }

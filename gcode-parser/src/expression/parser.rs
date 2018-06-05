@@ -1,11 +1,10 @@
+use super::super::tokenizer::helpers::float_no_exponent;
+use super::super::tokenizer::parameter::{not_numbered_parameter, parameter, Parameter};
 use super::{ArithmeticOperator, Expression, ExpressionToken, Function};
 use nom::types::CompleteByteSlice;
-use nom::*;
-
-use super::super::tokenizer::parameter::{not_numbered_parameter, parameter, Parameter};
 
 named!(literal<CompleteByteSlice, ExpressionToken>, map!(
-    flat_map!(recognize_float, parse_to!(f32)),
+    float_no_exponent,
     |res| ExpressionToken::Literal(res)
 ));
 
@@ -154,16 +153,14 @@ mod tests {
 
         assert_expr!(
             expression(input),
-            vec![
-                ExpressionToken::Function(Function::Atan((
-                    vec![
-                        ExpressionToken::Literal(3.0),
-                        ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-                        ExpressionToken::Literal(4.0),
-                    ],
-                    vec![ExpressionToken::Literal(5.0)],
-                ))),
-            ]
+            vec![ExpressionToken::Function(Function::Atan((
+                vec![
+                    ExpressionToken::Literal(3.0),
+                    ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                    ExpressionToken::Literal(4.0),
+                ],
+                vec![ExpressionToken::Literal(5.0)],
+            )))]
         );
     }
 
@@ -173,9 +170,9 @@ mod tests {
 
         assert_expr!(
             expression(input),
-            vec![
-                ExpressionToken::Function(Function::Abs(vec![ExpressionToken::Literal(1.0)])),
-            ]
+            vec![ExpressionToken::Function(Function::Abs(vec![
+                ExpressionToken::Literal(1.0),
+            ]))]
         );
     }
 
@@ -233,9 +230,9 @@ mod tests {
     fn it_parses_exists_calls() {
         assert_expr!(
             expression(Cbs(b"[EXISTS[#<named_param>]]")),
-            vec![
-                ExpressionToken::Function(Function::Exists(Parameter::Named("named_param".into()))),
-            ]
+            vec![ExpressionToken::Function(Function::Exists(
+                Parameter::Named("named_param".into()),
+            ))]
         );
     }
 }

@@ -1,6 +1,6 @@
 use nom::types::CompleteByteSlice;
-use nom::*;
 
+use super::helpers::float_no_exponent;
 use super::parameter::{not_numbered_parameter, parameter, Parameter};
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
@@ -41,7 +41,7 @@ pub enum ExpressionToken {
 pub type Expression = Vec<ExpressionToken>;
 
 named!(literal<CompleteByteSlice, ExpressionToken>, map!(
-    flat_map!(recognize_float, parse_to!(f32)),
+    float_no_exponent,
     |res| ExpressionToken::Literal(res)
 ));
 

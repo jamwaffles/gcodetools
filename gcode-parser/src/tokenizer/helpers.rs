@@ -6,9 +6,24 @@ use super::Token;
 
 named!(pub take_until_line_ending<CompleteByteSlice, CompleteByteSlice>, alt_complete!(take_until!("\r\n") | take_until!("\n")));
 
+// Parse a GCode-style float, i.e. does not support "e" notation
+named!(recognize_float_no_exponent<CompleteByteSlice, CompleteByteSlice>, recognize!(
+    tuple!(
+        opt!(alt!(char!('+') | char!('-'))),
+        alt!(
+            value!((), tuple!(digit, opt!(pair!(char!('.'), opt!(digit))))) | value!((), tuple!(char!('.'), digit))
+        )
+    )
+));
+
+named!(pub float_no_exponent<CompleteByteSlice, f32>, flat_map!(
+    recognize_float_no_exponent,
+    parse_to!(f32)
+));
+
 named_args!(
     pub preceded_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, f32>,
-    flat_map!(ws!(preceded!(tag_no_case!(preceding), recognize_float)), parse_to!(f32))
+    ws!(preceded!(tag_no_case!(preceding), float_no_exponent))
 );
 
 named_args!(
@@ -44,10 +59,7 @@ named_args!(char_no_case(search: char)<CompleteByteSlice, char>,
 named_args!(
     preceded_code<'a>(preceding: char, code: f32)<CompleteByteSlice<'a>, (char, f32)>,
     map_res!(
-        flat_map!(
-            preceded!(call!(char_no_case, preceding), recognize_float),
-            parse_to!(f32)
-        ),
+        preceded!(call!(char_no_case, preceding), float_no_exponent),
         |res| {
             if res == code {
                 Ok((preceding.to_ascii_uppercase(), res))
@@ -156,5 +168,32 @@ mod tests {
     #[test]
     fn it_parses_mcodes() {
         assert_eq!(m(Cbs(b"M30"), 30.0), Ok((EMPTY, Cbs(b"M30"))));
+    }
+
+    // Ripped from Nom 4 tests, sans test numbers with exponents
+    #[test]
+    fn it_parses_float_no_exponents() {
+        let mut test_cases = vec!["+3.14", "3.14", "-3.14", "0", "0.0", "1.", ".789", "-.5"];
+
+        for test in test_cases.drain(..) {
+            let expected32 = str::parse::<f32>(test).unwrap();
+            let expected64 = str::parse::<f64>(test).unwrap();
+
+            assert_eq!(
+                recognize_float_no_exponent(CompleteByteSlice(test.as_bytes())),
+                Ok((CompleteByteSlice(b""), CompleteByteSlice(test.as_bytes())))
+            );
+            let larger = format!("{};", test);
+            assert_eq!(
+                recognize_float_no_exponent(Cbs(larger.as_bytes())),
+                Ok((Cbs(b";"), Cbs(test.as_bytes())))
+            );
+
+            assert_eq!(float(larger.as_bytes()), Ok((&b";"[..], expected32)));
+            assert_eq!(float_s(&larger[..]), Ok((";", expected32)));
+
+            assert_eq!(double(larger.as_bytes()), Ok((&b";"[..], expected64)));
+            assert_eq!(double_s(&larger[..]), Ok((";", expected64)));
+        }
     }
 }
