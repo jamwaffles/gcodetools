@@ -20,7 +20,7 @@ pub fn one_of_no_case<'a>(
     i: CompleteByteSlice<'a>,
     inp: &str,
 ) -> IResult<CompleteByteSlice<'a>, char> {
-    let inp_lower = inp.to_lowercase();
+    let inp_lower = inp.to_ascii_lowercase();
 
     match i
         .iter_elements()
