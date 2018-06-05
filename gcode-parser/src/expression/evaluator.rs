@@ -123,6 +123,17 @@ pub fn evaluate(expression: Expression, context: Option<&Context>) -> Result<f32
 mod tests {
     use super::*;
 
+    macro_rules! assert_near {
+        ($compare:expr, $expected:expr) => {
+            use std::f32;
+
+            assert!(
+                ($compare as f32 - $expected as f32).abs() < 0.000001,
+                format!("{:?} not near to {:?}", $compare, $expected)
+            );
+        };
+    }
+
     #[test]
     fn it_evaluates_simple_expressions() {
         let expr = vec![
@@ -182,9 +193,9 @@ mod tests {
 
         assert_eq!(
             evaluate(
-                vec![ExpressionToken::Function(Function::Exists(
-                    Parameter::Named("foo_bar".into()),
-                ))],
+                vec![
+                    ExpressionToken::Function(Function::Exists(Parameter::Named("foo_bar".into()))),
+                ],
                 Some(&good_ctx)
             ),
             Ok(1.0)
@@ -192,9 +203,9 @@ mod tests {
 
         assert_eq!(
             evaluate(
-                vec![ExpressionToken::Function(Function::Exists(
-                    Parameter::Named("foo_bar".into()),
-                ))],
+                vec![
+                    ExpressionToken::Function(Function::Exists(Parameter::Named("foo_bar".into()))),
+                ],
                 Some(&bad_ctx)
             ),
             Ok(0.0)
@@ -202,9 +213,9 @@ mod tests {
 
         assert_eq!(
             evaluate(
-                vec![ExpressionToken::Function(Function::Exists(
-                    Parameter::Named("foo_bar".into()),
-                ))],
+                vec![
+                    ExpressionToken::Function(Function::Exists(Parameter::Named("foo_bar".into()))),
+                ],
                 None
             ),
             Ok(0.0)
@@ -213,10 +224,12 @@ mod tests {
 
     #[test]
     fn it_evaluates_atan() {
-        let atan = vec![ExpressionToken::Function(Function::Atan((
-            vec![ExpressionToken::Literal(1.0)],
-            vec![ExpressionToken::Literal(2.0)],
-        )))];
+        let atan = vec![
+            ExpressionToken::Function(Function::Atan((
+                vec![ExpressionToken::Literal(1.0)],
+                vec![ExpressionToken::Literal(2.0)],
+            ))),
+        ];
 
         assert_eq!(evaluate(atan, None), Ok(0.4636476));
     }
@@ -262,8 +275,8 @@ mod tests {
         ];
 
         for (func, expected) in funcs {
-            assert_eq!(
-                evaluate(vec![ExpressionToken::Function(func)], None).unwrap(),
+            assert_near!(
+                evaluate(vec![ExpressionToken::Function(func.clone())], None).unwrap(),
                 expected
             );
         }
