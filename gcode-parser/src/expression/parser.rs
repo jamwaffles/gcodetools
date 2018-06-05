@@ -81,16 +81,14 @@ named!(pub expression<CompleteByteSlice, Expression>, ws!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
 
     const EMPTY: Cbs = Cbs(b"");
 
-    fn check_expression(
-        to_check: Result<(CompleteByteSlice, Expression), nom::Err<CompleteByteSlice>>,
-        against: Expression,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
+    macro_rules! assert_expr {
+        ($to_check:expr, $against:expr) => {
+            assert_eq!($to_check, Ok((EMPTY, $against)))
+        };
     }
 
     #[test]
@@ -105,14 +103,14 @@ mod tests {
     fn it_parses_simple_expressions() {
         let input = Cbs(b"[1]");
 
-        check_expression(expression(input), vec![ExpressionToken::Literal(1.0)]);
+        assert_expr!(expression(input), vec![ExpressionToken::Literal(1.0)]);
     }
 
     #[test]
     fn it_parses_arithmetic() {
         let input = Cbs(b"[1 + 2 * 3 / 4 - 5]");
 
-        check_expression(
+        assert_expr!(
             expression(input),
             vec![
                 ExpressionToken::Literal(1.0),
@@ -124,7 +122,7 @@ mod tests {
                 ExpressionToken::Literal(4.0),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Sub),
                 ExpressionToken::Literal(5.0),
-            ],
+            ]
         );
     }
 
@@ -132,7 +130,7 @@ mod tests {
     fn it_parses_nested_expressions() {
         let input = Cbs(b"[1 + [[2 - 3] * 4]]");
 
-        check_expression(
+        assert_expr!(
             expression(input),
             vec![
                 ExpressionToken::Literal(1.0),
@@ -146,7 +144,7 @@ mod tests {
                     ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
                     ExpressionToken::Literal(4.0),
                 ]),
-            ],
+            ]
         );
     }
 
@@ -154,16 +152,18 @@ mod tests {
     fn it_parses_atan() {
         let input = Cbs(b"[ATAN[3 + 4]/[5]]");
 
-        check_expression(
+        assert_expr!(
             expression(input),
-            vec![ExpressionToken::Function(Function::Atan((
-                vec![
-                    ExpressionToken::Literal(3.0),
-                    ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-                    ExpressionToken::Literal(4.0),
-                ],
-                vec![ExpressionToken::Literal(5.0)],
-            )))],
+            vec![
+                ExpressionToken::Function(Function::Atan((
+                    vec![
+                        ExpressionToken::Literal(3.0),
+                        ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                        ExpressionToken::Literal(4.0),
+                    ],
+                    vec![ExpressionToken::Literal(5.0)],
+                ))),
+            ]
         );
     }
 
@@ -171,11 +171,11 @@ mod tests {
     fn it_parses_a_function() {
         let input = Cbs(b"[ABS[1.0]]");
 
-        check_expression(
+        assert_expr!(
             expression(input),
-            vec![ExpressionToken::Function(Function::Abs(vec![
-                ExpressionToken::Literal(1.0),
-            ]))],
+            vec![
+                ExpressionToken::Function(Function::Abs(vec![ExpressionToken::Literal(1.0)])),
+            ]
         );
     }
 
@@ -209,13 +209,13 @@ mod tests {
     fn it_parses_negative_numbers_as_negative_numbers() {
         let input = Cbs(b"[-10.0*-12]");
 
-        check_expression(
+        assert_expr!(
             expression(input),
             vec![
                 ExpressionToken::Literal(-10.0),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
                 ExpressionToken::Literal(-12.0),
-            ],
+            ]
         );
     }
 
@@ -231,11 +231,11 @@ mod tests {
 
     #[test]
     fn it_parses_exists_calls() {
-        check_expression(
+        assert_expr!(
             expression(Cbs(b"[EXISTS[#<named_param>]]")),
-            vec![ExpressionToken::Function(Function::Exists(
-                Parameter::Named("named_param".into()),
-            ))],
+            vec![
+                ExpressionToken::Function(Function::Exists(Parameter::Named("named_param".into()))),
+            ]
         );
     }
 }
