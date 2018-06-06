@@ -2,7 +2,7 @@ use nom::types::CompleteByteSlice;
 use nom::*;
 
 use super::expression::*;
-use super::helpers::{float_no_exponent, one_of_no_case};
+use super::helpers::float_no_exponent;
 use super::parameter::{parameter, Parameter};
 
 #[derive(Debug, PartialEq)]
@@ -105,16 +105,6 @@ named_args!(
     )
 ));
 
-named_args!(
-    pub preceded_one_of_float_value<'a>(preceding: &str)<CompleteByteSlice<'a>, (char, Value)>, ws!(tuple!(
-    map!(call!(one_of_no_case, preceding), |letter| letter.to_ascii_uppercase()),
-    alt_complete!(
-        value_float |
-        value_parameter |
-        value_expression
-    )
-)));
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -154,29 +144,6 @@ mod tests {
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                 ExpressionToken::Literal(2.0),
             ]),
-        );
-    }
-
-    #[test]
-    fn it_parses_preceded_one_of_floats() {
-        assert_eq!(
-            preceded_one_of_float_value(Cbs(b"X12"), "XYZ"),
-            Ok((EMPTY, ('X', Value::Float(12.0f32))))
-        );
-        assert_eq!(
-            preceded_one_of_float_value(Cbs(b"X 12"), "XYZ"),
-            Ok((EMPTY, ('X', Value::Float(12.0f32))))
-        );
-        assert_eq!(
-            preceded_one_of_float_value(Cbs(b"x 12"), "XYZ"),
-            Ok((EMPTY, ('X', Value::Float(12.0f32))))
-        );
-        assert_eq!(
-            preceded_one_of_float_value(Cbs(b"a 12"), "XYZ"),
-            Err(nom::Err::Error(nom::simple_errors::Context::Code(
-                CompleteByteSlice(b"a 12"),
-                nom::ErrorKind::OneOf
-            )))
         );
     }
 

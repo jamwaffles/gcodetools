@@ -1,7 +1,7 @@
-use nom::types::CompleteByteSlice;
-
-use super::Token;
+use super::helpers::{float_no_exponent, parse_to_u32};
 use super::value::*;
+use super::Token;
+use nom::types::CompleteByteSlice;
 
 #[derive(Debug, PartialEq)]
 pub struct CenterArc {
@@ -49,61 +49,50 @@ impl Default for RadiusArc {
     }
 }
 
+type CenterArcReturn = (
+    Option<Value>,
+    Option<Value>,
+    Option<Value>,
+    Option<Value>,
+    Option<Value>,
+    Option<Value>,
+    Option<Value>,
+);
+
 named!(pub center_arc<CompleteByteSlice, Token>, map_res!(
-    do_parse!(
-        coords: opt!(ws!(many_m_n!(2, 3, call!(preceded_one_of_float_value, "XYZ")))) >>
-        params: ws!(many_m_n!(1, 2, call!(preceded_one_of_float_value, "IJK"))) >>
-        p: opt!(call!(preceded_unsigned_value, "P")) >>
-        ({
-            let mut arc = CenterArc { p, ..Default::default() };
-
-            for (letter, value) in coords.unwrap_or(vec![]).into_iter().chain(params.into_iter()) {
-                match letter {
-                    'X' => arc.x = Some(value),
-                    'Y' => arc.y = Some(value),
-                    'Z' => arc.z = Some(value),
-                    'I' => arc.i = Some(value),
-                    'J' => arc.j = Some(value),
-                    'K' => arc.k = Some(value),
-                    _ => ()
-                }
-            };
-
-            arc
-        })
+    permutation!(
+        map!(ws!(preceded!(one_of!("Xx"), float_no_exponent)), Value::Float)?,
+        map!(ws!(preceded!(one_of!("Yy"), float_no_exponent)), Value::Float)?,
+        map!(ws!(preceded!(one_of!("Zz"), float_no_exponent)), Value::Float)?,
+        map!(ws!(preceded!(one_of!("Ii"), float_no_exponent)), Value::Float)?,
+        map!(ws!(preceded!(one_of!("Jj"), float_no_exponent)), Value::Float)?,
+        map!(ws!(preceded!(one_of!("Kk"), float_no_exponent)), Value::Float)?,
+        map!(ws!(preceded!(one_of!("Pp"), parse_to_u32)), Value::Unsigned)?
     ),
-    |res: CenterArc| {
-        if res.i.is_none() && res.j.is_none()&& res.k.is_none() {
+    |(x, y, z, i, j, k, p): CenterArcReturn| {
+        if i.is_none() && j.is_none() && k.is_none() {
             Err(())
         } else {
-            Ok(Token::CenterArc(res))
+            Ok(Token::CenterArc(CenterArc {
+                x, y, z, i, j, k, p
+            }))
         }
     }
 ));
 
-named!(pub radius_arc<CompleteByteSlice, Token>, map_res!(
-    ws!(many_m_n!(3, 5, call!(preceded_one_of_float_value, "XYZRP"))),
-    |res: Vec<(char, Value)>| {
-        let mut arc = RadiusArc { ..Default::default() };
-
-        for (letter, value) in res.into_iter() {
-            match letter {
-                'X' => arc.x = Some(value),
-                'Y' => arc.y = Some(value),
-                'Z' => arc.z = Some(value),
-                'R' => arc.r = Some(value),
-                'P' => arc.p = Some(value),
-                _ => ()
-            }
-        };
-
-        if arc.r.is_none() || (arc.x.is_none() && arc.y.is_none() && arc.z.is_none()) {
-            Err(())
-        } else {
-            Ok(Token::RadiusArc(arc))
-        }
+named!(pub radius_arc<CompleteByteSlice, Token>, map!(
+    permutation!(
+        map!(ws!(preceded!(one_of!("Xx"), float_no_exponent)), Value::Float)?,
+        map!(ws!(preceded!(one_of!("Yy"), float_no_exponent)), Value::Float)?,
+        map!(ws!(preceded!(one_of!("Zz"), float_no_exponent)), Value::Float)?,
+        map!(ws!(preceded!(one_of!("Pp"), parse_to_u32)), Value::Unsigned)?,
+        map!(ws!(preceded!(one_of!("Rr"), float_no_exponent)), Value::Float)
+    ),
+    |(x, y, z, p, r)| {
+        Token::RadiusArc(RadiusArc {
+            x, y, z, p, r: Some(r)
+        })
     }
-
 ));
 
 named!(pub arc<CompleteByteSlice, Token>, alt_complete!(center_arc | radius_arc));

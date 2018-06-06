@@ -31,6 +31,11 @@ named_args!(
     flat_map!(preceded!(tag_no_case!(preceding), recognize!(digit)), parse_to!(u32))
 );
 
+named!(
+    pub parse_to_u32<CompleteByteSlice, u32>,
+    flat_map!(recognize!(digit), parse_to!(u32))
+);
+
 pub fn one_of_no_case<'a>(
     i: CompleteByteSlice<'a>,
     inp: &str,
@@ -173,7 +178,9 @@ mod tests {
     // Ripped from Nom 4 tests, sans test numbers with exponents
     #[test]
     fn it_parses_float_no_exponents() {
-        let mut test_cases = vec!["+3.14", "3.14", "-3.14", "0", "0.0", "1.", ".789", "-.5"];
+        let mut test_cases = vec![
+            "+3.14", "3.14", "-3.14", "0", "0.0", "1.", ".789", "-.5", ".1",
+        ];
 
         for test in test_cases.drain(..) {
             let expected32 = str::parse::<f32>(test).unwrap();
