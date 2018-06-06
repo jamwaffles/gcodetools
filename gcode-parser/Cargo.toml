@@ -18,6 +18,10 @@ name = "helpers"
 harness = false
 name = "arc"
 
+[[bench]]
+harness = false
+name = "vec9"
+
 [dependencies]
 nom = "4.0.0"
 
