@@ -14,6 +14,10 @@ name = "expression"
 harness = false
 name = "helpers"
 
+[[bench]]
+harness = false
+name = "arc"
+
 [dependencies]
 nom = "4.0.0"
 

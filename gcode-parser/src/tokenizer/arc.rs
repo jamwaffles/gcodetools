@@ -1,7 +1,7 @@
 use nom::types::CompleteByteSlice;
 
-use super::value::*;
 use super::Token;
+use super::value::*;
 
 #[derive(Debug, PartialEq)]
 pub struct CenterArc {
@@ -49,7 +49,7 @@ impl Default for RadiusArc {
     }
 }
 
-named!(center_arc<CompleteByteSlice, Token>, map_res!(
+named!(pub center_arc<CompleteByteSlice, Token>, map_res!(
     do_parse!(
         coords: opt!(ws!(many_m_n!(2, 3, call!(preceded_one_of_float_value, "XYZ")))) >>
         params: ws!(many_m_n!(1, 2, call!(preceded_one_of_float_value, "IJK"))) >>
@@ -81,7 +81,7 @@ named!(center_arc<CompleteByteSlice, Token>, map_res!(
     }
 ));
 
-named!(radius_arc<CompleteByteSlice, Token>, map_res!(
+named!(pub radius_arc<CompleteByteSlice, Token>, map_res!(
     ws!(many_m_n!(3, 5, call!(preceded_one_of_float_value, "XYZRP"))),
     |res: Vec<(char, Value)>| {
         let mut arc = RadiusArc { ..Default::default() };
