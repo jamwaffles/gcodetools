@@ -26,6 +26,8 @@ pub enum PathBlendingMode {
 #[derive(Debug, PartialEq)]
 pub enum CutterCompensation {
     Off,
+    Left(Option<u32>),
+    Right(Option<u32>),
 }
 
 #[derive(Debug, PartialEq)]
@@ -90,7 +92,15 @@ named!(path_blending<CompleteByteSlice, Token>, map!(
 named!(cutter_compensation<CompleteByteSlice, Token>,
     map!(
         alt!(
-            map!(call!(g, 40.0), |_| CutterCompensation::Off)
+            map!(call!(g, 40.0), |_| CutterCompensation::Off) |
+            map!(
+                ws!(preceded!(call!(g, 41.0), opt!(call!(preceded_u32, "D")))),
+                |tool| CutterCompensation::Left(tool)
+            ) |
+            map!(
+                ws!(preceded!(call!(g, 42.0), opt!(call!(preceded_u32, "D")))),
+                |tool| CutterCompensation::Right(tool)
+            )
         ),
         |res| Token::CutterCompensation(res)
     )
@@ -266,14 +276,25 @@ mod tests {
             Token::CutterCompensation(CutterCompensation::Off),
         );
 
-        // TODO
-        // assert_eq!(
-        //     path_blending(Cbs(b"G64 Q0.02")),
-        //     Ok((
-        //         EMPTY,
-        //         Token::PathBlending(PathBlending { p: None, q: None })
-        //     ))
-        // );
+        check_token(
+            cutter_compensation(Cbs(b"G41 D1")),
+            Token::CutterCompensation(CutterCompensation::Left(Some(1u32))),
+        );
+
+        check_token(
+            cutter_compensation(Cbs(b"G42 D1")),
+            Token::CutterCompensation(CutterCompensation::Right(Some(1u32))),
+        );
+
+        check_token(
+            cutter_compensation(Cbs(b"G42 D0")),
+            Token::CutterCompensation(CutterCompensation::Right(Some(0u32))),
+        );
+
+        check_token(
+            cutter_compensation(Cbs(b"G42")),
+            Token::CutterCompensation(CutterCompensation::Right(None)),
+        );
     }
 
     #[test]
