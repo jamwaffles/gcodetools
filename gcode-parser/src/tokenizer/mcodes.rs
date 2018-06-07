@@ -21,6 +21,10 @@ named!(pause<CompleteByteSlice, Token>,
     map!(call!(m, 0.0), |_| Token::Pause)
 );
 
+named!(optional_pause<CompleteByteSlice, Token>,
+    map!(call!(m, 1.0), |_| Token::OptionalPause)
+);
+
 named!(tool_change<CompleteByteSlice, Token>,
     map!(call!(m, 6.0), |_| Token::ToolChange)
 );
@@ -70,6 +74,7 @@ named!(pub mcode<CompleteByteSlice, Token>,
         flood_coolant |
         disable_coolant |
         pause |
+        optional_pause |
         modal_state_save |
         modal_state_restore |
         modal_state_invalidate |
@@ -94,8 +99,11 @@ mod tests {
 
     #[test]
     fn it_parses_pauses() {
-        check_token(pause(Cbs(b"M0")), Token::Pause);
-        check_token(pause(Cbs(b"M00")), Token::Pause);
+        check_token(mcode(Cbs(b"M0")), Token::Pause);
+        check_token(mcode(Cbs(b"M00")), Token::Pause);
+
+        check_token(mcode(Cbs(b"M1")), Token::OptionalPause);
+        check_token(mcode(Cbs(b"M01")), Token::OptionalPause);
     }
 
     #[test]

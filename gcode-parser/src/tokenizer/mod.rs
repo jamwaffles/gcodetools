@@ -78,6 +78,7 @@ pub enum Token {
     GoToPredefinedPosition,
     StorePredefinedPosition,
     Pause,
+    OptionalPause,
     BlockDelete(Vec<Token>),
     // TODO: ParameterValue needs to become an Expression for general purpose float/expression support
     ParameterAssignment((Parameter, ParameterValue)),
