@@ -3,10 +3,14 @@ use super::super::tokenizer::{token_not_end_program, Token};
 use super::{Subroutine, SubroutineName};
 use nom::types::CompleteByteSlice;
 
-named!(start_sub<CompleteByteSlice, SubroutineName>, map!(
-    terminated!(call!(preceded_u32, "O"), tag_no_case!(" sub")),
+named!(subroutine_name<CompleteByteSlice, SubroutineName>, map!(
+    call!(preceded_u32, "O"),
     |res| SubroutineName::Number(res)
 ));
+
+named!(start_sub<CompleteByteSlice, SubroutineName>,
+    terminated!(subroutine_name, tag_no_case!(" sub"))
+);
 
 named_args!(end_sub(sub_name: String)<CompleteByteSlice, CompleteByteSlice>,
     terminated!(tag_no_case!(sub_name.as_str()), tag_no_case!(" endsub"))
@@ -25,8 +29,13 @@ named!(subroutine_definition<CompleteByteSlice, Subroutine>, ws!(
     )
 ));
 
+named!(subroutine_call<CompleteByteSlice, SubroutineName>,
+    terminated!(subroutine_name, tag_no_case!(" call"))
+);
+
 named!(pub subroutine<CompleteByteSlice, Token>, alt_complete!(
-    map!(subroutine_definition, |sub| Token::SubroutineDefinition(sub))
+    map!(subroutine_definition, |sub| Token::SubroutineDefinition(sub)) |
+    map!(subroutine_call, |sub| Token::SubroutineCall(sub))
 ));
 
 #[cfg(test)]
