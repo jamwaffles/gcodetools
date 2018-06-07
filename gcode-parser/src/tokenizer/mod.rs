@@ -27,6 +27,8 @@ use self::parameter::*;
 use self::value::*;
 use self::vec9::*;
 
+use super::subroutine::{parser::subroutine, Subroutine};
+
 pub struct Tokenizer<'a> {
     program_string: &'a str,
 }
@@ -87,12 +89,13 @@ pub enum Token {
     ModalStateRestore,
     ModalStateInvalidate,
     ModalStateAutoRestore,
+    SubroutineDefinition(Subroutine),
 }
 
 /// List of parsed GCode tokens
 pub type ProgramTokens = Vec<Token>;
 
-named!(token<CompleteByteSlice, Token>,
+named!(pub token_not_end_program<CompleteByteSlice, Token>,
     alt_complete!(
         block_delete |
         gcode |
@@ -101,12 +104,17 @@ named!(token<CompleteByteSlice, Token>,
         arc |
         coord |
         comment |
-        end_program |
-        parameters
+        parameters |
+        subroutine
     )
 );
 
-named!(tokens<CompleteByteSlice, Vec<Token>>, ws!(many0!(token)));
+named!(token<CompleteByteSlice, Token>,
+    alt_complete!(
+        token_not_end_program |
+        end_program
+    )
+);
 
 named!(block_delete<CompleteByteSlice, Token>, map!(
     flat_map!(
@@ -115,6 +123,8 @@ named!(block_delete<CompleteByteSlice, Token>, map!(
     ),
     |tokens| Token::BlockDelete(tokens)
 ));
+
+named!(tokens<CompleteByteSlice, Vec<Token>>, ws!(many0!(token)));
 
 /// Raw GCode parser
 ///

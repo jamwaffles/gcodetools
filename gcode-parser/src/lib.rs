@@ -6,4 +6,5 @@ extern crate maplit;
 extern crate nom;
 
 pub mod expression;
+pub mod subroutine;
 pub mod tokenizer;
