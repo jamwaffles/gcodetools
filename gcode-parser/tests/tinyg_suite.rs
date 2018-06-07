@@ -5,12 +5,11 @@ extern crate nom;
 
 mod helpers;
 
+use helpers::*;
 use std::path::Path;
 
-use helpers::*;
-
 #[test]
-fn it_parses_all_tinyg_samples() {
+fn profile_tinyg_samples() {
     let dir = Path::new("./tests/test_files/tinyg")
         .canonicalize()
         .unwrap();
@@ -20,6 +19,8 @@ fn it_parses_all_tinyg_samples() {
     let results = files.iter().map(|fpath| test_parse(fpath));
 
     let mut num_errors = 0;
+
+    start_profile();
 
     for (file, result) in files.iter().zip(results) {
         if result.is_err() {
@@ -32,6 +33,8 @@ fn it_parses_all_tinyg_samples() {
             result
         );
     }
+
+    end_profile();
 
     println!(
         "\n{} out of {} files passed ({} failed)\n",

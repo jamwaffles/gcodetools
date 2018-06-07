@@ -1,4 +1,6 @@
 extern crate chardet;
+#[cfg(feature = "profile")]
+extern crate cpuprofiler;
 extern crate encoding;
 extern crate gcode_parser;
 extern crate nom;
@@ -96,4 +98,43 @@ pub fn test_parse(filepath: &Path) -> Result<(), String> {
         }
         Err(e) => Err(e.description().to_string()),
     }
+}
+
+#[cfg(feature = "profile")]
+#[allow(dead_code)]
+pub fn start_profile() {
+    use self::cpuprofiler::PROFILER;
+    use std::env;
+    use std::fs;
+
+    let exe = env::current_exe().unwrap();
+    let exe_name = Path::new(&exe).file_name().unwrap();
+
+    fs::create_dir_all("./profiles").unwrap();
+
+    let profile_name = format!("./profiles/{}.profile", exe_name.to_str().unwrap());
+
+    println!("Profiling into {}", profile_name);
+
+    PROFILER.lock().unwrap().start(profile_name).unwrap();
+}
+
+#[cfg(feature = "profile")]
+#[allow(dead_code)]
+pub fn end_profile() {
+    use self::cpuprofiler::PROFILER;
+
+    PROFILER.lock().unwrap().stop().unwrap();
+}
+
+#[cfg(not(feature = "profile"))]
+#[allow(dead_code)]
+pub fn start_profile() {
+    // Noop
+}
+
+#[cfg(not(feature = "profile"))]
+#[allow(dead_code)]
+pub fn end_profile() {
+    // Noop
 }

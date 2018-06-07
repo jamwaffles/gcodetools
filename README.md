@@ -4,13 +4,19 @@
 
 Libraries for working with CNC GCode
 
-Note to self for profiling:
+To profile tests:
 
 ```bash
-# Cargo.toml
-# [profile.release]
-# debug = true
+brew install go gprof2dot
+go get -u github.com/google/pprof
 
-cargo test --release -- --nocapture
-valgrind --tool=callgrind --dump-instr=yes --collect-jumps=yes --simulate-cache=yes ../target/release/deps/universal_gcode_sender_suite-5ddc65b6ce289fa6
+# Any suite in tests/
+cargo test --test tinyg_suite --features profile -- --nocapture
+
+pprof --callgrind ../target/debug/deps/<binary name> ./profiles/<profile name>.profile > ./profiles/profile.callgrind
+gprof2dot --format=callgrind --output=./profiles/profile.dot ./profiles/profile.callgrind
+dot -Tpng ./profiles/profile.dot -o ./profiles/graph.png
+
+# MacOS only
+open ./profiles/graph.png
 ```
