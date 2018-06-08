@@ -1,5 +1,6 @@
 pub mod parser;
 
+use super::expression::Expression;
 use super::tokenizer::ProgramTokens;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -19,4 +20,11 @@ impl From<SubroutineName> for String {
 pub struct Subroutine {
     pub name: SubroutineName,
     pub tokens: ProgramTokens,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct While {
+    pub name: SubroutineName,
+    pub tokens: ProgramTokens,
+    pub condition: Expression,
 }

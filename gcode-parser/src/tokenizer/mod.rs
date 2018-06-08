@@ -27,7 +27,7 @@ use self::parameter::*;
 use self::value::*;
 use self::vec9::*;
 
-use super::subroutine::{parser::subroutine, Subroutine, SubroutineName};
+use super::subroutine::{parser::subroutine, Subroutine, SubroutineName, While};
 
 pub struct Tokenizer<'a> {
     program_string: &'a str,
@@ -91,6 +91,7 @@ pub enum Token {
     ModalStateAutoRestore,
     SubroutineDefinition(Subroutine),
     SubroutineCall(SubroutineName),
+    While(While),
 }
 
 /// List of parsed GCode tokens
