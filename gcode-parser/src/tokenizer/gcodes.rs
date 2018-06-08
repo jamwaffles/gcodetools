@@ -1,8 +1,9 @@
 use nom::types::CompleteByteSlice;
 
-use super::Token;
-
 use super::helpers::*;
+use super::value::Value;
+use super::vec9::{vec9, Vec9};
+use super::Token;
 
 #[derive(Debug, PartialEq)]
 pub enum Units {
@@ -20,6 +21,7 @@ pub enum DistanceMode {
 pub enum PathBlendingMode {
     Blended((Option<f32>, Option<f32>)),
     ExactPath,
+    // TODO
     // ExactStop,
 }
 
@@ -43,7 +45,9 @@ pub enum Plane {
 #[derive(Debug, PartialEq)]
 pub enum ToolLengthCompensation {
     Disable,
+    // TODO: Tool number here
     ToolNumberOffset,
+    Dynamic(Vec9),
 }
 
 #[derive(Debug, PartialEq)]
@@ -137,6 +141,10 @@ named!(plane_select<CompleteByteSlice, Token>, map!(
 named!(tool_length_compensation<CompleteByteSlice, Token>, map!(
     alt!(
         map!(call!(g, 43.0), |_| ToolLengthCompensation::ToolNumberOffset) |
+        map!(
+            ws!(preceded!(call!(g, 43.1), vec9)),
+            |offset| ToolLengthCompensation::Dynamic(offset)
+        ) |
         map!(call!(g, 49.0), |_| ToolLengthCompensation::Disable)
     ),
     |res| Token::ToolLengthCompensation(res)
@@ -205,7 +213,8 @@ named!(pub gcode<CompleteByteSlice, Token>,
         coordinate_system_offset |
         feedrate_mode |
         go_to_predefined_position |
-        store_predefined_position
+        store_predefined_position |
+        path_blending
     )
 );
 
@@ -294,6 +303,17 @@ mod tests {
         check_token(
             cutter_compensation(Cbs(b"G42")),
             Token::CutterCompensation(CutterCompensation::Right(None)),
+        );
+    }
+
+    #[test]
+    fn it_parses_dynamic_tool_length_offset() {
+        check_token(
+            tool_length_compensation(Cbs(b"G43.1 Z0.250")),
+            Token::ToolLengthCompensation(ToolLengthCompensation::Dynamic(Vec9 {
+                z: Some(Value::Float(0.250)),
+                ..Default::default()
+            })),
         );
     }
 
