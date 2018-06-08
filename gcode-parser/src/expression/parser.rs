@@ -1,6 +1,6 @@
 use super::super::tokenizer::helpers::float_no_exponent;
 use super::super::tokenizer::parameter::{not_numbered_parameter, parameter, Parameter};
-use super::{ArithmeticOperator, Expression, ExpressionToken, Function};
+use super::{ArithmeticOperator, BinaryOperator, Expression, ExpressionToken, Function};
 use nom::types::CompleteByteSlice;
 
 named!(literal<CompleteByteSlice, ExpressionToken>, map!(
@@ -61,10 +61,23 @@ named!(function<CompleteByteSlice, ExpressionToken>, map!(
     |res| ExpressionToken::Function(res)
 ));
 
+named!(comparison<CompleteByteSlice, ExpressionToken>, map!(
+    alt_complete!(
+        map!(tag_no_case!("EQ"), |_| BinaryOperator::Equal) |
+        map!(tag_no_case!("NE"), |_| BinaryOperator::NotEqual) |
+        map!(tag_no_case!("GT"), |_| BinaryOperator::GreaterThan) |
+        map!(tag_no_case!("GE"), |_| BinaryOperator::GreaterThanOrEqual) |
+        map!(tag_no_case!("LT"), |_| BinaryOperator::LessThan) |
+        map!(tag_no_case!("LE"), |_| BinaryOperator::LessThanOrEqual)
+    ),
+    |res| ExpressionToken::BinaryOperator(res)
+));
+
 named!(expression_token<CompleteByteSlice, ExpressionToken>, alt_complete!(
     function |
     literal |
     arithmetic |
+    comparison |
     map!(parameter, |res| ExpressionToken::Parameter(res)) |
     map!(expression, |res| ExpressionToken::Expression(res))
 ));
@@ -192,6 +205,25 @@ mod tests {
             "[SQRT[1.0]]".into(),
             "[TAN[1.0]]".into(),
             "[EXISTS[#<named>]]".into(),
+        ];
+
+        for input in inputs.into_iter() {
+            let parsed = expression(Cbs(input.as_bytes()));
+
+            assert!(parsed.is_ok());
+            assert_eq!(parsed.unwrap().0, EMPTY);
+        }
+    }
+
+    #[test]
+    fn it_parses_binary_operators() {
+        let inputs: Vec<String> = vec![
+            "[1 EQ 2]".into(),
+            "[1 NE 2]".into(),
+            "[1 GT 2]".into(),
+            "[1 GE 2]".into(),
+            "[1 LT 2]".into(),
+            "[1 LE 2]".into(),
         ];
 
         for input in inputs.into_iter() {

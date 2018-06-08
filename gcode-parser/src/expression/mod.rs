@@ -30,7 +30,18 @@ pub enum Function {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+pub enum BinaryOperator {
+    Equal,
+    NotEqual,
+    GreaterThan,
+    GreaterThanOrEqual,
+    LessThan,
+    LessThanOrEqual,
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub enum ExpressionToken {
+    BinaryOperator(BinaryOperator),
     ArithmeticOperator(ArithmeticOperator),
     Expression(Expression),
     Function(Function),
