@@ -161,6 +161,18 @@ named!(coordinate_system_offset<CompleteByteSlice, Token>,
     )
 );
 
+named!(coordinate_system_hard_reset<CompleteByteSlice, Token>,
+    alt!(
+        map!(call!(g, 92.1), |_| Token::CoordinateSystemOffsetHardReset)
+    )
+);
+
+named!(coordinate_system_soft_reset<CompleteByteSlice, Token>,
+    alt!(
+        map!(call!(g, 92.2), |_| Token::CoordinateSystemOffsetSoftReset)
+    )
+);
+
 named!(work_offset<CompleteByteSlice, Token>, map!(
     alt!(
         map!(call!(g, 54.0), |_| WorkOffset::G54) |
@@ -213,7 +225,9 @@ named!(pub gcode<CompleteByteSlice, Token>,
         feedrate_mode |
         go_to_predefined_position |
         store_predefined_position |
-        path_blending
+        path_blending |
+        coordinate_system_hard_reset |
+        coordinate_system_soft_reset
     )
 );
 
@@ -395,5 +409,15 @@ mod tests {
             store_predefined_position(Cbs(b"G28.1")),
             Token::StorePredefinedPosition,
         );
+    }
+
+    #[test]
+    fn it_parses_coord_system_hard_resets() {
+        check_token(gcode(Cbs(b"G92.1")), Token::CoordinateSystemOffsetHardReset);
+    }
+
+    #[test]
+    fn it_parses_coord_system_soft_resets() {
+        check_token(gcode(Cbs(b"G92.2")), Token::CoordinateSystemOffsetSoftReset);
     }
 }

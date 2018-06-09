@@ -57,6 +57,8 @@ pub enum Token {
     Coolant(Coolant),
     Coord(Vec9),
     CoordinateSystemOffset,
+    CoordinateSystemOffsetHardReset,
+    CoordinateSystemOffsetSoftReset,
     CounterclockwiseArc,
     CutterCompensation(CutterCompensation),
     DistanceMode(DistanceMode),
