@@ -1,7 +1,6 @@
 use nom::types::CompleteByteSlice;
 
 use super::helpers::*;
-use super::value::Value;
 use super::vec9::{vec9, Vec9};
 use super::Token;
 
@@ -220,6 +219,7 @@ named!(pub gcode<CompleteByteSlice, Token>,
 
 #[cfg(test)]
 mod tests {
+    use super::super::value::Value;
     use super::*;
     use nom;
     use nom::types::CompleteByteSlice as Cbs;
