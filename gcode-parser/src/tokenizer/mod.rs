@@ -1,7 +1,5 @@
 mod arc;
 mod comment;
-// FIXME: Should not be pub, move to ../expression
-pub mod expression;
 mod gcodes;
 // FIXME: Should not be pub
 pub mod helpers;

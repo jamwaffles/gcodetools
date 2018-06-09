@@ -1,6 +1,6 @@
 use super::super::tokenizer::prelude::*;
+use super::*;
 use std::collections::HashMap;
-use tokenizer::expression::*;
 
 pub type Context = HashMap<Parameter, f32>;
 
@@ -65,6 +65,7 @@ fn shunting_yard(tokens: Expression, context: Option<&Context>) -> Vec<Expressio
 
                 output.push(ExpressionToken::Literal(res))
             }
+            _ => unimplemented!(),
         }
     }
 
@@ -193,9 +194,9 @@ mod tests {
 
         assert_eq!(
             evaluate(
-                vec![
-                    ExpressionToken::Function(Function::Exists(Parameter::Named("foo_bar".into()))),
-                ],
+                vec![ExpressionToken::Function(Function::Exists(
+                    Parameter::Named("foo_bar".into()),
+                ))],
                 Some(&good_ctx)
             ),
             Ok(1.0)
@@ -203,9 +204,9 @@ mod tests {
 
         assert_eq!(
             evaluate(
-                vec![
-                    ExpressionToken::Function(Function::Exists(Parameter::Named("foo_bar".into()))),
-                ],
+                vec![ExpressionToken::Function(Function::Exists(
+                    Parameter::Named("foo_bar".into()),
+                ))],
                 Some(&bad_ctx)
             ),
             Ok(0.0)
@@ -213,9 +214,9 @@ mod tests {
 
         assert_eq!(
             evaluate(
-                vec![
-                    ExpressionToken::Function(Function::Exists(Parameter::Named("foo_bar".into()))),
-                ],
+                vec![ExpressionToken::Function(Function::Exists(
+                    Parameter::Named("foo_bar".into()),
+                ))],
                 None
             ),
             Ok(0.0)
@@ -224,12 +225,10 @@ mod tests {
 
     #[test]
     fn it_evaluates_atan() {
-        let atan = vec![
-            ExpressionToken::Function(Function::Atan((
-                vec![ExpressionToken::Literal(1.0)],
-                vec![ExpressionToken::Literal(2.0)],
-            ))),
-        ];
+        let atan = vec![ExpressionToken::Function(Function::Atan((
+            vec![ExpressionToken::Literal(1.0)],
+            vec![ExpressionToken::Literal(2.0)],
+        )))];
 
         assert_eq!(evaluate(atan, None), Ok(0.4636476));
     }
