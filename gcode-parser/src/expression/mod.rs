@@ -1,6 +1,7 @@
 pub mod evaluator;
 pub mod parser;
 
+pub use self::parser::expression;
 use super::tokenizer::prelude::Parameter;
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]

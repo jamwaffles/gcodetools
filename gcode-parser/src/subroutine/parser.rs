@@ -1,7 +1,7 @@
 use super::super::expression::parser::expression;
 use super::super::tokenizer::helpers::*;
 use super::super::tokenizer::{token_not_end_program_or_subroutine, Token};
-use super::{Subroutine, SubroutineName, While};
+use super::{Subroutine, SubroutineCall, SubroutineName, While};
 use nom::types::CompleteByteSlice;
 
 named!(subroutine_name<CompleteByteSlice, SubroutineName>, map!(
@@ -38,15 +38,15 @@ named!(subroutine_definition<CompleteByteSlice, Subroutine>, ws!(
             many0!(token_not_end_program_or_subroutine),
             call!(end_section, " endsub".into(), name.clone().into())
         ) >>
-        ({
-            Subroutine { name, tokens }
-        })
+        (Subroutine { name, tokens })
     )
 ));
 
-named!(subroutine_call<CompleteByteSlice, SubroutineName>,
-    terminated!(subroutine_name, tag_no_case!(" call"))
-);
+named!(subroutine_call<CompleteByteSlice, SubroutineCall>, do_parse!(
+    name: terminated!(subroutine_name, tag_no_case!(" call")) >>
+    args: opt!(ws!(many1!(expression))) >>
+    (SubroutineCall { name, args })
+));
 
 named!(pub subroutine<CompleteByteSlice, Token>, alt_complete!(
     map!(while_definition, |w| Token::While(w)) |
@@ -131,6 +131,7 @@ mod tests {
         );
     }
 
+    #[test]
     fn it_fails_on_nested_subroutines() {
         let input = r#"o100 sub
           G54 G0 X0 Y0 Z0
@@ -141,5 +142,21 @@ mod tests {
         o100 endsub"#;
 
         assert!(subroutine(Cbs(input.as_bytes())).is_err());
+    }
+
+    #[test]
+    fn it_parses_calls_with_args() {
+        let input = r#"o100 call [10] [20]"#;
+
+        assert_expr!(
+            subroutine(Cbs(input.as_bytes())),
+            Token::SubroutineCall(SubroutineCall {
+                name: SubroutineName::Number(100u32),
+                args: Some(vec![
+                    vec![ExpressionToken::Literal(10.0)],
+                    vec![ExpressionToken::Literal(20.0)],
+                ]),
+            })
+        );
     }
 }

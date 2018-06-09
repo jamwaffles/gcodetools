@@ -26,8 +26,7 @@ use self::othercodes::*;
 use self::parameter::*;
 use self::value::*;
 use self::vec9::*;
-
-use super::subroutine::{parser::subroutine, Subroutine, SubroutineName, While};
+use super::subroutine::{parser::subroutine, Subroutine, SubroutineCall, While};
 
 pub struct Tokenizer<'a> {
     program_string: &'a str,
@@ -90,7 +89,7 @@ pub enum Token {
     ModalStateInvalidate,
     ModalStateAutoRestore,
     SubroutineDefinition(Subroutine),
-    SubroutineCall(SubroutineName),
+    SubroutineCall(SubroutineCall),
     While(While),
 }
 

@@ -28,3 +28,9 @@ pub struct While {
     pub tokens: ProgramTokens,
     pub condition: Expression,
 }
+
+#[derive(Debug, PartialEq)]
+pub struct SubroutineCall {
+    pub name: SubroutineName,
+    pub args: Option<Vec<Expression>>,
+}
