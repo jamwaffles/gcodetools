@@ -97,7 +97,7 @@ pub enum Token {
 /// List of parsed GCode tokens
 pub type ProgramTokens = Vec<Token>;
 
-named!(pub token_not_end_program<CompleteByteSlice, Token>,
+named!(pub token_not_end_program_or_subroutine<CompleteByteSlice, Token>,
     alt_complete!(
         block_delete |
         gcode |
@@ -106,14 +106,14 @@ named!(pub token_not_end_program<CompleteByteSlice, Token>,
         arc |
         coord |
         comment |
-        parameters |
-        subroutine
+        parameters
     )
 );
 
 named!(token<CompleteByteSlice, Token>,
     alt_complete!(
-        token_not_end_program |
+        token_not_end_program_or_subroutine |
+        subroutine |
         end_program
     )
 );

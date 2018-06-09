@@ -1,6 +1,6 @@
 use super::super::expression::parser::expression;
 use super::super::tokenizer::helpers::*;
-use super::super::tokenizer::{token_not_end_program, Token};
+use super::super::tokenizer::{token_not_end_program_or_subroutine, Token};
 use super::{Subroutine, SubroutineName, While};
 use nom::types::CompleteByteSlice;
 
@@ -22,7 +22,7 @@ named!(while_definition<CompleteByteSlice, While>, ws!(
         name: call!(start_section, " while".into()) >>
         condition: expression >>
         tokens: terminated!(
-            many0!(token_not_end_program),
+            many0!(token_not_end_program_or_subroutine),
             call!(end_section, " endwhile".into(), name.clone().into())
         ) >>
         ({
@@ -35,7 +35,7 @@ named!(subroutine_definition<CompleteByteSlice, Subroutine>, ws!(
     do_parse!(
         name: call!(start_section, " sub".into()) >>
         tokens: terminated!(
-            many0!(token_not_end_program),
+            many0!(token_not_end_program_or_subroutine),
             call!(end_section, " endsub".into(), name.clone().into())
         ) >>
         ({
@@ -56,6 +56,7 @@ named!(pub subroutine<CompleteByteSlice, Token>, alt_complete!(
 
 #[cfg(test)]
 mod tests {
+    use super::super::super::expression::{BinaryOperator, ExpressionToken};
     use super::super::super::tokenizer::prelude::*;
     use super::*;
     use nom::types::CompleteByteSlice as Cbs;
@@ -107,7 +108,7 @@ mod tests {
             subroutine(Cbs(input.as_bytes())),
             Token::While(While {
                 name: SubroutineName::Number(100),
-                tokens: [
+                tokens: vec![
                     Token::RapidMove,
                     Token::Coord(Vec9 {
                         x: None,
@@ -118,15 +119,27 @@ mod tests {
                         c: None,
                         u: None,
                         v: None,
-                        w: None
+                        w: None,
                     }),
                 ],
-                condition: [
-                    Parameter(Numbered(100)),
-                    BinaryOperator(LessThanOrEqual),
-                    Literal(180.0),
-                ]
+                condition: vec![
+                    ExpressionToken::Parameter(Parameter::Numbered(100)),
+                    ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
+                    ExpressionToken::Literal(180.0),
+                ],
             })
         );
+    }
+
+    fn it_fails_on_nested_subroutines() {
+        let input = r#"o100 sub
+          G54 G0 X0 Y0 Z0
+
+          o200 sub
+            G54 G0 X0 Y0 Z0
+          o200 endsub
+        o100 endsub"#;
+
+        assert!(subroutine(Cbs(input.as_bytes())).is_err());
     }
 }
