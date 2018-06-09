@@ -94,6 +94,7 @@ pub enum Token {
     Units(Units),
     While(While),
     WorkOffset(WorkOffset),
+    LatheMeasurementMode(LatheMeasurementMode),
 }
 
 /// List of parsed GCode tokens

@@ -62,6 +62,12 @@ pub enum FeedrateMode {
     UnitsPerRevolution,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum LatheMeasurementMode {
+    Radius,
+    Diameter,
+}
+
 named!(units<CompleteByteSlice, Token>, map!(
     alt!(
         map!(call!(g, 20.0), |_| Units::Inch) |
@@ -124,6 +130,14 @@ named!(cw_arc<CompleteByteSlice, Token>,
 named!(ccw_arc<CompleteByteSlice, Token>,
     map!(call!(g, 3.0), |_| Token::CounterclockwiseArc)
 );
+
+named!(lathe_measurement_mode<CompleteByteSlice, Token>, map!(
+    alt!(
+        map!(call!(g, 7.0), |_| LatheMeasurementMode::Diameter) |
+        map!(call!(g, 8.0), |_| LatheMeasurementMode::Radius)
+    ),
+    |res| Token::LatheMeasurementMode(res)
+));
 
 named!(plane_select<CompleteByteSlice, Token>, map!(
     alt!(
@@ -234,7 +248,8 @@ named!(pub gcode<CompleteByteSlice, Token>,
         path_blending |
         coordinate_system_hard_reset |
         coordinate_system_soft_reset |
-        global_move
+        global_move |
+        lathe_measurement_mode
     )
 );
 
@@ -431,5 +446,17 @@ mod tests {
     #[test]
     fn it_parses_global_moves() {
         check_token(gcode(Cbs(b"G53")), Token::GlobalMove);
+    }
+
+    #[test]
+    fn it_parses_lathe_measurement_mode() {
+        check_token(
+            lathe_measurement_mode(Cbs(b"G7")),
+            Token::LatheMeasurementMode(LatheMeasurementMode::Diameter),
+        );
+        check_token(
+            lathe_measurement_mode(Cbs(b"G8")),
+            Token::LatheMeasurementMode(LatheMeasurementMode::Radius),
+        );
     }
 }
