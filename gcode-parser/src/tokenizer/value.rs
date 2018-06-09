@@ -75,14 +75,17 @@ named!(value_expression<CompleteByteSlice, Value>, map!(
     |expr| Value::Expression(expr)
 ));
 
+named!(
+    pub unsigned_value<CompleteByteSlice, Value>, alt_complete!(
+    value_unsigned |
+    value_parameter |
+    value_expression
+));
+
 named_args!(
     pub preceded_unsigned_value<'a>(preceding: &str)<CompleteByteSlice<'a>, Value>, preceded!(
     tag_no_case!(preceding),
-    alt_complete!(
-        value_unsigned |
-        value_parameter |
-        value_expression
-    )
+    unsigned_value
 ));
 
 named_args!(
@@ -95,14 +98,17 @@ named_args!(
     )
 ));
 
+named!(
+    pub float_value<CompleteByteSlice, Value>, alt_complete!(
+    value_float |
+    value_parameter |
+    value_expression
+));
+
 named_args!(
     pub preceded_float_value<'a>(preceding: &str)<CompleteByteSlice<'a>, Value>, preceded!(
     tag_no_case!(preceding),
-    alt_complete!(
-        value_float |
-        value_parameter |
-        value_expression
-    )
+    float_value
 ));
 
 #[cfg(test)]
