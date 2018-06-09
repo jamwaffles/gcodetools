@@ -1,5 +1,4 @@
-use super::helpers::{float_no_exponent, parse_to_u32};
-use super::value::*;
+use super::value::{float_value, unsigned_value, Value};
 use super::Token;
 use nom::types::CompleteByteSlice;
 
@@ -61,13 +60,13 @@ type CenterArcReturn = (
 
 named!(pub center_arc<CompleteByteSlice, Token>, map_res!(
     permutation!(
-        map!(ws!(preceded!(one_of!("Xx"), float_no_exponent)), Value::Float)?,
-        map!(ws!(preceded!(one_of!("Yy"), float_no_exponent)), Value::Float)?,
-        map!(ws!(preceded!(one_of!("Zz"), float_no_exponent)), Value::Float)?,
-        map!(ws!(preceded!(one_of!("Ii"), float_no_exponent)), Value::Float)?,
-        map!(ws!(preceded!(one_of!("Jj"), float_no_exponent)), Value::Float)?,
-        map!(ws!(preceded!(one_of!("Kk"), float_no_exponent)), Value::Float)?,
-        map!(ws!(preceded!(one_of!("Pp"), parse_to_u32)), Value::Unsigned)?
+        ws!(preceded!(one_of!("Xx"), float_value))?,
+        ws!(preceded!(one_of!("Yy"), float_value))?,
+        ws!(preceded!(one_of!("Zz"), float_value))?,
+        ws!(preceded!(one_of!("Ii"), float_value))?,
+        ws!(preceded!(one_of!("Jj"), float_value))?,
+        ws!(preceded!(one_of!("Kk"), float_value))?,
+        ws!(preceded!(one_of!("Pp"), unsigned_value))?
     ),
     |(x, y, z, i, j, k, p): CenterArcReturn| {
         if i.is_none() && j.is_none() && k.is_none() {
@@ -82,11 +81,11 @@ named!(pub center_arc<CompleteByteSlice, Token>, map_res!(
 
 named!(pub radius_arc<CompleteByteSlice, Token>, map!(
     permutation!(
-        map!(ws!(preceded!(one_of!("Xx"), float_no_exponent)), Value::Float)?,
-        map!(ws!(preceded!(one_of!("Yy"), float_no_exponent)), Value::Float)?,
-        map!(ws!(preceded!(one_of!("Zz"), float_no_exponent)), Value::Float)?,
-        map!(ws!(preceded!(one_of!("Pp"), parse_to_u32)), Value::Unsigned)?,
-        map!(ws!(preceded!(one_of!("Rr"), float_no_exponent)), Value::Float)
+        ws!(preceded!(one_of!("Xx"), float_value))?,
+        ws!(preceded!(one_of!("Yy"), float_value))?,
+        ws!(preceded!(one_of!("Zz"), float_value))?,
+        ws!(preceded!(one_of!("Pp"), unsigned_value))?,
+        ws!(preceded!(one_of!("Rr"), float_value))
     ),
     |(x, y, z, p, r)| {
         Token::RadiusArc(RadiusArc {
@@ -170,6 +169,19 @@ mod tests {
                 z: Some(Value::Float(20.0)),
                 i: Some(Value::Float(20.0)),
                 j: Some(Value::Float(0.0)),
+                k: None,
+                p: None,
+            }),
+        );
+
+        check_token(
+            arc(Cbs(b"X1 Y2 I3 J4 Z10")),
+            Token::CenterArc(CenterArc {
+                x: Some(Value::Float(1.0)),
+                y: Some(Value::Float(2.0)),
+                z: Some(Value::Float(10.0)),
+                i: Some(Value::Float(3.0)),
+                j: Some(Value::Float(4.0)),
                 k: None,
                 p: None,
             }),
