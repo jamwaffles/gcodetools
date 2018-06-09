@@ -48,11 +48,14 @@ named!(subroutine_call<CompleteByteSlice, SubroutineCall>, do_parse!(
     (SubroutineCall { name, args })
 ));
 
-named!(pub subroutine<CompleteByteSlice, Token>, alt_complete!(
+named!(pub control_flow<CompleteByteSlice, Token>, alt_complete!(
     map!(while_definition, |w| Token::While(w)) |
-    map!(subroutine_definition, |sub| Token::SubroutineDefinition(sub)) |
     map!(subroutine_call, |sub| Token::SubroutineCall(sub))
 ));
+
+named!(pub subroutine<CompleteByteSlice, Token>,
+    map!(subroutine_definition, |sub| Token::SubroutineDefinition(sub))
+);
 
 #[cfg(test)]
 mod tests {
@@ -105,7 +108,7 @@ mod tests {
         o100 endwhile"#;
 
         assert_expr!(
-            subroutine(Cbs(input.as_bytes())),
+            control_flow(Cbs(input.as_bytes())),
             Token::While(While {
                 name: SubroutineName::Number(100),
                 tokens: vec![
@@ -145,11 +148,22 @@ mod tests {
     }
 
     #[test]
+    fn it_can_call_other_subroutines() {
+        let input = r#"o100 sub
+          G54 G0 X0 Y0 Z0
+
+          o200 call [10]
+        o100 endsub"#;
+
+        assert!(subroutine(Cbs(input.as_bytes())).is_ok());
+    }
+
+    #[test]
     fn it_parses_calls_with_args() {
         let input = r#"o100 call [10] [20]"#;
 
         assert_expr!(
-            subroutine(Cbs(input.as_bytes())),
+            control_flow(Cbs(input.as_bytes())),
             Token::SubroutineCall(SubroutineCall {
                 name: SubroutineName::Number(100u32),
                 args: Some(vec![

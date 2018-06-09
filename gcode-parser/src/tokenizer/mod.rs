@@ -27,7 +27,9 @@ use self::parameter::*;
 use self::value::*;
 use self::vec9::*;
 use super::expression::Expression;
-use super::subroutine::{parser::subroutine, Subroutine, SubroutineCall, While};
+use super::subroutine::{
+    parser::{control_flow, subroutine}, Subroutine, SubroutineCall, While,
+};
 
 pub struct Tokenizer<'a> {
     program_string: &'a str,
@@ -105,7 +107,8 @@ named!(pub token_not_end_program_or_subroutine<CompleteByteSlice, Token>,
         arc |
         coord |
         comment |
-        parameters
+        parameters |
+        control_flow
     )
 );
 
