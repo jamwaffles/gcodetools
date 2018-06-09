@@ -26,6 +26,7 @@ use self::othercodes::*;
 use self::parameter::*;
 use self::value::*;
 use self::vec9::*;
+use super::expression::Expression;
 use super::subroutine::{parser::subroutine, Subroutine, SubroutineCall, While};
 
 pub struct Tokenizer<'a> {
@@ -81,8 +82,7 @@ pub enum Token {
     Pause,
     OptionalPause,
     BlockDelete(Vec<Token>),
-    // TODO: ParameterValue needs to become an Expression for general purpose float/expression support
-    ParameterAssignment((Parameter, ParameterValue)),
+    ParameterAssignment((Parameter, Expression)),
     Parameter(Parameter),
     ModalStateSave,
     ModalStateRestore,
