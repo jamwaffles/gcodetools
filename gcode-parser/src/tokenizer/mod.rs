@@ -66,6 +66,7 @@ pub enum Token {
     EndProgram,
     FeedRate(Value),
     FeedrateMode(FeedrateMode),
+    GlobalMove,
     GoToPredefinedPosition,
     LinearMove,
     LineNumber(u32),

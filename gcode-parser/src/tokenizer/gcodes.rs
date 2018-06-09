@@ -173,6 +173,12 @@ named!(coordinate_system_soft_reset<CompleteByteSlice, Token>,
     )
 );
 
+named!(global_move<CompleteByteSlice, Token>,
+    alt!(
+        map!(call!(g, 53.0), |_| Token::GlobalMove)
+    )
+);
+
 named!(work_offset<CompleteByteSlice, Token>, map!(
     alt!(
         map!(call!(g, 54.0), |_| WorkOffset::G54) |
@@ -227,7 +233,8 @@ named!(pub gcode<CompleteByteSlice, Token>,
         store_predefined_position |
         path_blending |
         coordinate_system_hard_reset |
-        coordinate_system_soft_reset
+        coordinate_system_soft_reset |
+        global_move
     )
 );
 
@@ -419,5 +426,10 @@ mod tests {
     #[test]
     fn it_parses_coord_system_soft_resets() {
         check_token(gcode(Cbs(b"G92.2")), Token::CoordinateSystemOffsetSoftReset);
+    }
+
+    #[test]
+    fn it_parses_global_moves() {
+        check_token(gcode(Cbs(b"G53")), Token::GlobalMove);
     }
 }
