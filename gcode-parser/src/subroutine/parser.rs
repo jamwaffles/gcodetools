@@ -4,9 +4,12 @@ use super::super::tokenizer::{token_not_end_program_or_subroutine, Token};
 use super::{Subroutine, SubroutineCall, SubroutineName, While};
 use nom::types::CompleteByteSlice;
 
-named!(subroutine_name<CompleteByteSlice, SubroutineName>, map!(
-    call!(preceded_u32, "O"),
-    |res| SubroutineName::Number(res)
+named!(subroutine_name<CompleteByteSlice, SubroutineName>, alt_complete!(
+    map!(call!(preceded_u32, "O"), |res| SubroutineName::Number(res)) |
+    map!(
+        flat_map!(delimited!(tag_no_case!("O<"), take_until!(">"), char!('>')), parse_to!(String)),
+        |res| SubroutineName::External(res.into())
+    )
 ));
 
 named_args!(start_section(section_tag: String)<CompleteByteSlice, SubroutineName>,
@@ -43,7 +46,7 @@ named!(subroutine_definition<CompleteByteSlice, Subroutine>, ws!(
 ));
 
 named!(subroutine_call<CompleteByteSlice, SubroutineCall>, do_parse!(
-    name: terminated!(subroutine_name, tag_no_case!(" call")) >>
+    name: terminated!(subroutine_name, tag!(" call")) >>
     args: opt!(ws!(many1!(expression))) >>
     (SubroutineCall { name, args })
 ));
@@ -73,6 +76,18 @@ mod tests {
     }
 
     #[test]
+    fn it_parses_subroutine_names() {
+        assert_expr!(
+            subroutine_name(Cbs(b"O100")),
+            SubroutineName::Number(100u32)
+        );
+        assert_expr!(
+            subroutine_name(Cbs(b"O<external_name>")),
+            SubroutineName::External("external_name".into())
+        );
+    }
+
+    #[test]
     fn it_parses_numbered_subroutines() {
         let input = r#"o100 sub
           G54 G0 X0 Y0 Z0
@@ -98,6 +113,34 @@ mod tests {
                     }),
                 ],
             })
+        );
+    }
+
+    #[test]
+    fn it_parses_external_subroutine_definitions() {
+        let input = r#"o<external_file> sub
+          G54
+        o<external_file> endsub"#;
+
+        assert_expr!(
+            subroutine(Cbs(input.as_bytes())),
+            Token::SubroutineDefinition(Subroutine {
+                name: SubroutineName::External("external_file".into()),
+                tokens: vec![Token::WorkOffset(WorkOffset::G54)],
+            })
+        );
+    }
+
+    #[test]
+    fn it_parses_external_subroutine_calls() {
+        let input = r#"o<external_file> call"#;
+
+        assert_expr!(
+            subroutine_call(Cbs(input.as_bytes())),
+            SubroutineCall {
+                name: SubroutineName::External("external_file".into()),
+                args: None,
+            }
         );
     }
 

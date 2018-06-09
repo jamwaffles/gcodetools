@@ -95,3 +95,35 @@ fn it_parses_subroutine_calls_with_args() {
         ))
     );
 }
+
+#[test]
+fn it_parses_named_subroutines() {
+    let input = r#"o<foo_bar> sub
+          G54 G0 X0 Y0 Z0
+        o<foo_bar> endsub"#;
+
+    assert_eq!(
+        program(Cbs(input.as_bytes())),
+        Ok((
+            EMPTY,
+            vec![Token::SubroutineDefinition(Subroutine {
+                name: SubroutineName::External("foo_bar".into()),
+                tokens: vec![
+                    Token::WorkOffset(WorkOffset::G54),
+                    Token::RapidMove,
+                    Token::Coord(Vec9 {
+                        x: Some(Value::Float(0.0)),
+                        y: Some(Value::Float(0.0)),
+                        z: Some(Value::Float(0.0)),
+                        a: None,
+                        b: None,
+                        c: None,
+                        u: None,
+                        v: None,
+                        w: None,
+                    }),
+                ],
+            })]
+        ))
+    );
+}
