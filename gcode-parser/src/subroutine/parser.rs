@@ -13,20 +13,20 @@ named!(subroutine_name<CompleteByteSlice, SubroutineName>, alt_complete!(
 ));
 
 named_args!(start_section(section_tag: String)<CompleteByteSlice, SubroutineName>,
-    terminated!(subroutine_name, tag_no_case!(section_tag.as_str()))
+    ws!(terminated!(subroutine_name, tag_no_case!(section_tag.as_str())))
 );
 
 named_args!(end_section(section_tag: String, sub_name: String)<CompleteByteSlice, CompleteByteSlice>,
-    terminated!(tag_no_case!(sub_name.as_str()), tag_no_case!(section_tag.as_str()))
+    ws!(terminated!(tag_no_case!(sub_name.as_str()), tag_no_case!(section_tag.as_str())))
 );
 
 named!(while_definition<CompleteByteSlice, While>, ws!(
     do_parse!(
-        name: call!(start_section, " while".into()) >>
+        name: call!(start_section, "while".into()) >>
         condition: expression >>
         tokens: terminated!(
             many0!(token_not_end_program_or_subroutine),
-            call!(end_section, " endwhile".into(), name.clone().into())
+            call!(end_section, "endwhile".into(), name.clone().into())
         ) >>
         ({
             While { name, tokens, condition }
@@ -36,17 +36,17 @@ named!(while_definition<CompleteByteSlice, While>, ws!(
 
 named!(subroutine_definition<CompleteByteSlice, Subroutine>, ws!(
     do_parse!(
-        name: call!(start_section, " sub".into()) >>
+        name: call!(start_section, "sub".into()) >>
         tokens: terminated!(
             many0!(token_not_end_program_or_subroutine),
-            call!(end_section, " endsub".into(), name.clone().into())
+            call!(end_section, "endsub".into(), name.clone().into())
         ) >>
         (Subroutine { name, tokens })
     )
 ));
 
 named!(subroutine_call<CompleteByteSlice, SubroutineCall>, do_parse!(
-    name: terminated!(subroutine_name, tag!(" call")) >>
+    name: ws!(terminated!(subroutine_name, tag!("call"))) >>
     args: opt!(ws!(many1!(expression))) >>
     (SubroutineCall { name, args })
 ));

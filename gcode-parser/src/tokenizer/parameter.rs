@@ -40,13 +40,14 @@ named!(
 
 named!(parameter_assignment<CompleteByteSlice, (Parameter, Expression)>, ws!(
     do_parse!(
-        parameter: parameter >>
+        param: parameter >>
         char!('=') >>
         value: alt!(
             map!(float_no_exponent, |f| vec![ ExpressionToken::Literal(f) ]) |
+            map!(parameter, |p| vec![ ExpressionToken::Parameter(p) ]) |
             expression
         ) >>
-        ((parameter, value))
+        ((param, value))
     )
 ));
 
@@ -151,6 +152,20 @@ mod tests {
                 (
                     Parameter::Global("bar_baz".into()),
                     vec![ExpressionToken::Literal(4.5f32)]
+                )
+            ))
+        );
+    }
+
+    #[test]
+    fn it_parses_parameter_to_parameter_assignments() {
+        assert_eq!(
+            parameter_assignment(Cbs(b"#<toolno>     =  #1")),
+            Ok((
+                EMPTY,
+                (
+                    Parameter::Named("toolno".into()),
+                    vec![ExpressionToken::Parameter(Parameter::Numbered(1))]
                 )
             ))
         );
