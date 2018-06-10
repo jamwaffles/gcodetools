@@ -40,6 +40,7 @@ named!(pub othercode<CompleteByteSlice, Token>,
 
 #[cfg(test)]
 mod tests {
+    use super::super::parameter::Parameter;
     use super::*;
     use nom;
     use nom::types::CompleteByteSlice as Cbs;
@@ -116,6 +117,14 @@ mod tests {
         check_token(
             tool_length_compensation_tool_number(Cbs(b"H0")),
             Token::ToolLengthCompensationToolNumber(Value::Unsigned(0u32)),
+        );
+    }
+
+    #[test]
+    fn it_parses_parameterised_feed() {
+        check_token(
+            feedrate(Cbs(b"f #<feedrate>")),
+            Token::FeedRate(Value::Parameter(Parameter::Named("feedrate".into()))),
         );
     }
 }

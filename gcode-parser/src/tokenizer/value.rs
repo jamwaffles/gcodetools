@@ -106,10 +106,10 @@ named!(
 ));
 
 named_args!(
-    pub preceded_float_value<'a>(preceding: &str)<CompleteByteSlice<'a>, Value>, preceded!(
+    pub preceded_float_value<'a>(preceding: &str)<CompleteByteSlice<'a>, Value>, ws!(preceded!(
     tag_no_case!(preceding),
     float_value
-));
+)));
 
 #[cfg(test)]
 mod tests {
