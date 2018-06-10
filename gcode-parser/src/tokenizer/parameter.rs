@@ -1,5 +1,5 @@
 use super::super::expression::*;
-use super::helpers::float_no_exponent;
+use super::value::{float_value, Value};
 use nom::types::CompleteByteSlice;
 use nom::*;
 
@@ -38,15 +38,11 @@ named!(
     alt_complete!(global_parameter | named_parameter)
 );
 
-named!(parameter_assignment<CompleteByteSlice, (Parameter, Expression)>, ws!(
+named!(parameter_assignment<CompleteByteSlice, (Parameter, Value)>, ws!(
     do_parse!(
         param: parameter >>
         char!('=') >>
-        value: alt!(
-            map!(float_no_exponent, |f| vec![ ExpressionToken::Literal(f) ]) |
-            map!(parameter, |p| vec![ ExpressionToken::Parameter(p) ]) |
-            expression
-        ) >>
+        value: float_value >>
         ((param, value))
     )
 ));
@@ -107,52 +103,28 @@ mod tests {
     fn it_parses_parameter_assignment() {
         assert_eq!(
             parameter_assignment(Cbs(b"#1234 = 4.5")),
-            Ok((
-                EMPTY,
-                (
-                    Parameter::Numbered(1234u32),
-                    vec![ExpressionToken::Literal(4.5f32)]
-                )
-            ))
+            Ok((EMPTY, (Parameter::Numbered(1234u32), Value::Float(4.5f32))))
         );
         assert_eq!(
             parameter_assignment(Cbs(b"#1234 = 4")),
-            Ok((
-                EMPTY,
-                (
-                    Parameter::Numbered(1234u32),
-                    vec![ExpressionToken::Literal(4.0f32)]
-                )
-            ))
+            Ok((EMPTY, (Parameter::Numbered(1234u32), Value::Float(4.0f32))))
         );
         assert_eq!(
             parameter_assignment(Cbs(b"#1234=4.5")),
-            Ok((
-                EMPTY,
-                (
-                    Parameter::Numbered(1234u32),
-                    vec![ExpressionToken::Literal(4.5f32)]
-                )
-            ))
+            Ok((EMPTY, (Parameter::Numbered(1234u32), Value::Float(4.5f32))))
         );
         assert_eq!(
             parameter_assignment(Cbs(b"#<foo_bar> = 4.5")),
             Ok((
                 EMPTY,
-                (
-                    Parameter::Named("foo_bar".into()),
-                    vec![ExpressionToken::Literal(4.5f32)]
-                )
+                (Parameter::Named("foo_bar".into()), Value::Float(4.5f32))
             ))
         );
         assert_eq!(
             parameter_assignment(Cbs(b"#<_bar_baz> = 4.5")),
             Ok((
                 EMPTY,
-                (
-                    Parameter::Global("bar_baz".into()),
-                    vec![ExpressionToken::Literal(4.5f32)]
-                )
+                (Parameter::Global("bar_baz".into()), Value::Float(4.5f32))
             ))
         );
     }
@@ -165,7 +137,7 @@ mod tests {
                 EMPTY,
                 (
                     Parameter::Named("toolno".into()),
-                    vec![ExpressionToken::Parameter(Parameter::Numbered(1))]
+                    Value::Parameter(Parameter::Numbered(1))
                 )
             ))
         );
@@ -179,11 +151,11 @@ mod tests {
                 EMPTY,
                 (
                     Parameter::Global("bar_baz".into()),
-                    vec![
+                    Value::Expression(vec![
                         ExpressionToken::Literal(1.0),
                         ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                         ExpressionToken::Literal(2.0),
-                    ]
+                    ])
                 )
             ))
         );

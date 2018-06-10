@@ -78,7 +78,7 @@ pub enum Token {
     ModalStateSave,
     OptionalPause,
     Parameter(Parameter),
-    ParameterAssignment((Parameter, Expression)),
+    ParameterAssignment((Parameter, Value)),
     PathBlendingMode(PathBlendingMode),
     Pause,
     PlaneSelect(Plane),
