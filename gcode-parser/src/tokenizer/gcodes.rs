@@ -1,6 +1,7 @@
 use nom::types::CompleteByteSlice;
 
 use super::helpers::*;
+use super::value::{preceded_float_value, preceded_unsigned_value, Value};
 use super::vec9::{vec9, Vec9};
 use super::Token;
 
@@ -18,7 +19,7 @@ pub enum DistanceMode {
 
 #[derive(Debug, PartialEq)]
 pub enum PathBlendingMode {
-    Blended((Option<f32>, Option<f32>)),
+    Blended((Option<Value>, Option<Value>)),
     ExactPath,
     // TODO
     // ExactStop,
@@ -27,8 +28,8 @@ pub enum PathBlendingMode {
 #[derive(Debug, PartialEq)]
 pub enum CutterCompensation {
     Off,
-    Left(Option<u32>),
-    Right(Option<u32>),
+    Left(Option<Value>),
+    Right(Option<Value>),
 }
 
 #[derive(Debug, PartialEq)]
@@ -102,8 +103,8 @@ named!(path_blending<CompleteByteSlice, Token>, map!(
     alt!(
         ws!(do_parse!(
             call!(g, 64.0) >>
-            p: opt!(call!(preceded_f32, "P")) >>
-            q: opt!(call!(preceded_f32, "Q")) >> ({
+            p: opt!(call!(preceded_float_value, "P")) >>
+            q: opt!(call!(preceded_float_value, "Q")) >> ({
                 PathBlendingMode::Blended((p, q))
             })
         )) |
@@ -117,11 +118,11 @@ named!(cutter_compensation<CompleteByteSlice, Token>,
         alt!(
             map!(call!(g, 40.0), |_| CutterCompensation::Off) |
             map!(
-                ws!(preceded!(call!(g, 41.0), opt!(call!(preceded_u32, "D")))),
+                ws!(preceded!(call!(g, 41.0), opt!(call!(preceded_unsigned_value, "D")))),
                 |tool| CutterCompensation::Left(tool)
             ) |
             map!(
-                ws!(preceded!(call!(g, 42.0), opt!(call!(preceded_u32, "D")))),
+                ws!(preceded!(call!(g, 42.0), opt!(call!(preceded_unsigned_value, "D")))),
                 |tool| CutterCompensation::Right(tool)
             )
         ),
@@ -218,7 +219,7 @@ named!(work_offset<CompleteByteSlice, Token>, map!(
 named!(dwell<CompleteByteSlice, Token>, map!(
     ws!(preceded!(
         call!(g, 4.0),
-        call!(preceded_f32, "P")
+        call!(preceded_float_value, "P")
     )),
     |res| Token::Dwell(res)
 ));
@@ -308,11 +309,11 @@ mod tests {
 
     #[test]
     fn it_parses_dwells() {
-        check_token(dwell(Cbs(b"G04 P10")), Token::Dwell(10.0));
-        check_token(dwell(Cbs(b"G04 P3")), Token::Dwell(3.0));
-        check_token(dwell(Cbs(b"G04 P0.5")), Token::Dwell(0.5));
-        check_token(dwell(Cbs(b"G4 P0.5")), Token::Dwell(0.5));
-        check_token(dwell(Cbs(b"g4p0.5")), Token::Dwell(0.5));
+        check_token(dwell(Cbs(b"G04 P10")), Token::Dwell(Value::Float(10.0)));
+        check_token(dwell(Cbs(b"G04 P3")), Token::Dwell(Value::Float(3.0)));
+        check_token(dwell(Cbs(b"G04 P0.5")), Token::Dwell(Value::Float(0.5)));
+        check_token(dwell(Cbs(b"G4 P0.5")), Token::Dwell(Value::Float(0.5)));
+        check_token(dwell(Cbs(b"g4p0.5")), Token::Dwell(Value::Float(0.5)));
     }
 
     #[test]
@@ -350,17 +351,17 @@ mod tests {
 
         check_token(
             cutter_compensation(Cbs(b"G41 D1")),
-            Token::CutterCompensation(CutterCompensation::Left(Some(1u32))),
+            Token::CutterCompensation(CutterCompensation::Left(Some(Value::Unsigned(1u32)))),
         );
 
         check_token(
             cutter_compensation(Cbs(b"G42 D1")),
-            Token::CutterCompensation(CutterCompensation::Right(Some(1u32))),
+            Token::CutterCompensation(CutterCompensation::Right(Some(Value::Unsigned(1u32)))),
         );
 
         check_token(
             cutter_compensation(Cbs(b"G42 D0")),
-            Token::CutterCompensation(CutterCompensation::Right(Some(0u32))),
+            Token::CutterCompensation(CutterCompensation::Right(Some(Value::Unsigned(0u32)))),
         );
 
         check_token(
@@ -389,12 +390,18 @@ mod tests {
 
         check_token(
             path_blending(Cbs(b"G64 P0.01")),
-            Token::PathBlendingMode(PathBlendingMode::Blended((Some(0.01f32), None))),
+            Token::PathBlendingMode(PathBlendingMode::Blended((
+                Some(Value::Float(0.01f32)),
+                None,
+            ))),
         );
 
         check_token(
             path_blending(Cbs(b"G64 P0.01 Q0.02")),
-            Token::PathBlendingMode(PathBlendingMode::Blended((Some(0.01f32), Some(0.02f32)))),
+            Token::PathBlendingMode(PathBlendingMode::Blended((
+                Some(Value::Float(0.01f32)),
+                Some(Value::Float(0.02f32)),
+            ))),
         );
 
         // TODO

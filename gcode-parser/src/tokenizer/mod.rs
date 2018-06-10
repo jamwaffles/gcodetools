@@ -61,7 +61,7 @@ pub enum Token {
     CounterclockwiseArc,
     CutterCompensation(CutterCompensation),
     DistanceMode(DistanceMode),
-    Dwell(f32),
+    Dwell(Value),
     EndProgram,
     FeedRate(Value),
     FeedrateMode(FeedrateMode),

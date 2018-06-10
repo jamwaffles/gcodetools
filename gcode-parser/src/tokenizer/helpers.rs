@@ -64,7 +64,13 @@ named_args!(
     map_res!(
         preceded!(call!(char_no_case, preceding), float_no_exponent),
         |res| {
-            if res >= code_low && res <= code_high {
+            if code_low == code_high {
+                if res == code_low {
+                    Ok((preceding.to_ascii_uppercase(), res))
+                } else {
+                    Err(())
+                }
+            } else if res >= code_low && res <= code_high {
                 Ok((preceding.to_ascii_uppercase(), res))
             } else {
                 Err(())
