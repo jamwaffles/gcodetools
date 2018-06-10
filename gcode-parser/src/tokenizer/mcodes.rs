@@ -74,6 +74,11 @@ named!(modal_state_autorestore<CompleteByteSlice, Token>,
     map!(call!(m, 73.0), |_| Token::ModalStateAutoRestore)
 );
 
+named!(user_command<CompleteByteSlice, Token>, map!(
+    call!(preceded_code_range_inclusive, 'M', 100.0, 199.0),
+    |(_, command_number)| Token::UserCommand(command_number as u32)
+));
+
 named!(pub mcode<CompleteByteSlice, Token>,
     alt_complete!(
         tool_change |
@@ -87,7 +92,8 @@ named!(pub mcode<CompleteByteSlice, Token>,
         modal_state_restore |
         modal_state_invalidate |
         modal_state_autorestore |
-        end_program
+        end_program |
+        user_command
     )
 );
 

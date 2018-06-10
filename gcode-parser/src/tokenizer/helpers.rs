@@ -2,8 +2,6 @@ use nom::types::CompleteByteSlice;
 use nom::*;
 use nom::{need_more, Err, ErrorKind, IResult, Needed};
 
-use super::Token;
-
 named!(pub take_until_line_ending<CompleteByteSlice, CompleteByteSlice>, alt_complete!(take_until!("\r\n") | take_until!("\n")));
 
 // Parse a GCode-style float, i.e. does not support "e" notation
@@ -63,10 +61,15 @@ named_args!(char_no_case(search: char)<CompleteByteSlice, char>,
 
 named_args!(
     preceded_code<'a>(preceding: char, code: f32)<CompleteByteSlice<'a>, (char, f32)>,
+    call!(preceded_code_range_inclusive, preceding, code, code)
+);
+
+named_args!(
+    pub preceded_code_range_inclusive<'a>(preceding: char, code_low: f32, code_high: f32)<CompleteByteSlice<'a>, (char, f32)>,
     map_res!(
         preceded!(call!(char_no_case, preceding), float_no_exponent),
         |res| {
-            if res == code {
+            if res >= code_low && res <= code_high {
                 Ok((preceding.to_ascii_uppercase(), res))
             } else {
                 Err(())
@@ -77,12 +80,12 @@ named_args!(
 
 named_args!(
     pub g<'a>(c: f32)<CompleteByteSlice<'a>, CompleteByteSlice<'a>>,
-    recognize!(call!(preceded_code, 'G', c))
+    recognize!(call!(preceded_code_range_inclusive, 'G', c, c))
 );
 
 named_args!(
     pub m<'a>(c: f32)<CompleteByteSlice<'a>, CompleteByteSlice<'a>>,
-    recognize!(call!(preceded_code, 'M', c))
+    recognize!(call!(preceded_code_range_inclusive, 'M', c, c))
 );
 
 #[cfg(test)]
@@ -193,5 +196,14 @@ mod tests {
             assert_eq!(double(larger.as_bytes()), Ok((&b";"[..], expected64)));
             assert_eq!(double_s(&larger[..]), Ok((";", expected64)));
         }
+    }
+
+    #[test]
+    fn it_parses_ranges_of_preceded_codes() {
+        assert!(preceded_code_range_inclusive(Cbs(b"M100"), 'M', 100.0, 110.0).is_ok());
+        assert!(preceded_code_range_inclusive(Cbs(b"M110"), 'M', 100.0, 110.0).is_ok());
+        assert!(preceded_code_range_inclusive(Cbs(b"M105"), 'M', 100.0, 110.0).is_ok());
+        assert!(preceded_code_range_inclusive(Cbs(b"M111"), 'M', 100.0, 110.0).is_err());
+        assert!(preceded_code_range_inclusive(Cbs(b"M99"), 'M', 100.0, 110.0).is_err());
     }
 }

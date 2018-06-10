@@ -95,6 +95,7 @@ pub enum Token {
     ToolLengthCompensationToolNumber(Value),
     ToolSelect(Value),
     Units(Units),
+    UserCommand(u32),
     While(While),
     WorkOffset(WorkOffset),
 }
