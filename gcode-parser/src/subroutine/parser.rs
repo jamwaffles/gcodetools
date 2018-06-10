@@ -1,7 +1,7 @@
 use super::super::expression::parser::expression;
 use super::super::tokenizer::helpers::*;
 use super::super::tokenizer::{token_not_end_program_or_subroutine, Token};
-use super::{Subroutine, SubroutineCall, SubroutineName, While};
+use super::{If, Subroutine, SubroutineCall, SubroutineName, While};
 use nom::types::CompleteByteSlice;
 
 named!(subroutine_name<CompleteByteSlice, SubroutineName>, alt_complete!(
@@ -34,6 +34,43 @@ named!(while_definition<CompleteByteSlice, While>, ws!(
     )
 ));
 
+named!(if_no_else_definition<CompleteByteSlice, If>, ws!(
+    do_parse!(
+        name: call!(start_section, "if".into()) >>
+        condition: expression >>
+        if_tokens: terminated!(
+            many0!(token_not_end_program_or_subroutine),
+            call!(end_section, "endif".into(), name.clone().into())
+        ) >>
+        ({
+            If { name, condition, if_tokens, else_tokens: None }
+        })
+    )
+));
+
+named!(if_else_definition<CompleteByteSlice, If>, ws!(
+    do_parse!(
+        name: call!(start_section, "if".into()) >>
+        condition: expression >>
+        if_tokens: terminated!(
+            many0!(token_not_end_program_or_subroutine),
+            call!(end_section, "else".into(), name.clone().into())
+        ) >>
+        else_tokens: terminated!(
+            many0!(token_not_end_program_or_subroutine),
+            call!(end_section, "endif".into(), name.clone().into())
+        ) >>
+        ({
+            If { name, condition, if_tokens, else_tokens: Some(else_tokens) }
+        })
+    )
+));
+
+named!(if_definition<CompleteByteSlice, If>, alt!(
+    if_no_else_definition |
+    if_else_definition
+));
+
 named!(subroutine_definition<CompleteByteSlice, Subroutine>, ws!(
     do_parse!(
         name: call!(start_section, "sub".into()) >>
@@ -53,6 +90,7 @@ named!(subroutine_call<CompleteByteSlice, SubroutineCall>, do_parse!(
 
 named!(pub control_flow<CompleteByteSlice, Token>, alt_complete!(
     map!(while_definition, |w| Token::While(w)) |
+    map!(if_definition, |i| Token::If(i)) |
     map!(subroutine_call, |sub| Token::SubroutineCall(sub))
 ));
 
@@ -173,6 +211,89 @@ mod tests {
                     ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
                     ExpressionToken::Literal(180.0),
                 ],
+            })
+        );
+    }
+
+    #[test]
+    fn it_parses_ifs() {
+        let input = r#"o100 if [ #100 le 180 ]
+            g0 z0
+        o100 endif"#;
+
+        assert_expr!(
+            control_flow(Cbs(input.as_bytes())),
+            Token::If(If {
+                name: SubroutineName::Number(100),
+                condition: vec![
+                    ExpressionToken::Parameter(Parameter::Numbered(100)),
+                    ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
+                    ExpressionToken::Literal(180.0),
+                ],
+                if_tokens: vec![
+                    Token::RapidMove,
+                    Token::Coord(Vec9 {
+                        x: None,
+                        y: None,
+                        z: Some(Value::Float(0.0)),
+                        a: None,
+                        b: None,
+                        c: None,
+                        u: None,
+                        v: None,
+                        w: None,
+                    }),
+                ],
+                else_tokens: None,
+            })
+        );
+    }
+
+    #[test]
+    fn it_parses_if_elses() {
+        let input = r#"o100 if [ #100 le 180 ]
+            g0 z0
+        o100 else
+            g1 z1
+        o100 endif"#;
+
+        assert_expr!(
+            control_flow(Cbs(input.as_bytes())),
+            Token::If(If {
+                name: SubroutineName::Number(100),
+                condition: vec![
+                    ExpressionToken::Parameter(Parameter::Numbered(100)),
+                    ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
+                    ExpressionToken::Literal(180.0),
+                ],
+                if_tokens: vec![
+                    Token::RapidMove,
+                    Token::Coord(Vec9 {
+                        x: None,
+                        y: None,
+                        z: Some(Value::Float(0.0)),
+                        a: None,
+                        b: None,
+                        c: None,
+                        u: None,
+                        v: None,
+                        w: None,
+                    }),
+                ],
+                else_tokens: Some(vec![
+                    Token::LinearMove,
+                    Token::Coord(Vec9 {
+                        x: None,
+                        y: None,
+                        z: Some(Value::Float(1.0)),
+                        a: None,
+                        b: None,
+                        c: None,
+                        u: None,
+                        v: None,
+                        w: None,
+                    }),
+                ]),
             })
         );
     }

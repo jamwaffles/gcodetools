@@ -32,6 +32,14 @@ pub struct While {
 }
 
 #[derive(Debug, PartialEq)]
+pub struct If {
+    pub name: SubroutineName,
+    pub condition: Expression,
+    pub if_tokens: ProgramTokens,
+    pub else_tokens: Option<ProgramTokens>,
+}
+
+#[derive(Debug, PartialEq)]
 pub struct SubroutineCall {
     pub name: SubroutineName,
     pub args: Option<Vec<Expression>>,

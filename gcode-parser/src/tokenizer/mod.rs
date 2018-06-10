@@ -26,7 +26,7 @@ use self::value::*;
 use self::vec9::*;
 use super::expression::Expression;
 use super::subroutine::{
-    parser::{control_flow, subroutine}, Subroutine, SubroutineCall, While,
+    parser::{control_flow, subroutine}, If, Subroutine, SubroutineCall, While,
 };
 
 pub struct Tokenizer<'a> {
@@ -68,6 +68,7 @@ pub enum Token {
     FeedrateMode(FeedrateMode),
     GlobalMove,
     GoToPredefinedPosition(PredefinedPosition),
+    If(If),
     LatheMeasurementMode(LatheMeasurementMode),
     LinearMove,
     LineNumber(u32),
