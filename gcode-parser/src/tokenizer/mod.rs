@@ -24,7 +24,6 @@ use self::othercodes::*;
 use self::parameter::*;
 use self::value::*;
 use self::vec9::*;
-use super::expression::Expression;
 use super::subroutine::{
     parser::{control_flow, subroutine}, If, Subroutine, SubroutineCall, While,
 };

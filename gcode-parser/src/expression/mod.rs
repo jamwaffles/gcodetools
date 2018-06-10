@@ -12,6 +12,13 @@ pub enum ArithmeticOperator {
     Div,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+pub enum LogicalOperator {
+    And,
+    Or,
+    Not,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Function {
     Abs(Expression),
@@ -44,6 +51,7 @@ pub enum BinaryOperator {
 pub enum ExpressionToken {
     BinaryOperator(BinaryOperator),
     ArithmeticOperator(ArithmeticOperator),
+    LogicalOperator(LogicalOperator),
     Expression(Expression),
     Function(Function),
     Literal(f32),

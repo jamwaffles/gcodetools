@@ -1,4 +1,3 @@
-use super::super::expression::*;
 use super::value::{float_value, Value};
 use nom::types::CompleteByteSlice;
 use nom::*;
@@ -55,6 +54,7 @@ named!(pub parameters<CompleteByteSlice, Token>, alt_complete!(
 
 #[cfg(test)]
 mod tests {
+    use super::super::super::expression::{ArithmeticOperator, ExpressionToken};
     use super::*;
     use nom::types::CompleteByteSlice as Cbs;
 

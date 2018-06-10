@@ -1,6 +1,8 @@
 use super::super::tokenizer::helpers::float_no_exponent;
 use super::super::tokenizer::parameter::{not_numbered_parameter, parameter, Parameter};
-use super::{ArithmeticOperator, BinaryOperator, Expression, ExpressionToken, Function};
+use super::{
+    ArithmeticOperator, BinaryOperator, Expression, ExpressionToken, Function, LogicalOperator,
+};
 use nom::types::CompleteByteSlice;
 
 named!(literal<CompleteByteSlice, ExpressionToken>, map!(
@@ -20,6 +22,15 @@ named!(arithmetic<CompleteByteSlice, ExpressionToken>, map!(
         }
     ),
     |res| ExpressionToken::ArithmeticOperator(res)
+));
+
+named!(logical_operator<CompleteByteSlice, ExpressionToken>, map!(
+    alt_complete!(
+        map!(tag_no_case!("AND"), |_| LogicalOperator::Or) |
+        map!(tag_no_case!("OR"), |_| LogicalOperator::Or) |
+        map!(tag_no_case!("NOT"), |_| LogicalOperator::Or)
+    ),
+    |res| ExpressionToken::LogicalOperator(res)
 ));
 
 // Special snowflake ATAN with two "args"
@@ -77,6 +88,7 @@ named!(expression_token<CompleteByteSlice, ExpressionToken>, alt_complete!(
     function |
     literal |
     arithmetic |
+    logical_operator |
     comparison |
     map!(parameter, |res| ExpressionToken::Parameter(res)) |
     map!(expression, |res| ExpressionToken::Expression(res))
@@ -224,6 +236,23 @@ mod tests {
             "[1 GE 2]".into(),
             "[1 LT 2]".into(),
             "[1 LE 2]".into(),
+        ];
+
+        for input in inputs.into_iter() {
+            let parsed = expression(Cbs(input.as_bytes()));
+
+            assert!(parsed.is_ok());
+            assert_eq!(parsed.unwrap().0, EMPTY);
+        }
+    }
+
+    #[test]
+    fn it_parses_logical_operators() {
+        let inputs: Vec<String> = vec![
+            "[1 AND 2]".into(),
+            "[1 OR 2]".into(),
+            "[1 NOT 2]".into(),
+            "[[#<fraction> GT .99] OR [#<fraction> LT .01]]".into(),
         ];
 
         for input in inputs.into_iter() {
