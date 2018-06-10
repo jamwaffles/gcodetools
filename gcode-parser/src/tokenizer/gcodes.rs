@@ -68,6 +68,12 @@ pub enum LatheMeasurementMode {
     Diameter,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum PredefinedPosition {
+    G28,
+    G30,
+}
+
 named!(units<CompleteByteSlice, Token>, map!(
     alt!(
         map!(call!(g, 20.0), |_| Units::Inch) |
@@ -218,13 +224,15 @@ named!(feedrate_mode<CompleteByteSlice, Token>, map!(
     |res| Token::FeedrateMode(res)
 ));
 
-named!(go_to_predefined_position<CompleteByteSlice, Token>,
-    map!(call!(g, 28.0), |_| Token::GoToPredefinedPosition)
-);
+named!(go_to_predefined_position<CompleteByteSlice, Token>, alt_complete!(
+    map!(call!(g, 28.0), |_| Token::GoToPredefinedPosition(PredefinedPosition::G28)) |
+    map!(call!(g, 30.0), |_| Token::GoToPredefinedPosition(PredefinedPosition::G30))
+));
 
-named!(store_predefined_position<CompleteByteSlice, Token>,
-    map!(call!(g, 28.1), |_| Token::StorePredefinedPosition)
-);
+named!(store_predefined_position<CompleteByteSlice, Token>, alt_complete!(
+    map!(call!(g, 28.1), |_| Token::StorePredefinedPosition(PredefinedPosition::G28)) |
+    map!(call!(g, 30.1), |_| Token::StorePredefinedPosition(PredefinedPosition::G30))
+));
 
 named!(pub gcode<CompleteByteSlice, Token>,
     alt_complete!(
@@ -421,7 +429,11 @@ mod tests {
     fn it_goes_to_predefined_position() {
         check_token(
             go_to_predefined_position(Cbs(b"G28")),
-            Token::GoToPredefinedPosition,
+            Token::GoToPredefinedPosition(PredefinedPosition::G28),
+        );
+        check_token(
+            go_to_predefined_position(Cbs(b"G30")),
+            Token::GoToPredefinedPosition(PredefinedPosition::G30),
         );
     }
 
@@ -429,7 +441,11 @@ mod tests {
     fn it_stores_predefined_position() {
         check_token(
             store_predefined_position(Cbs(b"G28.1")),
-            Token::StorePredefinedPosition,
+            Token::StorePredefinedPosition(PredefinedPosition::G28),
+        );
+        check_token(
+            store_predefined_position(Cbs(b"G30.1")),
+            Token::StorePredefinedPosition(PredefinedPosition::G30),
         );
     }
 
