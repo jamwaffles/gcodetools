@@ -68,6 +68,7 @@ pub enum Token {
     FeedrateMode(FeedrateMode),
     GlobalMove,
     GoToPredefinedPosition(PredefinedPosition),
+    LatheMeasurementMode(LatheMeasurementMode),
     LinearMove,
     LineNumber(u32),
     ModalStateAutoRestore,
@@ -85,6 +86,7 @@ pub enum Token {
     SpindleRotation(SpindleRotation),
     SpindleSpeed(Value),
     StorePredefinedPosition(PredefinedPosition),
+    StraightProbe(StraightProbe),
     SubroutineCall(SubroutineCall),
     SubroutineDefinition(Subroutine),
     ToolChange,
@@ -94,7 +96,6 @@ pub enum Token {
     Units(Units),
     While(While),
     WorkOffset(WorkOffset),
-    LatheMeasurementMode(LatheMeasurementMode),
 }
 
 /// List of parsed GCode tokens

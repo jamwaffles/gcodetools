@@ -74,6 +74,14 @@ pub enum PredefinedPosition {
     G30,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum StraightProbe {
+    Towards(Vec9),
+    TowardsWithError(Vec9),
+    Away(Vec9),
+    AwayWithError(Vec9),
+}
+
 named!(units<CompleteByteSlice, Token>, map!(
     alt!(
         map!(call!(g, 20.0), |_| Units::Inch) |
@@ -234,6 +242,16 @@ named!(store_predefined_position<CompleteByteSlice, Token>, alt_complete!(
     map!(call!(g, 30.1), |_| Token::StorePredefinedPosition(PredefinedPosition::G30))
 ));
 
+named!(straight_probe<CompleteByteSlice, Token>, map!(
+    alt!(
+        map!(ws!(preceded!(call!(g, 38.2), vec9)), |pos| StraightProbe::Towards(pos)) |
+        map!(ws!(preceded!(call!(g, 38.3), vec9)), |pos| StraightProbe::TowardsWithError(pos)) |
+        map!(ws!(preceded!(call!(g, 38.4), vec9)), |pos| StraightProbe::Away(pos)) |
+        map!(ws!(preceded!(call!(g, 38.5), vec9)), |pos| StraightProbe::AwayWithError(pos))
+    ),
+    |res| Token::StraightProbe(res)
+));
+
 named!(pub gcode<CompleteByteSlice, Token>,
     alt_complete!(
         plane_select |
@@ -257,7 +275,8 @@ named!(pub gcode<CompleteByteSlice, Token>,
         coordinate_system_hard_reset |
         coordinate_system_soft_reset |
         global_move |
-        lathe_measurement_mode
+        lathe_measurement_mode |
+        straight_probe
     )
 );
 
@@ -447,6 +466,46 @@ mod tests {
             store_predefined_position(Cbs(b"G30.1")),
             Token::StorePredefinedPosition(PredefinedPosition::G30),
         );
+    }
+
+    #[test]
+    fn it_parses_straight_probes() {
+        let cases: Vec<(&str, Token)> = vec![
+            (
+                "G38.2 X10",
+                Token::StraightProbe(StraightProbe::Towards(Vec9 {
+                    x: Some(Value::Float(10.0)),
+                    ..Default::default()
+                })),
+            ),
+            (
+                "G38.3 Y10 Z10",
+                Token::StraightProbe(StraightProbe::TowardsWithError(Vec9 {
+                    y: Some(Value::Float(10.0)),
+                    z: Some(Value::Float(10.0)),
+                    ..Default::default()
+                })),
+            ),
+            (
+                "G38.4 X10",
+                Token::StraightProbe(StraightProbe::Away(Vec9 {
+                    x: Some(Value::Float(10.0)),
+                    ..Default::default()
+                })),
+            ),
+            (
+                "G38.5 Y10 Z10",
+                Token::StraightProbe(StraightProbe::AwayWithError(Vec9 {
+                    y: Some(Value::Float(10.0)),
+                    z: Some(Value::Float(10.0)),
+                    ..Default::default()
+                })),
+            ),
+        ];
+
+        for (test, expected) in cases {
+            check_token(straight_probe(Cbs(test.as_bytes())), expected);
+        }
     }
 
     #[test]
