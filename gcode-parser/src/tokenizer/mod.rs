@@ -102,7 +102,8 @@ pub enum Token {
 /// List of parsed GCode tokens
 pub type ProgramTokens = Vec<Token>;
 
-named!(pub token_not_end_program_or_subroutine<CompleteByteSlice, Token>,
+// Subroutines can't be nested
+named!(pub token_not_subroutine<CompleteByteSlice, Token>,
     alt_complete!(
         block_delete |
         gcode |
@@ -118,9 +119,8 @@ named!(pub token_not_end_program_or_subroutine<CompleteByteSlice, Token>,
 
 named!(token<CompleteByteSlice, Token>,
     alt_complete!(
-        token_not_end_program_or_subroutine |
-        subroutine |
-        end_program
+        token_not_subroutine |
+        subroutine
     )
 );
 
@@ -139,9 +139,10 @@ named!(tokens<CompleteByteSlice, Vec<Token>>, ws!(many0!(token)));
 /// This should only be used for testing purposes. The proper interface to the tokenizer is the
 /// [Tokenizer] struct.
 named!(pub program<CompleteByteSlice, ProgramTokens>, ws!(
-    preceded!(
+    delimited!(
         opt!(tag!("%")),
-        tokens
+        tokens,
+        opt!(tag!("%"))
     )
 ));
 

@@ -9,7 +9,7 @@ use std::path::Path;
 
 use helpers::*;
 
-#[test]
+// #[test]
 fn it_parses_all_linuxcnc_samples() {
     let dir = Path::new("./tests/test_files/linuxcnc")
         .canonicalize()

@@ -1,6 +1,6 @@
 use super::super::expression::parser::expression;
 use super::super::tokenizer::helpers::*;
-use super::super::tokenizer::{token_not_end_program_or_subroutine, Token};
+use super::super::tokenizer::{token_not_subroutine, Token};
 use super::{If, Subroutine, SubroutineCall, SubroutineName, While};
 use nom::types::CompleteByteSlice;
 
@@ -25,7 +25,7 @@ named!(while_definition<CompleteByteSlice, While>, ws!(
         name: call!(start_section, "while".into()) >>
         condition: expression >>
         tokens: terminated!(
-            many0!(token_not_end_program_or_subroutine),
+            many0!(token_not_subroutine),
             call!(end_section, "endwhile".into(), name.clone().into())
         ) >>
         ({
@@ -39,7 +39,7 @@ named!(if_no_else_definition<CompleteByteSlice, If>, ws!(
         name: call!(start_section, "if".into()) >>
         condition: expression >>
         if_tokens: terminated!(
-            many0!(token_not_end_program_or_subroutine),
+            many0!(token_not_subroutine),
             call!(end_section, "endif".into(), name.clone().into())
         ) >>
         ({
@@ -53,11 +53,11 @@ named!(if_else_definition<CompleteByteSlice, If>, ws!(
         name: call!(start_section, "if".into()) >>
         condition: expression >>
         if_tokens: terminated!(
-            many0!(token_not_end_program_or_subroutine),
+            many0!(token_not_subroutine),
             call!(end_section, "else".into(), name.clone().into())
         ) >>
         else_tokens: terminated!(
-            many0!(token_not_end_program_or_subroutine),
+            many0!(token_not_subroutine),
             call!(end_section, "endif".into(), name.clone().into())
         ) >>
         ({
@@ -75,7 +75,7 @@ named!(subroutine_definition<CompleteByteSlice, Subroutine>, ws!(
     do_parse!(
         name: call!(start_section, "sub".into()) >>
         tokens: terminated!(
-            many0!(token_not_end_program_or_subroutine),
+            many0!(token_not_subroutine),
             call!(end_section, "endsub".into(), name.clone().into())
         ) >>
         (Subroutine { name, tokens })
@@ -294,6 +294,27 @@ mod tests {
                         w: None,
                     }),
                 ]),
+            })
+        );
+    }
+
+    #[test]
+    fn it_can_end_program_inside_if() {
+        let input = r#"o100 if [ #100 le 180 ]
+            m2
+        o100 endif"#;
+
+        assert_expr!(
+            control_flow(Cbs(input.as_bytes())),
+            Token::If(If {
+                name: SubroutineName::Number(100),
+                condition: vec![
+                    ExpressionToken::Parameter(Parameter::Numbered(100)),
+                    ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
+                    ExpressionToken::Literal(180.0),
+                ],
+                if_tokens: vec![Token::EndProgram],
+                else_tokens: None,
             })
         );
     }

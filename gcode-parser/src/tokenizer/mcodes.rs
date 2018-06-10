@@ -25,6 +25,14 @@ named!(optional_pause<CompleteByteSlice, Token>,
     map!(call!(m, 1.0), |_| Token::OptionalPause)
 );
 
+named!(end_program<CompleteByteSlice, Token>, map!(
+    alt!(
+        recognize!(call!(m, 30.0)) |
+        recognize!(call!(m, 2.0))
+    ),
+    |_| Token::EndProgram
+));
+
 named!(tool_change<CompleteByteSlice, Token>,
     map!(call!(m, 6.0), |_| Token::ToolChange)
 );
@@ -78,7 +86,8 @@ named!(pub mcode<CompleteByteSlice, Token>,
         modal_state_save |
         modal_state_restore |
         modal_state_invalidate |
-        modal_state_autorestore
+        modal_state_autorestore |
+        end_program
     )
 );
 
@@ -139,7 +148,13 @@ mod tests {
     }
 
     #[test]
-    fn it_changes_tool() {
+    fn it_parses_tool_changes() {
         check_token(tool_change(Cbs(b"M6")), Token::ToolChange);
+    }
+
+    #[test]
+    fn it_parses_end_program() {
+        check_token(mcode(Cbs(b"M2")), Token::EndProgram);
+        check_token(mcode(Cbs(b"M30")), Token::EndProgram);
     }
 }

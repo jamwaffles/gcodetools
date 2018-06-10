@@ -175,7 +175,7 @@ G0 Z10
     assert_eq!(
         percents_program,
         Ok((
-            EMPTY,
+            Cbs(b"G0 Z10\n"),
             vec![
                 Token::Units(Units::Mm),
                 Token::RapidMove,
@@ -186,12 +186,6 @@ G0 Z10
                     ..Default::default()
                 }),
                 Token::LinearMove,
-                Token::Coord(Vec9 {
-                    z: Some(Value::Float(10.0)),
-                    ..Default::default()
-                }),
-                Token::EndProgram,
-                Token::RapidMove,
                 Token::Coord(Vec9 {
                     z: Some(Value::Float(10.0)),
                     ..Default::default()

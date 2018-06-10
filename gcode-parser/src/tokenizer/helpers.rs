@@ -85,15 +85,6 @@ named_args!(
     recognize!(call!(preceded_code, 'M', c))
 );
 
-named!(pub end_program<CompleteByteSlice, Token>, map!(
-    alt!(
-        recognize!(call!(m, 30.0)) |
-        recognize!(call!(m, 2.0)) |
-        tag!("%")
-    ),
-    |_| Token::EndProgram
-));
-
 #[cfg(test)]
 mod tests {
     use super::*;
