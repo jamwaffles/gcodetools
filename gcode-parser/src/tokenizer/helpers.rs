@@ -60,11 +60,6 @@ named_args!(char_no_case(search: char)<CompleteByteSlice, char>,
 );
 
 named_args!(
-    preceded_code<'a>(preceding: char, code: f32)<CompleteByteSlice<'a>, (char, f32)>,
-    call!(preceded_code_range_inclusive, preceding, code, code)
-);
-
-named_args!(
     pub preceded_code_range_inclusive<'a>(preceding: char, code_low: f32, code_high: f32)<CompleteByteSlice<'a>, (char, f32)>,
     map_res!(
         preceded!(call!(char_no_case, preceding), float_no_exponent),
@@ -142,24 +137,6 @@ mod tests {
     }
 
     #[test]
-    fn it_parses_preceded_codes() {
-        assert_eq!(
-            preceded_code(Cbs(b"G54"), 'G', 54.0),
-            Ok((EMPTY, ('G', 54.0)))
-        );
-
-        assert_eq!(
-            preceded_code(Cbs(b"G17.1"), 'G', 17.1),
-            Ok((EMPTY, ('G', 17.1)))
-        );
-
-        assert_eq!(
-            preceded_code(Cbs(b"g00"), 'g', 0.0),
-            Ok((EMPTY, ('G', 0.0)))
-        );
-    }
-
-    #[test]
     fn it_parses_gcodes() {
         assert_eq!(g(Cbs(b"G54"), 54.0), Ok((EMPTY, Cbs(b"G54"))));
     }
@@ -205,5 +182,20 @@ mod tests {
         assert!(preceded_code_range_inclusive(Cbs(b"M105"), 'M', 100.0, 110.0).is_ok());
         assert!(preceded_code_range_inclusive(Cbs(b"M111"), 'M', 100.0, 110.0).is_err());
         assert!(preceded_code_range_inclusive(Cbs(b"M99"), 'M', 100.0, 110.0).is_err());
+
+        assert_eq!(
+            preceded_code_range_inclusive(Cbs(b"G54"), 'G', 54.0, 54.0),
+            Ok((EMPTY, ('G', 54.0)))
+        );
+
+        assert_eq!(
+            preceded_code_range_inclusive(Cbs(b"G17.1"), 'G', 17.1, 17.1),
+            Ok((EMPTY, ('G', 17.1)))
+        );
+
+        assert_eq!(
+            preceded_code_range_inclusive(Cbs(b"g00"), 'g', 0.0, 0.0),
+            Ok((EMPTY, ('G', 0.0)))
+        );
     }
 }
