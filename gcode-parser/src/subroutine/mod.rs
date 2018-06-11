@@ -56,6 +56,13 @@ pub struct SubroutineCall {
     pub args: Option<Vec<Expression>>,
 }
 
+#[derive(Debug, PartialEq)]
+pub struct Repeat {
+    pub name: SubroutineName,
+    pub condition: Expression,
+    pub tokens: ProgramTokens,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

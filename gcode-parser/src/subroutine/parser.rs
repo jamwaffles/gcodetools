@@ -1,7 +1,7 @@
 use super::super::expression::parser::expression;
 use super::super::tokenizer::helpers::*;
 use super::super::tokenizer::{token_not_subroutine, Token};
-use super::{If, Subroutine, SubroutineCall, SubroutineName, While};
+use super::{If, Repeat, Subroutine, SubroutineCall, SubroutineName, While};
 use nom::types::CompleteByteSlice;
 
 named!(subroutine_name<CompleteByteSlice, SubroutineName>, alt_complete!(
@@ -71,6 +71,20 @@ named!(if_definition<CompleteByteSlice, If>, alt!(
     if_else_definition
 ));
 
+named!(repeat_definition<CompleteByteSlice, Repeat>, ws!(
+    do_parse!(
+        name: call!(start_section, "repeat".into()) >>
+        condition: expression >>
+        tokens: terminated!(
+            many0!(token_not_subroutine),
+            call!(end_section, "endrepeat".into(), name.clone().into())
+        ) >>
+        ({
+            Repeat { name, tokens, condition }
+        })
+    )
+));
+
 named!(subroutine_definition<CompleteByteSlice, Subroutine>, ws!(
     do_parse!(
         name: call!(start_section, "sub".into()) >>
@@ -91,6 +105,7 @@ named!(subroutine_call<CompleteByteSlice, SubroutineCall>, do_parse!(
 named!(pub control_flow<CompleteByteSlice, Token>, alt_complete!(
     map!(while_definition, |w| Token::While(w)) |
     map!(if_definition, |i| Token::If(i)) |
+    map!(repeat_definition, |r| Token::Repeat(r)) |
     map!(subroutine_call, |sub| Token::SubroutineCall(sub))
 ));
 
@@ -211,6 +226,22 @@ mod tests {
                     ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
                     ExpressionToken::Literal(180.0),
                 ],
+            })
+        );
+    }
+
+    #[test]
+    fn it_parses_repeats() {
+        let input = r#"o1 repeat [10]
+            g54
+        o1 endrepeat"#;
+
+        assert_expr!(
+            control_flow(Cbs(input.as_bytes())),
+            Token::Repeat(Repeat {
+                name: SubroutineName::Number(1),
+                tokens: vec![Token::WorkOffset(WorkOffset::G54)],
+                condition: vec![ExpressionToken::Literal(10.0)],
             })
         );
     }

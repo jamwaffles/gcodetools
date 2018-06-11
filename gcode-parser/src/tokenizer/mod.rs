@@ -23,9 +23,12 @@ use self::othercodes::*;
 use self::parameter::*;
 use self::value::*;
 use self::vec9::*;
-use super::subroutine::{
-    parser::{control_flow, subroutine}, If, Subroutine, SubroutineCall, While,
-};
+use super::subroutine::{parser::{control_flow, subroutine},
+                        If,
+                        Repeat,
+                        Subroutine,
+                        SubroutineCall,
+                        While};
 
 #[derive(Debug)]
 pub struct Tokenizer<'a> {
@@ -81,6 +84,7 @@ pub enum Token {
     PlaneSelect(Plane),
     RadiusArc(RadiusArc),
     RapidMove,
+    Repeat(Repeat),
     SpindleRotation(SpindleRotation),
     SpindleSpeed(Value),
     StorePredefinedPosition(PredefinedPosition),
