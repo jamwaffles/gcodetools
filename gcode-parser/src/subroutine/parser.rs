@@ -249,7 +249,7 @@ mod tests {
     #[test]
     fn it_parses_ifs() {
         let input = r#"o100 if [ #100 le 180 ]
-            g0 z0
+            g20
         o100 endif"#;
 
         assert_expr!(
@@ -261,20 +261,7 @@ mod tests {
                     ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
                     ExpressionToken::Literal(180.0),
                 ],
-                if_tokens: vec![
-                    Token::RapidMove,
-                    Token::Coord(Vec9 {
-                        x: None,
-                        y: None,
-                        z: Some(Value::Float(0.0)),
-                        a: None,
-                        b: None,
-                        c: None,
-                        u: None,
-                        v: None,
-                        w: None,
-                    }),
-                ],
+                if_tokens: vec![Token::Units(Units::Inch)],
                 else_tokens: None,
             })
         );
@@ -283,9 +270,9 @@ mod tests {
     #[test]
     fn it_parses_if_elses() {
         let input = r#"o100 if [ #100 le 180 ]
-            g0 z0
+            g20
         o100 else
-            g1 z1
+            g21
         o100 endif"#;
 
         assert_expr!(
@@ -297,34 +284,8 @@ mod tests {
                     ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
                     ExpressionToken::Literal(180.0),
                 ],
-                if_tokens: vec![
-                    Token::RapidMove,
-                    Token::Coord(Vec9 {
-                        x: None,
-                        y: None,
-                        z: Some(Value::Float(0.0)),
-                        a: None,
-                        b: None,
-                        c: None,
-                        u: None,
-                        v: None,
-                        w: None,
-                    }),
-                ],
-                else_tokens: Some(vec![
-                    Token::LinearMove,
-                    Token::Coord(Vec9 {
-                        x: None,
-                        y: None,
-                        z: Some(Value::Float(1.0)),
-                        a: None,
-                        b: None,
-                        c: None,
-                        u: None,
-                        v: None,
-                        w: None,
-                    }),
-                ]),
+                if_tokens: vec![Token::Units(Units::Inch)],
+                else_tokens: Some(vec![Token::Units(Units::Mm)]),
             })
         );
     }
