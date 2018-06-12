@@ -11,7 +11,6 @@ pub mod prelude;
 mod value;
 mod vec9;
 
-use nom;
 use nom::types::CompleteByteSlice;
 use nom::*;
 
@@ -28,6 +27,7 @@ use super::subroutine::{
     parser::{control_flow, subroutine}, If, Subroutine, SubroutineCall, While,
 };
 
+#[derive(Debug)]
 pub struct Tokenizer<'a> {
     program_string: &'a str,
 }
@@ -38,9 +38,7 @@ impl<'a> Tokenizer<'a> {
         Tokenizer { program_string }
     }
 
-    pub fn tokenize(
-        &self,
-    ) -> Result<(CompleteByteSlice, ProgramTokens), nom::Err<CompleteByteSlice>> {
+    pub fn tokenize(&self) -> Result<(CompleteByteSlice, ProgramTokens), Err<CompleteByteSlice>> {
         program(CompleteByteSlice(self.program_string.as_bytes()))
     }
 }

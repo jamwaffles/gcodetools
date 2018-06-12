@@ -126,10 +126,8 @@ mod tests {
 
     macro_rules! assert_near {
         ($compare:expr, $expected:expr) => {
-            use std::f32;
-
             assert!(
-                ($compare as f32 - $expected as f32).abs() < 0.000001,
+                ($compare - $expected).abs() < 0.000001,
                 format!("{:?} not near to {:?}", $compare, $expected)
             );
         };

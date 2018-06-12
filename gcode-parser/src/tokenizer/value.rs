@@ -114,11 +114,10 @@ named_args!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
 
     fn check_value(
-        to_check: Result<(CompleteByteSlice, Value), nom::Err<CompleteByteSlice>>,
+        to_check: Result<(CompleteByteSlice, Value), Err<CompleteByteSlice>>,
         against: Value,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
