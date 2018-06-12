@@ -3,9 +3,15 @@ pub mod parser;
 use super::expression::Expression;
 use super::tokenizer::ProgramTokens;
 
+/// Subroutine name
 #[derive(Clone, Debug, PartialEq)]
 pub enum SubroutineName {
+    /// Numbered subroutine (normal)
     Number(u32),
+
+    /// External subroutine (referenced from a file)
+    ///
+    /// The name of the subroutine is the name of the file to refer to (no extension)
     External(String),
 }
 
@@ -18,12 +24,14 @@ impl From<SubroutineName> for String {
     }
 }
 
+/// Subroutine definition
 #[derive(Debug, PartialEq)]
 pub struct Subroutine {
     pub name: SubroutineName,
     pub tokens: ProgramTokens,
 }
 
+/// `while` block
 #[derive(Debug, PartialEq)]
 pub struct While {
     pub name: SubroutineName,
@@ -31,6 +39,8 @@ pub struct While {
     pub condition: Expression,
 }
 
+// TODO: Elseif
+/// `if`/`else` block
 #[derive(Debug, PartialEq)]
 pub struct If {
     pub name: SubroutineName,
@@ -39,6 +49,7 @@ pub struct If {
     pub else_tokens: Option<ProgramTokens>,
 }
 
+/// A subroutine call with optional arguments
 #[derive(Debug, PartialEq)]
 pub struct SubroutineCall {
     pub name: SubroutineName,

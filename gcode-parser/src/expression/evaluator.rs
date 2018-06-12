@@ -2,6 +2,8 @@ use super::super::tokenizer::prelude::*;
 use super::*;
 use std::collections::HashMap;
 
+/// List of parameters (variables) to pass in as the environment for the evaluation of an
+/// expression.
 pub type Context = HashMap<Parameter, f32>;
 
 fn shunting_yard(tokens: Expression, context: Option<&Context>) -> Vec<ExpressionToken> {
