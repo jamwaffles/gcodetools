@@ -1,0 +1,40 @@
+use nom::types::CompleteByteSlice;
+
+use super::super::helpers::*;
+use super::super::Token;
+
+#[derive(Debug, PartialEq)]
+pub enum WorkOffset {
+    G54,
+    G55,
+}
+
+named!(pub work_offset<CompleteByteSlice, Token>, map!(
+    alt!(
+        map!(call!(g, 54.0), |_| WorkOffset::G54) |
+        map!(call!(g, 55.0), |_| WorkOffset::G55)
+    ),
+    |res| Token::WorkOffset(res)
+));
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nom;
+    use nom::types::CompleteByteSlice as Cbs;
+
+    const EMPTY: Cbs = Cbs(b"");
+
+    fn check_token(
+        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
+        against: Token,
+    ) {
+        assert_eq!(to_check, Ok((EMPTY, against)))
+    }
+
+    #[test]
+    fn it_parses_work_offsets() {
+        check_token(work_offset(Cbs(b"G54")), Token::WorkOffset(WorkOffset::G54));
+        check_token(work_offset(Cbs(b"G55")), Token::WorkOffset(WorkOffset::G55));
+    }
+}
