@@ -124,11 +124,9 @@ mod tests {
             Token::CenterArc(CenterArc {
                 x: Some(Value::Float(5.0417)),
                 y: Some(Value::Float(1.9427)),
-                k: None,
                 i: Some(Value::Float(-0.3979)),
                 j: Some(Value::Float(0.3028)),
-                z: None,
-                p: None,
+                ..Default::default()
             }),
         );
     }
@@ -140,11 +138,9 @@ mod tests {
             Token::CenterArc(CenterArc {
                 x: Some(Value::Float(1.0)),
                 y: Some(Value::Float(2.0)),
-                z: None,
                 i: Some(Value::Float(3.0)),
                 j: Some(Value::Float(4.0)),
-                k: None,
-                p: None,
+                ..Default::default()
             }),
         );
 
@@ -156,8 +152,8 @@ mod tests {
                 z: Some(Value::Float(5.0)),
                 i: Some(Value::Float(3.0)),
                 j: Some(Value::Float(4.0)),
-                k: None,
                 p: Some(Value::Unsigned(6)),
+                ..Default::default()
             }),
         );
 
@@ -169,8 +165,7 @@ mod tests {
                 z: Some(Value::Float(20.0)),
                 i: Some(Value::Float(20.0)),
                 j: Some(Value::Float(0.0)),
-                k: None,
-                p: None,
+                ..Default::default()
             }),
         );
 
@@ -182,8 +177,7 @@ mod tests {
                 z: Some(Value::Float(10.0)),
                 i: Some(Value::Float(3.0)),
                 j: Some(Value::Float(4.0)),
-                k: None,
-                p: None,
+                ..Default::default()
             }),
         );
     }
@@ -194,12 +188,10 @@ mod tests {
             arc(Cbs(b"X1 Z2 I3 K4")),
             Token::CenterArc(CenterArc {
                 x: Some(Value::Float(1.0)),
-                y: None,
                 z: Some(Value::Float(2.0)),
                 i: Some(Value::Float(3.0)),
-                j: None,
                 k: Some(Value::Float(4.0)),
-                p: None,
+                ..Default::default()
             }),
         );
 
@@ -210,9 +202,9 @@ mod tests {
                 y: Some(Value::Float(5.0)),
                 z: Some(Value::Float(2.0)),
                 i: Some(Value::Float(3.0)),
-                j: None,
                 k: Some(Value::Float(4.0)),
                 p: Some(Value::Unsigned(6)),
+                ..Default::default()
             }),
         );
     }
@@ -222,13 +214,11 @@ mod tests {
         check_token(
             arc(Cbs(b"Y1 Z2 J3 K4")),
             Token::CenterArc(CenterArc {
-                x: None,
                 y: Some(Value::Float(1.0)),
                 z: Some(Value::Float(2.0)),
-                i: None,
                 j: Some(Value::Float(3.0)),
                 k: Some(Value::Float(4.0)),
-                p: None,
+                ..Default::default()
             }),
         );
 
@@ -238,23 +228,21 @@ mod tests {
                 x: Some(Value::Float(5.0)),
                 y: Some(Value::Float(1.0)),
                 z: Some(Value::Float(2.0)),
-                i: None,
                 j: Some(Value::Float(3.0)),
                 k: Some(Value::Float(4.0)),
                 p: Some(Value::Unsigned(6)),
+                ..Default::default()
             }),
         );
 
         check_token(
             arc(Cbs(b"Y20.9595 Z-0.5838 I-1.5875 J0.0066")),
             Token::CenterArc(CenterArc {
-                x: None,
                 y: Some(Value::Float(20.9595)),
                 z: Some(Value::Float(-0.5838)),
                 i: Some(Value::Float(-1.5875)),
                 j: Some(Value::Float(0.0066)),
-                k: None,
-                p: None,
+                ..Default::default()
             }),
         );
     }
