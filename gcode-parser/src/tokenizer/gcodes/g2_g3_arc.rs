@@ -3,7 +3,7 @@ use nom::types::CompleteByteSlice;
 use super::super::helpers::*;
 use super::super::Token;
 
-named!(pub arc<CompleteByteSlice, Token>, alt_complete!(
+named!(pub arc<CompleteByteSlice, Token>, alt!(
     map!(call!(g, 2.0), |_| Token::ClockwiseArc) |
     map!(call!(g, 3.0), |_| Token::CounterclockwiseArc)
 ));

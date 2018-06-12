@@ -51,7 +51,7 @@ pub use self::g7_g8_lathe_measurement_mode::LatheMeasurementMode;
 pub use self::g90_g91_distance_mode::DistanceMode;
 pub use self::g93_g95_feedrate_mode::FeedrateMode;
 
-named!(pub gcode<CompleteByteSlice, Token>, alt_complete!(
+named!(pub gcode<CompleteByteSlice, Token>, alt!(
     rapid_move |
     plane_select |
     linear_move |

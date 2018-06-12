@@ -20,7 +20,7 @@ use self::m7_m8_m9_coolant::coolant;
 pub use self::m3_m4_m5_spindle_rotation::SpindleRotation;
 pub use self::m7_m8_m9_coolant::Coolant;
 
-named!(pub mcode<CompleteByteSlice, Token>, alt_complete!(
+named!(pub mcode<CompleteByteSlice, Token>, alt!(
     pause |
     user_command |
     end_program |

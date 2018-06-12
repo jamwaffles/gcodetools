@@ -9,7 +9,7 @@ pub enum PredefinedPosition {
     G30,
 }
 
-named!(pub predefined_position<CompleteByteSlice, Token>, alt_complete!(
+named!(pub predefined_position<CompleteByteSlice, Token>, alt!(
     map!(call!(g, 28.0), |_| Token::GoToPredefinedPosition(PredefinedPosition::G28)) |
     map!(call!(g, 30.0), |_| Token::GoToPredefinedPosition(PredefinedPosition::G30)) |
     map!(call!(g, 28.1), |_| Token::StorePredefinedPosition(PredefinedPosition::G28)) |

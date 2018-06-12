@@ -3,7 +3,7 @@ use nom::types::CompleteByteSlice;
 use super::super::helpers::*;
 use super::super::Token;
 
-named!(pub coordinate_system_offset<CompleteByteSlice, Token>, alt_complete!(
+named!(pub coordinate_system_offset<CompleteByteSlice, Token>, alt!(
     map!(call!(g, 92.0), |_| Token::CoordinateSystemOffset) |
     map!(call!(g, 92.1), |_| Token::CoordinateSystemOffsetHardReset) |
     map!(call!(g, 92.2), |_| Token::CoordinateSystemOffsetSoftReset)

@@ -10,7 +10,7 @@ pub enum Coolant {
     Off,
 }
 
-named!(pub coolant<CompleteByteSlice, Token>, alt_complete!(
+named!(pub coolant<CompleteByteSlice, Token>, alt!(
     map!(call!(m, 7.0), |_| Token::Coolant(Coolant::Mist)) |
     map!(call!(m, 8.0), |_| Token::Coolant(Coolant::Flood)) |
     map!(call!(m, 9.0), |_| Token::Coolant(Coolant::Off))
