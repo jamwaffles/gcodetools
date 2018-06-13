@@ -32,6 +32,9 @@ use super::subroutine::{parser::{control_flow, subroutine},
                         SubroutineCall,
                         While};
 
+pub mod test_prelude;
+
+/// Main interface to the parser
 #[derive(Debug)]
 pub struct Tokenizer<'a> {
     program_string: &'a str,
@@ -39,10 +42,12 @@ pub struct Tokenizer<'a> {
 
 /// Main interface to the tokenizer
 impl<'a> Tokenizer<'a> {
+    /// Take an input str ready for parsing
     pub fn new_from_str(program_string: &'a str) -> Self {
         Tokenizer { program_string }
     }
 
+    /// Parse a program into tokens
     pub fn tokenize(&self) -> Result<(CompleteByteSlice, ProgramTokens), Err<CompleteByteSlice>> {
         program(CompleteByteSlice(self.program_string.as_bytes()))
     }
@@ -106,7 +111,18 @@ pub enum Token {
 /// List of parsed GCode tokens
 pub type ProgramTokens = Vec<Token>;
 
-// Subroutines can't be nested
+/// Match a line of optional code
+named!(block_delete<CompleteByteSlice, Token>, map!(
+    flat_map!(
+        delimited!(tag!("/"), take_until_line_ending, line_ending),
+        tokens
+    ),
+    |tokens| Token::BlockDelete(tokens)
+));
+
+/// Match any token that's not a subroutine
+///
+/// Subroutine definitions can't be nested (but calls can). Add any new parsers here.
 named!(pub token_not_subroutine<CompleteByteSlice, Token>,
     alt_complete!(
         block_delete |
@@ -121,6 +137,7 @@ named!(pub token_not_subroutine<CompleteByteSlice, Token>,
     )
 );
 
+/// Match _any_ token
 named!(token<CompleteByteSlice, Token>,
     alt_complete!(
         token_not_subroutine |
@@ -128,14 +145,7 @@ named!(token<CompleteByteSlice, Token>,
     )
 );
 
-named!(block_delete<CompleteByteSlice, Token>, map!(
-    flat_map!(
-        delimited!(tag!("/"), take_until_line_ending, line_ending),
-        tokens
-    ),
-    |tokens| Token::BlockDelete(tokens)
-));
-
+/// Match a list of tokens that make up a program
 named!(tokens<CompleteByteSlice, Vec<Token>>, ws!(many0!(token)));
 
 /// Raw GCode parser
@@ -149,5 +159,3 @@ named!(pub program<CompleteByteSlice, ProgramTokens>, ws!(
         opt!(tag!("%"))
     )
 ));
-
-pub mod test_prelude;
