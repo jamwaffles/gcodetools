@@ -22,6 +22,10 @@ name = "arc"
 harness = false
 name = "vec9"
 
+[[bench]]
+harness = false
+name = "lots_of_vec9"
+
 [dependencies]
 nom = "4.0.0"
 cpuprofiler = { version = "0.0.3", optional = true }
