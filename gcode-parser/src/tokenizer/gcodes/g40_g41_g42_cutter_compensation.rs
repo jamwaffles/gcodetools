@@ -24,7 +24,7 @@ pub enum CutterCompensation {
 named!(pub cutter_compensation<CompleteByteSlice, Token>,
     map!(
         alt!(
-            map!(call!(g, 40.0), |_| CutterCompensation::Off) |
+            g_int!(40, CutterCompensation::Off) |
             map!(
                 ws!(preceded!(call!(g, 41.0), opt!(call!(preceded_unsigned_value, "D")))),
                 |tool| CutterCompensation::Left(tool)

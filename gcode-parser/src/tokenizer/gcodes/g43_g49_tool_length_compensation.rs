@@ -18,12 +18,12 @@ pub enum ToolLengthCompensation {
 
 named!(pub tool_length_compensation<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(call!(g, 43.0), |_| ToolLengthCompensation::ToolNumberOffset) |
+        g_int!(43, ToolLengthCompensation::ToolNumberOffset) |
         map!(
             ws!(preceded!(call!(g, 43.1), vec9)),
             |offset| ToolLengthCompensation::Dynamic(offset)
         ) |
-        map!(call!(g, 49.0), |_| ToolLengthCompensation::Disable)
+        g_int!(49, ToolLengthCompensation::Disable)
     ),
     |res| Token::ToolLengthCompensation(res)
 ));

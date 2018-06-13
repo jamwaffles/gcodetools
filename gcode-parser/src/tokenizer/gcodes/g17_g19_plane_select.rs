@@ -22,12 +22,12 @@ pub enum Plane {
 
 named!(pub plane_select<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(call!(g, 17.1), |_| Plane::Uv) |
-        map!(call!(g, 18.1), |_| Plane::Wu) |
-        map!(call!(g, 19.1), |_| Plane::Vw) |
-        map!(call!(g, 17.0), |_| Plane::Xy) |
-        map!(call!(g, 18.0), |_| Plane::Zx) |
-        map!(call!(g, 19.0), |_| Plane::Yz)
+        g_float!(17.1, Plane::Uv) |
+        g_float!(18.1, Plane::Wu) |
+        g_float!(19.1, Plane::Vw) |
+        g_float!(17.0, Plane::Xy) |
+        g_float!(18.0, Plane::Zx) |
+        g_float!(19.0, Plane::Yz)
     ),
     |res| Token::PlaneSelect(res)
 ));

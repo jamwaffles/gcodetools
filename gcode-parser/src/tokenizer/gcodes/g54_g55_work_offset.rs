@@ -11,8 +11,8 @@ pub enum WorkOffset {
 
 named!(pub work_offset<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(call!(g, 54.0), |_| WorkOffset::G54) |
-        map!(call!(g, 55.0), |_| WorkOffset::G55)
+        g_int!(54, WorkOffset::G54) |
+        g_int!(55, WorkOffset::G55)
     ),
     |res| Token::WorkOffset(res)
 ));

@@ -26,7 +26,7 @@ named_args!(
 
 named_args!(
     pub preceded_u32<'a>(preceding: &str)<CompleteByteSlice<'a>, u32>,
-    flat_map!(preceded!(tag_no_case!(preceding), recognize!(digit)), parse_to!(u32))
+    flat_map!(preceded!(tag_no_case!(preceding), terminated!(recognize!(digit), not!(char!('.')))), parse_to!(u32))
 );
 
 named!(
@@ -140,6 +140,9 @@ mod tests {
 
         assert!(preceded_u32(Cbs(b"y-123"), "Y").is_err());
         assert!(preceded_u32(Cbs(b"Y-123"), "Y").is_err());
+
+        // Attempting to parse a float as a number must fail
+        assert!(preceded_u32(Cbs(b"Y1.23"), "Y").is_err());
     }
 
     #[test]

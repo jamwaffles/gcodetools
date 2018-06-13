@@ -15,10 +15,10 @@ pub enum PredefinedPosition {
 }
 
 named!(pub predefined_position<CompleteByteSlice, Token>, alt!(
-    map!(call!(g, 28.0), |_| Token::GoToPredefinedPosition(PredefinedPosition::G28)) |
-    map!(call!(g, 30.0), |_| Token::GoToPredefinedPosition(PredefinedPosition::G30)) |
-    map!(call!(g, 28.1), |_| Token::StorePredefinedPosition(PredefinedPosition::G28)) |
-    map!(call!(g, 30.1), |_| Token::StorePredefinedPosition(PredefinedPosition::G30))
+    g_int!(28, Token::GoToPredefinedPosition(PredefinedPosition::G28)) |
+    g_int!(30, Token::GoToPredefinedPosition(PredefinedPosition::G30)) |
+    g_float!(28.1, Token::StorePredefinedPosition(PredefinedPosition::G28)) |
+    g_float!(30.1, Token::StorePredefinedPosition(PredefinedPosition::G30))
 ));
 
 #[cfg(test)]

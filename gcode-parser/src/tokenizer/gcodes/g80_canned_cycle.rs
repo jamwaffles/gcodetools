@@ -4,9 +4,7 @@ use super::super::helpers::*;
 use super::super::Token;
 
 named!(pub canned_cycle<CompleteByteSlice, Token>,
-    alt!(
-        map!(call!(g, 80.0), |_| Token::CancelCannedCycle)
-    )
+    g_int!(80, Token::CancelCannedCycle)
 );
 
 #[cfg(test)]

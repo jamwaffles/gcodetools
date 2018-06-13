@@ -12,9 +12,9 @@ pub enum FeedrateMode {
 
 named!(pub feedrate_mode<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(call!(g, 93.0), |_| FeedrateMode::InverseTime) |
-        map!(call!(g, 94.0), |_| FeedrateMode::UnitsPerMinute) |
-        map!(call!(g, 95.0), |_| FeedrateMode::UnitsPerRevolution)
+        g_int!(93, FeedrateMode::InverseTime) |
+        g_int!(94, FeedrateMode::UnitsPerMinute) |
+        g_int!(95, FeedrateMode::UnitsPerRevolution)
     ),
     |res| Token::FeedrateMode(res)
 ));

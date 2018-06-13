@@ -11,8 +11,8 @@ pub enum DistanceMode {
 
 named!(pub distance_mode<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(call!(g, 90.0), |_| DistanceMode::Absolute) |
-        map!(call!(g, 91.0), |_| DistanceMode::Incremental)
+        g_int!(90, DistanceMode::Absolute) |
+        g_int!(91, DistanceMode::Incremental)
     ),
     |res| Token::DistanceMode(res)
 ));

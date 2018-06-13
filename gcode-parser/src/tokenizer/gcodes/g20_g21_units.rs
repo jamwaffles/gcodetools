@@ -14,8 +14,8 @@ pub enum Units {
 
 named!(pub units<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(call!(g, 20.0), |_| Units::Inch) |
-        map!(call!(g, 21.0), |_| Units::Mm)
+        g_int!(20, Units::Inch) |
+        g_int!(21, Units::Mm)
     ),
     |res| Token::Units(res)
 ));

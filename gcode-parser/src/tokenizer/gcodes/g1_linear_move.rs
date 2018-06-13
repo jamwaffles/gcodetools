@@ -4,7 +4,7 @@ use super::super::helpers::*;
 use super::super::Token;
 
 named!(pub linear_move<CompleteByteSlice, Token>,
-    map!(call!(g, 1.0), |_| Token::LinearMove)
+    g_int!(1, Token::LinearMove)
 );
 
 #[cfg(test)]

@@ -4,9 +4,9 @@ use super::super::helpers::*;
 use super::super::Token;
 
 named!(pub coordinate_system_offset<CompleteByteSlice, Token>, alt!(
-    map!(call!(g, 92.0), |_| Token::CoordinateSystemOffset) |
-    map!(call!(g, 92.1), |_| Token::CoordinateSystemOffsetHardReset) |
-    map!(call!(g, 92.2), |_| Token::CoordinateSystemOffsetSoftReset)
+    g_float!(92.0, Token::CoordinateSystemOffset) |
+    g_float!(92.1, Token::CoordinateSystemOffsetHardReset) |
+    g_float!(92.2, Token::CoordinateSystemOffsetSoftReset)
 ));
 
 #[cfg(test)]

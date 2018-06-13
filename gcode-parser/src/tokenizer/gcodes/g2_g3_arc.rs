@@ -4,8 +4,8 @@ use super::super::helpers::*;
 use super::super::Token;
 
 named!(pub arc<CompleteByteSlice, Token>, alt!(
-    map!(call!(g, 2.0), |_| Token::ClockwiseArc) |
-    map!(call!(g, 3.0), |_| Token::CounterclockwiseArc)
+    g_int!(2, Token::ClockwiseArc) |
+    g_int!(3, Token::CounterclockwiseArc)
 ));
 
 #[cfg(test)]

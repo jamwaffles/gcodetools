@@ -21,7 +21,7 @@ named!(pub path_blending<CompleteByteSlice, Token>, map!(
                 PathBlendingMode::Blended((p, q))
             })
         )) |
-        map!(call!(g, 61.0), |_| PathBlendingMode::ExactPath)
+        g_int!(61, PathBlendingMode::ExactPath)
     ),
     |res| Token::PathBlendingMode(res)
 ));

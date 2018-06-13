@@ -4,9 +4,7 @@ use super::super::helpers::*;
 use super::super::Token;
 
 named!(pub global_move<CompleteByteSlice, Token>,
-    alt!(
-        map!(call!(g, 53.0), |_| Token::GlobalMove)
-    )
+    g_int!(53, Token::GlobalMove)
 );
 
 #[cfg(test)]

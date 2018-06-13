@@ -11,8 +11,8 @@ pub enum LatheMeasurementMode {
 
 named!(pub lathe_measurement_mode<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(call!(g, 7.0), |_| LatheMeasurementMode::Diameter) |
-        map!(call!(g, 8.0), |_| LatheMeasurementMode::Radius)
+        g_int!(7, LatheMeasurementMode::Diameter) |
+        g_int!(8, LatheMeasurementMode::Radius)
     ),
     |res| Token::LatheMeasurementMode(res)
 ));
