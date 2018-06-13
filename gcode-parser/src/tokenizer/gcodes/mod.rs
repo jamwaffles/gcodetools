@@ -7,6 +7,7 @@ mod g1_linear_move;
 mod g20_g21_units;
 mod g28_g30_predefined_position;
 mod g2_g3_arc;
+mod g33_spindle_sync_motion;
 mod g38_straight_probe;
 mod g40_g41_g42_cutter_compensation;
 mod g43_g49_tool_length_compensation;
@@ -29,6 +30,7 @@ use self::g1_linear_move::linear_move;
 use self::g20_g21_units::units;
 use self::g28_g30_predefined_position::predefined_position;
 use self::g2_g3_arc::arc;
+use self::g33_spindle_sync_motion::spindle_sync_motion;
 use self::g38_straight_probe::straight_probe;
 use self::g40_g41_g42_cutter_compensation::cutter_compensation;
 use self::g43_g49_tool_length_compensation::tool_length_compensation;
@@ -45,6 +47,7 @@ use self::g93_g95_feedrate_mode::feedrate_mode;
 pub use self::g17_g19_plane_select::Plane;
 pub use self::g20_g21_units::Units;
 pub use self::g28_g30_predefined_position::PredefinedPosition;
+pub use self::g33_spindle_sync_motion::SpindleSyncMotion;
 pub use self::g38_straight_probe::StraightProbe;
 pub use self::g40_g41_g42_cutter_compensation::CutterCompensation;
 pub use self::g43_g49_tool_length_compensation::ToolLengthCompensation;
@@ -72,5 +75,6 @@ named!(pub gcode<CompleteByteSlice, Token>, alt!(
     canned_cycle |
     distance_mode |
     coordinate_system_offset |
-    feedrate_mode
+    feedrate_mode |
+    spindle_sync_motion
 ));

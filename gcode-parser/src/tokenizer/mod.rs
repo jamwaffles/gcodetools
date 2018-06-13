@@ -25,12 +25,9 @@ use self::othercodes::*;
 use self::parameter::*;
 use self::value::*;
 use self::vec9::*;
-use super::subroutine::{parser::{control_flow, subroutine},
-                        If,
-                        Repeat,
-                        Subroutine,
-                        SubroutineCall,
-                        While};
+use super::subroutine::{
+    parser::{control_flow, subroutine}, If, Repeat, Subroutine, SubroutineCall, While,
+};
 
 pub mod test_prelude;
 
@@ -94,6 +91,7 @@ pub enum Token {
     Repeat(Repeat),
     SpindleRotation(SpindleRotation),
     SpindleSpeed(Value),
+    SpindleSyncMotion(SpindleSyncMotion),
     StorePredefinedPosition(PredefinedPosition),
     StraightProbe(StraightProbe),
     SubroutineCall(SubroutineCall),
