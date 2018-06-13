@@ -1,3 +1,5 @@
+//! Gcode parser
+
 mod arc;
 mod comment;
 mod gcodes;

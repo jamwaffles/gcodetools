@@ -3,13 +3,20 @@ use nom::types::CompleteByteSlice;
 use super::super::helpers::*;
 use super::super::Token;
 
+/// Plane select
 #[derive(Debug, PartialEq)]
 pub enum Plane {
+    /// X-Y plane
     Xy,
+    /// Z-X plane
     Zx,
+    /// Y-Z plane
     Yz,
+    /// U-V plane
     Uv,
+    /// W-U plane
     Wu,
+    /// V-W plane
     Vw,
 }
 

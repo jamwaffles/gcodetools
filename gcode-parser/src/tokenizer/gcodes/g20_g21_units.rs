@@ -3,9 +3,12 @@ use nom::types::CompleteByteSlice;
 use super::super::helpers::*;
 use super::super::Token;
 
+/// Units selection
 #[derive(Debug, PartialEq)]
 pub enum Units {
+    /// Use inch units for all distances
     Inch,
+    /// Use millimeter units for all distances
     Mm,
 }
 

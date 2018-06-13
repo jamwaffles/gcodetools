@@ -3,10 +3,14 @@ use nom::types::CompleteByteSlice;
 use super::super::helpers::*;
 use super::super::Token;
 
+/// Coolant
 #[derive(Debug, PartialEq)]
 pub enum Coolant {
+    /// Enable mist coolant (M7)
     Mist,
+    /// Enable flood coolant (M8)
     Flood,
+    /// Disable all coolant (M9)
     Off,
 }
 

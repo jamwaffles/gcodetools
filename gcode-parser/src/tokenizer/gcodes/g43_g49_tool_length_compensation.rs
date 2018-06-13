@@ -4,11 +4,15 @@ use super::super::helpers::*;
 use super::super::vec9::{vec9, Vec9};
 use super::super::Token;
 
+/// Tool length compensation
 #[derive(Debug, PartialEq)]
 pub enum ToolLengthCompensation {
+    /// No tool length compensation
     Disable,
+    /// Use offset from tool number (defaults to currently loaded tool tool)
     // TODO: Tool number here
     ToolNumberOffset,
+    /// Apply a vector offset to any existing offsets
     Dynamic(Vec9),
 }
 

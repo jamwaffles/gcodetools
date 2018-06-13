@@ -1,3 +1,7 @@
+//! Exposes everything for use by external tests
+//!
+//! **TODO: Remove this. Do not use.**
+
 pub use super::super::expression::expression as parse_expression;
 pub use super::arc::arc as parse_arc;
 pub use super::arc::{center_arc, radius_arc};

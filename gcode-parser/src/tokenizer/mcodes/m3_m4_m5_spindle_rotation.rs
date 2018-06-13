@@ -3,10 +3,14 @@ use nom::types::CompleteByteSlice;
 use super::super::helpers::*;
 use super::super::Token;
 
+/// Spindle rotation
 #[derive(Debug, PartialEq)]
 pub enum SpindleRotation {
+    /// Clockwise (M3)
     Cw,
+    /// Counterclockwise (M4)
     Ccw,
+    /// Stop (M5)
     Stop,
 }
 

@@ -4,10 +4,20 @@ use super::super::helpers::*;
 use super::super::value::{preceded_unsigned_value, Value};
 use super::super::Token;
 
+/// Cutter compensation
 #[derive(Debug, PartialEq)]
 pub enum CutterCompensation {
+    /// No cutter comp (G40)
     Off,
+    /// Compensate to the left of the path with optional tool number
+    ///
+    /// If no tool number is given, the current tool radius is used. If there is no loaded tool,
+    /// radius should be 0
     Left(Option<Value>),
+    /// Compensate to the right of the path with optional tool number
+    ///
+    /// If no tool number is given, the current tool radius is used. If there is no loaded tool,
+    /// radius should be 0
     Right(Option<Value>),
 }
 

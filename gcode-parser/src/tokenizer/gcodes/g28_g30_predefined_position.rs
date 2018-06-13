@@ -3,9 +3,14 @@ use nom::types::CompleteByteSlice;
 use super::super::helpers::*;
 use super::super::Token;
 
+/// One of two predefined positions
+///
+/// Used to select which position to refer to when storing/traversing to it
 #[derive(Debug, PartialEq)]
 pub enum PredefinedPosition {
+    /// First one (G28)
     G28,
+    /// Second one (G30)
     G30,
 }
 

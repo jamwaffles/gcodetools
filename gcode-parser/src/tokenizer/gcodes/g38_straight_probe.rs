@@ -4,11 +4,16 @@ use super::super::helpers::*;
 use super::super::vec9::{vec9, Vec9};
 use super::super::Token;
 
+/// Define which probing routine to use
 #[derive(Debug, PartialEq)]
 pub enum StraightProbe {
+    /// Probe towards, stop on contact
     Towards(Vec9),
+    /// Probe towards, stop on contact, error if no contact at move end
     TowardsWithError(Vec9),
+    /// Probe away, stop on contact loss
     Away(Vec9),
+    /// Probe away, stop on contact loss, error if no contact loss at move end
     AwayWithError(Vec9),
 }
 
