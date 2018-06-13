@@ -4,7 +4,7 @@ use super::super::helpers::*;
 use super::super::Token;
 
 named!(pub rapid_move<CompleteByteSlice, Token>,
-    map!(call!(g, 0.0), |_| Token::RapidMove)
+    g_int!(0, Token::RapidMove)
 );
 
 #[cfg(test)]

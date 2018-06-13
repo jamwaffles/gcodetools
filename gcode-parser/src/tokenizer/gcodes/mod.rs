@@ -1,3 +1,6 @@
+#[macro_use]
+mod macros;
+
 mod g0_rapid_move;
 mod g17_g19_plane_select;
 mod g1_linear_move;
