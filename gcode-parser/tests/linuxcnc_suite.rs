@@ -5,9 +5,8 @@ extern crate nom;
 
 mod helpers;
 
-use std::path::Path;
-
 use helpers::*;
+use std::path::Path;
 
 // #[test]
 fn it_parses_all_linuxcnc_samples() {
@@ -21,6 +20,8 @@ fn it_parses_all_linuxcnc_samples() {
 
     let mut num_errors = 0;
 
+    start_profile();
+
     for (file, result) in files.iter().zip(results) {
         if result.is_err() {
             num_errors += 1;
@@ -32,6 +33,8 @@ fn it_parses_all_linuxcnc_samples() {
             result
         );
     }
+
+    end_profile();
 
     println!(
         "\n{} out of {} files passed ({} failed)\n",

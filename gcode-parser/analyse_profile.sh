@@ -24,4 +24,4 @@ dot -Tpng "./profiles/${BIN_NAME}.dot" -o "./profiles/${BIN_NAME}.png"
 echo "Done"
 
 # MacOS only
-# open "./profiles/${BIN_NAME}.png"
+open "./profiles/${BIN_NAME}.png"
