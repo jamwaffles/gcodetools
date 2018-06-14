@@ -66,17 +66,3 @@ macro_rules! m_int(
         map_result!(preceded_u32($i, "M"), $i, $num)
     });
 );
-
-#[macro_export]
-macro_rules! m_float(
-    ($i:expr, $num:expr, $mapto:expr) => ({
-        use $crate::helpers::preceded_f32;
-
-        map_result!(preceded_f32($i, "M"), $i, $num, $mapto)
-    });
-    ($i:expr, $num:expr) => ({
-        use $crate::helpers::preceded_f32;
-
-        map_result!(preceded_f32($i, "M"), $i, $num)
-    });
-);
