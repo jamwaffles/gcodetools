@@ -1,9 +1,9 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::GCode;
 
-named!(pub global_move<CompleteByteSlice, Token>,
-    g_int!(53, Token::GlobalMove)
+named!(pub global_move<CompleteByteSlice, GCode>,
+    g_int!(53, GCode::GlobalMove)
 );
 
 #[cfg(test)]
@@ -15,14 +15,14 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
+        against: GCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
 
     #[test]
     fn it_parses_global_moves() {
-        check_token(global_move(Cbs(b"G53")), Token::GlobalMove);
+        check_token(global_move(Cbs(b"G53")), GCode::GlobalMove);
     }
 }

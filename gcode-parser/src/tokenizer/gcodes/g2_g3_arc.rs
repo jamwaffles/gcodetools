@@ -1,10 +1,10 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::GCode;
 
-named!(pub arc<CompleteByteSlice, Token>, alt!(
-    g_int!(2, Token::ClockwiseArc) |
-    g_int!(3, Token::CounterclockwiseArc)
+named!(pub arc<CompleteByteSlice, GCode>, alt!(
+    g_int!(2, GCode::ClockwiseArc) |
+    g_int!(3, GCode::CounterclockwiseArc)
 ));
 
 #[cfg(test)]
@@ -16,17 +16,17 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
+        against: GCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
 
     #[test]
     fn it_parses_arcs() {
-        check_token(arc(Cbs(b"G2")), Token::ClockwiseArc);
-        check_token(arc(Cbs(b"G02")), Token::ClockwiseArc);
-        check_token(arc(Cbs(b"G3")), Token::CounterclockwiseArc);
-        check_token(arc(Cbs(b"G03")), Token::CounterclockwiseArc);
+        check_token(arc(Cbs(b"G2")), GCode::ClockwiseArc);
+        check_token(arc(Cbs(b"G02")), GCode::ClockwiseArc);
+        check_token(arc(Cbs(b"G3")), GCode::CounterclockwiseArc);
+        check_token(arc(Cbs(b"G03")), GCode::CounterclockwiseArc);
     }
 }

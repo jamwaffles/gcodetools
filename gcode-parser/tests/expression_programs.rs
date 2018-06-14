@@ -19,7 +19,7 @@ fn it_parses_expressions_in_arcs() {
         Ok((
             EMPTY,
             vec![
-                Token::CounterclockwiseArc,
+                Token::GCode(GCode::CounterclockwiseArc),
                 Token::CenterArc(CenterArc {
                     x: Some(Value::Parameter(Parameter::Numbered(1))),
                     y: Some(Value::Expression(vec![

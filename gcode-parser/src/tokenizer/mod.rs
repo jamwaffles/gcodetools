@@ -57,46 +57,24 @@ impl<'a> Tokenizer<'a> {
 #[derive(Debug, PartialEq)]
 pub enum Token {
     BlockDelete(Vec<Token>),
-    CancelCannedCycle,
     CenterArc(CenterArc),
-    ClockwiseArc,
     Comment(String),
     Coord(Vec9),
-    CoordinateSystemOffset,
-    CoordinateSystemOffsetHardReset,
-    CoordinateSystemOffsetSoftReset,
-    CounterclockwiseArc,
-    CutterCompensation(CutterCompensation),
-    DistanceMode(DistanceMode),
-    Dwell(Value),
     FeedRate(Value),
-    FeedrateMode(FeedrateMode),
-    GlobalMove,
-    GoToPredefinedPosition(PredefinedPosition),
     If(If),
-    LatheMeasurementMode(LatheMeasurementMode),
-    LinearMove,
     LineNumber(u32),
     Parameter(Parameter),
     ParameterAssignment((Parameter, Value)),
-    PathBlendingMode(PathBlendingMode),
-    PlaneSelect(Plane),
     RadiusArc(RadiusArc),
-    RapidMove,
     Repeat(Repeat),
     SpindleSpeed(Value),
-    SpindleSyncMotion(SpindleSyncMotion),
-    StorePredefinedPosition(PredefinedPosition),
-    StraightProbe(StraightProbe),
     SubroutineCall(SubroutineCall),
     SubroutineDefinition(Subroutine),
-    ToolLengthCompensation(ToolLengthCompensation),
-    ToolLengthCompensationToolNumber(Value),
     ToolSelect(Value),
-    Units(Units),
     While(While),
-    WorkOffset(WorkOffset),
     MCode(MCode),
+    GCode(GCode),
+    ToolLengthCompensationToolNumber(Value),
 }
 
 /// List of parsed GCode tokens
@@ -117,7 +95,7 @@ named!(block_delete<CompleteByteSlice, Token>, map!(
 named!(pub token_not_subroutine<CompleteByteSlice, Token>,
     alt_complete!(
         block_delete |
-        gcode |
+        map!(gcode, |m| Token::GCode(m)) |
         map!(mcode, |m| Token::MCode(m)) |
         othercode |
         arc |

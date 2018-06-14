@@ -25,8 +25,8 @@ fn it_parses_programs_with_numbered_subroutines() {
                 Token::SubroutineDefinition(Subroutine {
                     name: SubroutineName::Number(100),
                     tokens: vec![
-                        Token::WorkOffset(WorkOffset::G54),
-                        Token::RapidMove,
+                        Token::GCode(GCode::WorkOffset(WorkOffset::G54)),
+                        Token::GCode(GCode::RapidMove),
                         Token::Coord(Vec9 {
                             x: Some(Value::Float(0.0)),
                             y: Some(Value::Float(0.0)),
@@ -65,8 +65,8 @@ fn it_parses_subroutine_calls_with_args() {
                 Token::SubroutineDefinition(Subroutine {
                     name: SubroutineName::Number(100),
                     tokens: vec![
-                        Token::WorkOffset(WorkOffset::G54),
-                        Token::RapidMove,
+                        Token::GCode(GCode::WorkOffset(WorkOffset::G54)),
+                        Token::GCode(GCode::RapidMove),
                         Token::Coord(Vec9 {
                             x: Some(Value::Float(0.0)),
                             y: Some(Value::Float(0.0)),
@@ -109,8 +109,8 @@ fn it_parses_named_subroutines() {
             vec![Token::SubroutineDefinition(Subroutine {
                 name: SubroutineName::External("foo_bar".into()),
                 tokens: vec![
-                    Token::WorkOffset(WorkOffset::G54),
-                    Token::RapidMove,
+                    Token::GCode(GCode::WorkOffset(WorkOffset::G54)),
+                    Token::GCode(GCode::RapidMove),
                     Token::Coord(Vec9 {
                         x: Some(Value::Float(0.0)),
                         y: Some(Value::Float(0.0)),

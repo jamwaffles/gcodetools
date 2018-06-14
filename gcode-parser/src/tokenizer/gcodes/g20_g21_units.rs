@@ -1,6 +1,6 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::GCode;
 
 /// Units selection
 #[derive(Debug, PartialEq)]
@@ -11,12 +11,12 @@ pub enum Units {
     Mm,
 }
 
-named!(pub units<CompleteByteSlice, Token>, map!(
+named!(pub units<CompleteByteSlice, GCode>, map!(
     alt!(
         g_int!(20, Units::Inch) |
         g_int!(21, Units::Mm)
     ),
-    |res| Token::Units(res)
+    |res| GCode::Units(res)
 ));
 
 #[cfg(test)]
@@ -28,15 +28,15 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
+        against: GCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
 
     #[test]
     fn it_parses_units() {
-        check_token(units(Cbs(b"G20")), Token::Units(Units::Inch));
-        check_token(units(Cbs(b"G21")), Token::Units(Units::Mm));
+        check_token(units(Cbs(b"G20")), GCode::Units(Units::Inch));
+        check_token(units(Cbs(b"G21")), GCode::Units(Units::Mm));
     }
 }

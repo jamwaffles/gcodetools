@@ -1,6 +1,6 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::GCode;
 
 #[derive(Debug, PartialEq)]
 pub enum FeedrateMode {
@@ -9,13 +9,13 @@ pub enum FeedrateMode {
     UnitsPerRevolution,
 }
 
-named!(pub feedrate_mode<CompleteByteSlice, Token>, map!(
+named!(pub feedrate_mode<CompleteByteSlice, GCode>, map!(
     alt!(
         g_int!(93, FeedrateMode::InverseTime) |
         g_int!(94, FeedrateMode::UnitsPerMinute) |
         g_int!(95, FeedrateMode::UnitsPerRevolution)
     ),
-    |res| Token::FeedrateMode(res)
+    |res| GCode::FeedrateMode(res)
 ));
 
 #[cfg(test)]
@@ -27,8 +27,8 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
+        against: GCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
@@ -37,15 +37,15 @@ mod tests {
     fn it_parses_feedrate_mode() {
         check_token(
             feedrate_mode(Cbs(b"G93")),
-            Token::FeedrateMode(FeedrateMode::InverseTime),
+            GCode::FeedrateMode(FeedrateMode::InverseTime),
         );
         check_token(
             feedrate_mode(Cbs(b"G94")),
-            Token::FeedrateMode(FeedrateMode::UnitsPerMinute),
+            GCode::FeedrateMode(FeedrateMode::UnitsPerMinute),
         );
         check_token(
             feedrate_mode(Cbs(b"G95")),
-            Token::FeedrateMode(FeedrateMode::UnitsPerRevolution),
+            GCode::FeedrateMode(FeedrateMode::UnitsPerRevolution),
         );
     }
 }

@@ -1,6 +1,6 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::GCode;
 
 #[derive(Debug, PartialEq)]
 pub enum DistanceMode {
@@ -8,12 +8,12 @@ pub enum DistanceMode {
     Incremental,
 }
 
-named!(pub distance_mode<CompleteByteSlice, Token>, map!(
+named!(pub distance_mode<CompleteByteSlice, GCode>, map!(
     alt!(
         g_int!(90, DistanceMode::Absolute) |
         g_int!(91, DistanceMode::Incremental)
     ),
-    |res| Token::DistanceMode(res)
+    |res| GCode::DistanceMode(res)
 ));
 
 #[cfg(test)]
@@ -25,8 +25,8 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
+        against: GCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
@@ -35,12 +35,12 @@ mod tests {
     fn it_parses_distance_mode() {
         check_token(
             distance_mode(Cbs(b"G90")),
-            Token::DistanceMode(DistanceMode::Absolute),
+            GCode::DistanceMode(DistanceMode::Absolute),
         );
 
         check_token(
             distance_mode(Cbs(b"G91")),
-            Token::DistanceMode(DistanceMode::Incremental),
+            GCode::DistanceMode(DistanceMode::Incremental),
         );
     }
 }

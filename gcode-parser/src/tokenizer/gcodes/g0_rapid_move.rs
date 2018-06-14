@@ -1,9 +1,9 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::GCode;
 
-named!(pub rapid_move<CompleteByteSlice, Token>,
-    g_int!(0, Token::RapidMove)
+named!(pub rapid_move<CompleteByteSlice, GCode>,
+    g_int!(0, GCode::RapidMove)
 );
 
 #[cfg(test)]
@@ -15,15 +15,15 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
+        against: GCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
 
     #[test]
     fn it_parses_rapids() {
-        check_token(rapid_move(Cbs(b"G0")), Token::RapidMove);
-        check_token(rapid_move(Cbs(b"G00")), Token::RapidMove);
+        check_token(rapid_move(Cbs(b"G0")), GCode::RapidMove);
+        check_token(rapid_move(Cbs(b"G00")), GCode::RapidMove);
     }
 }

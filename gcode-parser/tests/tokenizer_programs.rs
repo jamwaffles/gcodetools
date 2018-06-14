@@ -36,9 +36,9 @@ G0 X3 Y4"#;
         Ok((
             EMPTY,
             vec![
-                Token::Units(Units::Mm),
+                Token::GCode(GCode::Units(Units::Mm)),
                 Token::BlockDelete(vec![
-                    Token::RapidMove,
+                    Token::GCode(GCode::RapidMove),
                     Token::Coord(Vec9 {
                         x: Some(Value::Float(0.0)),
                         y: Some(Value::Float(1.0)),
@@ -47,7 +47,7 @@ G0 X3 Y4"#;
                     }),
                     Token::FeedRate(500.0.into()),
                 ]),
-                Token::RapidMove,
+                Token::GCode(GCode::RapidMove),
                 Token::Coord(Vec9 {
                     x: Some(Value::Float(3.0)),
                     y: Some(Value::Float(4.0)),
@@ -72,9 +72,9 @@ N50"#;
             EMPTY,
             vec![
                 Token::LineNumber(10),
-                Token::Units(Units::Mm),
+                Token::GCode(GCode::Units(Units::Mm)),
                 Token::LineNumber(20),
-                Token::RapidMove,
+                Token::GCode(GCode::RapidMove),
                 Token::Coord(Vec9 {
                     x: Some(Value::Float(0.0)),
                     y: Some(Value::Float(0.0)),
@@ -82,7 +82,7 @@ N50"#;
                     ..Default::default()
                 }),
                 Token::LineNumber(30),
-                Token::LinearMove,
+                Token::GCode(GCode::LinearMove),
                 Token::Coord(Vec9 {
                     z: Some(Value::Float(10.0)),
                     ..Default::default()
@@ -108,8 +108,8 @@ M2
         Ok((
             EMPTY,
             vec![
-                Token::Units(Units::Mm),
-                Token::RapidMove,
+                Token::GCode(GCode::Units(Units::Mm)),
+                Token::GCode(GCode::RapidMove),
                 Token::FeedRate(500.0.into()),
                 Token::Coord(Vec9 {
                     x: Some(Value::Float(0.0)),
@@ -117,7 +117,7 @@ M2
                     z: Some(Value::Float(0.0)),
                     ..Default::default()
                 }),
-                Token::LinearMove,
+                Token::GCode(GCode::LinearMove),
                 Token::Coord(Vec9 {
                     z: Some(Value::Float(10.0)),
                     ..Default::default()
@@ -141,15 +141,15 @@ M30
         Ok((
             EMPTY,
             vec![
-                Token::Units(Units::Mm),
-                Token::RapidMove,
+                Token::GCode(GCode::Units(Units::Mm)),
+                Token::GCode(GCode::RapidMove),
                 Token::Coord(Vec9 {
                     x: Some(Value::Float(0.0)),
                     y: Some(Value::Float(0.0)),
                     z: Some(Value::Float(0.0)),
                     ..Default::default()
                 }),
-                Token::LinearMove,
+                Token::GCode(GCode::LinearMove),
                 Token::Coord(Vec9 {
                     z: Some(Value::Float(10.0)),
                     ..Default::default()
@@ -177,15 +177,15 @@ G0 Z10
         Ok((
             Cbs(b"G0 Z10\n"),
             vec![
-                Token::Units(Units::Mm),
-                Token::RapidMove,
+                Token::GCode(GCode::Units(Units::Mm)),
+                Token::GCode(GCode::RapidMove),
                 Token::Coord(Vec9 {
                     x: Some(Value::Float(0.0)),
                     y: Some(Value::Float(0.0)),
                     z: Some(Value::Float(0.0)),
                     ..Default::default()
                 }),
-                Token::LinearMove,
+                Token::GCode(GCode::LinearMove),
                 Token::Coord(Vec9 {
                     z: Some(Value::Float(10.0)),
                     ..Default::default()
@@ -210,7 +210,7 @@ M2"#;
         Ok((
             EMPTY,
             vec![
-                Token::LinearMove,
+                Token::GCode(GCode::LinearMove),
                 Token::Coord(Vec9 {
                     x: Some(Value::Float(10.0)),
                     y: Some(Value::Float(20.0)),
@@ -221,7 +221,7 @@ M2"#;
                     y: Some(Value::Float(30.0)),
                     ..Default::default()
                 }),
-                Token::RapidMove,
+                Token::GCode(GCode::RapidMove),
                 Token::Coord(Vec9 {
                     y: Some(Value::Float(30.0)),
                     z: Some(Value::Float(10.0)),
@@ -250,7 +250,7 @@ M2"#;
         Ok((
             EMPTY,
             vec![
-                Token::ClockwiseArc,
+                Token::GCode(GCode::ClockwiseArc),
                 Token::CenterArc(CenterArc {
                     x: Some(Value::Float(5.0417)),
                     y: Some(Value::Float(1.9427)),

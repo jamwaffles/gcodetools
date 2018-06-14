@@ -18,7 +18,7 @@ mod g90_g91_distance_mode;
 mod g92_coordinate_system_offset;
 mod g93_g95_feedrate_mode;
 
-use super::Token;
+use super::value::Value;
 use nom::types::CompleteByteSlice;
 
 use self::g0_rapid_move::rapid_move;
@@ -54,7 +54,7 @@ pub use self::g7_g8_lathe_measurement_mode::LatheMeasurementMode;
 pub use self::g90_g91_distance_mode::DistanceMode;
 pub use self::g93_g95_feedrate_mode::FeedrateMode;
 
-named!(pub gcode<CompleteByteSlice, Token>, alt!(
+named!(pub gcode<CompleteByteSlice, GCode>, alt!(
     rapid_move |
     plane_select |
     linear_move |
@@ -75,3 +75,30 @@ named!(pub gcode<CompleteByteSlice, Token>, alt!(
     feedrate_mode |
     spindle_sync_motion
 ));
+
+#[derive(Debug, PartialEq)]
+pub enum GCode {
+    CancelCannedCycle,
+    ClockwiseArc,
+    CoordinateSystemOffset,
+    CoordinateSystemOffsetHardReset,
+    CoordinateSystemOffsetSoftReset,
+    CounterclockwiseArc,
+    CutterCompensation(CutterCompensation),
+    DistanceMode(DistanceMode),
+    Dwell(Value),
+    FeedrateMode(FeedrateMode),
+    GlobalMove,
+    GoToPredefinedPosition(PredefinedPosition),
+    LatheMeasurementMode(LatheMeasurementMode),
+    LinearMove,
+    PathBlendingMode(PathBlendingMode),
+    PlaneSelect(Plane),
+    RapidMove,
+    SpindleSyncMotion(SpindleSyncMotion),
+    StorePredefinedPosition(PredefinedPosition),
+    StraightProbe(StraightProbe),
+    ToolLengthCompensation(ToolLengthCompensation),
+    Units(Units),
+    WorkOffset(WorkOffset),
+}

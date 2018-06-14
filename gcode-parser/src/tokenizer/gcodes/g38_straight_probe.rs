@@ -2,7 +2,7 @@ use nom::types::CompleteByteSlice;
 
 use super::super::helpers::*;
 use super::super::vec9::{vec9, Vec9};
-use super::super::Token;
+use super::GCode;
 
 /// Define which probing routine to use
 #[derive(Debug, PartialEq)]
@@ -17,14 +17,14 @@ pub enum StraightProbe {
     AwayWithError(Vec9),
 }
 
-named!(pub straight_probe<CompleteByteSlice, Token>, map!(
+named!(pub straight_probe<CompleteByteSlice, GCode>, map!(
     alt!(
         map!(ws!(preceded!(call!(g, 38.2), vec9)), |pos| StraightProbe::Towards(pos)) |
         map!(ws!(preceded!(call!(g, 38.3), vec9)), |pos| StraightProbe::TowardsWithError(pos)) |
         map!(ws!(preceded!(call!(g, 38.4), vec9)), |pos| StraightProbe::Away(pos)) |
         map!(ws!(preceded!(call!(g, 38.5), vec9)), |pos| StraightProbe::AwayWithError(pos))
     ),
-    |res| Token::StraightProbe(res)
+    |res| GCode::StraightProbe(res)
 ));
 
 #[cfg(test)]
@@ -37,25 +37,25 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
+        against: GCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
 
     #[test]
     fn it_parses_straight_probes() {
-        let cases: Vec<(&str, Token)> = vec![
+        let cases: Vec<(&str, GCode)> = vec![
             (
                 "G38.2 X10",
-                Token::StraightProbe(StraightProbe::Towards(Vec9 {
+                GCode::StraightProbe(StraightProbe::Towards(Vec9 {
                     x: Some(Value::Float(10.0)),
                     ..Default::default()
                 })),
             ),
             (
                 "G38.3 Y10 Z10",
-                Token::StraightProbe(StraightProbe::TowardsWithError(Vec9 {
+                GCode::StraightProbe(StraightProbe::TowardsWithError(Vec9 {
                     y: Some(Value::Float(10.0)),
                     z: Some(Value::Float(10.0)),
                     ..Default::default()
@@ -63,14 +63,14 @@ mod tests {
             ),
             (
                 "G38.4 X10",
-                Token::StraightProbe(StraightProbe::Away(Vec9 {
+                GCode::StraightProbe(StraightProbe::Away(Vec9 {
                     x: Some(Value::Float(10.0)),
                     ..Default::default()
                 })),
             ),
             (
                 "G38.5 Y10 Z10",
-                Token::StraightProbe(StraightProbe::AwayWithError(Vec9 {
+                GCode::StraightProbe(StraightProbe::AwayWithError(Vec9 {
                     y: Some(Value::Float(10.0)),
                     z: Some(Value::Float(10.0)),
                     ..Default::default()

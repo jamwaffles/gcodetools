@@ -1,6 +1,6 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::GCode;
 
 /// Plane select
 #[derive(Debug, PartialEq)]
@@ -19,7 +19,7 @@ pub enum Plane {
     Vw,
 }
 
-named!(pub plane_select<CompleteByteSlice, Token>, map!(
+named!(pub plane_select<CompleteByteSlice, GCode>, map!(
     alt!(
         g_float!(17.1, Plane::Uv) |
         g_float!(18.1, Plane::Wu) |
@@ -28,7 +28,7 @@ named!(pub plane_select<CompleteByteSlice, Token>, map!(
         g_float!(18.0, Plane::Zx) |
         g_float!(19.0, Plane::Yz)
     ),
-    |res| Token::PlaneSelect(res)
+    |res| GCode::PlaneSelect(res)
 ));
 
 #[cfg(test)]
@@ -40,19 +40,19 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
+        against: GCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
 
     #[test]
     fn it_parses_plane_select() {
-        check_token(plane_select(Cbs(b"G17")), Token::PlaneSelect(Plane::Xy));
-        check_token(plane_select(Cbs(b"G18")), Token::PlaneSelect(Plane::Zx));
-        check_token(plane_select(Cbs(b"G19")), Token::PlaneSelect(Plane::Yz));
-        check_token(plane_select(Cbs(b"G17.1")), Token::PlaneSelect(Plane::Uv));
-        check_token(plane_select(Cbs(b"G18.1")), Token::PlaneSelect(Plane::Wu));
-        check_token(plane_select(Cbs(b"G19.1")), Token::PlaneSelect(Plane::Vw));
+        check_token(plane_select(Cbs(b"G17")), GCode::PlaneSelect(Plane::Xy));
+        check_token(plane_select(Cbs(b"G18")), GCode::PlaneSelect(Plane::Zx));
+        check_token(plane_select(Cbs(b"G19")), GCode::PlaneSelect(Plane::Yz));
+        check_token(plane_select(Cbs(b"G17.1")), GCode::PlaneSelect(Plane::Uv));
+        check_token(plane_select(Cbs(b"G18.1")), GCode::PlaneSelect(Plane::Wu));
+        check_token(plane_select(Cbs(b"G19.1")), GCode::PlaneSelect(Plane::Vw));
     }
 }

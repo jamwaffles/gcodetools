@@ -2,7 +2,7 @@ use nom::types::CompleteByteSlice;
 
 use super::super::helpers::*;
 use super::super::value::{preceded_unsigned_value, Value};
-use super::super::Token;
+use super::GCode;
 
 /// Cutter compensation
 #[derive(Debug, PartialEq)]
@@ -21,7 +21,7 @@ pub enum CutterCompensation {
     Right(Option<Value>),
 }
 
-named!(pub cutter_compensation<CompleteByteSlice, Token>,
+named!(pub cutter_compensation<CompleteByteSlice, GCode>,
     map!(
         alt!(
             g_int!(40, CutterCompensation::Off) |
@@ -34,7 +34,7 @@ named!(pub cutter_compensation<CompleteByteSlice, Token>,
                 |tool| CutterCompensation::Right(tool)
             )
         ),
-        |res| Token::CutterCompensation(res)
+        |res| GCode::CutterCompensation(res)
     )
 );
 
@@ -48,8 +48,8 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
+        against: GCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
@@ -58,27 +58,27 @@ mod tests {
     fn it_parses_cutter_comp() {
         check_token(
             cutter_compensation(Cbs(b"G40")),
-            Token::CutterCompensation(CutterCompensation::Off),
+            GCode::CutterCompensation(CutterCompensation::Off),
         );
 
         check_token(
             cutter_compensation(Cbs(b"G41 D1")),
-            Token::CutterCompensation(CutterCompensation::Left(Some(Value::Unsigned(1u32)))),
+            GCode::CutterCompensation(CutterCompensation::Left(Some(Value::Unsigned(1u32)))),
         );
 
         check_token(
             cutter_compensation(Cbs(b"G42 D1")),
-            Token::CutterCompensation(CutterCompensation::Right(Some(Value::Unsigned(1u32)))),
+            GCode::CutterCompensation(CutterCompensation::Right(Some(Value::Unsigned(1u32)))),
         );
 
         check_token(
             cutter_compensation(Cbs(b"G42 D0")),
-            Token::CutterCompensation(CutterCompensation::Right(Some(Value::Unsigned(0u32)))),
+            GCode::CutterCompensation(CutterCompensation::Right(Some(Value::Unsigned(0u32)))),
         );
 
         check_token(
             cutter_compensation(Cbs(b"G42")),
-            Token::CutterCompensation(CutterCompensation::Right(None)),
+            GCode::CutterCompensation(CutterCompensation::Right(None)),
         );
     }
 }

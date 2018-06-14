@@ -1,9 +1,9 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::GCode;
 
-named!(pub canned_cycle<CompleteByteSlice, Token>,
-    g_int!(80, Token::CancelCannedCycle)
+named!(pub canned_cycle<CompleteByteSlice, GCode>,
+    g_int!(80, GCode::CancelCannedCycle)
 );
 
 #[cfg(test)]
@@ -15,14 +15,14 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
+        against: GCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
 
     #[test]
     fn it_parses_canned_cycles() {
-        check_token(canned_cycle(Cbs(b"G80")), Token::CancelCannedCycle);
+        check_token(canned_cycle(Cbs(b"G80")), GCode::CancelCannedCycle);
     }
 }

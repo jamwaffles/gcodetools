@@ -151,8 +151,8 @@ mod tests {
             Token::SubroutineDefinition(Subroutine {
                 name: SubroutineName::Number(100u32),
                 tokens: vec![
-                    Token::WorkOffset(WorkOffset::G54),
-                    Token::RapidMove,
+                    Token::GCode(GCode::WorkOffset(WorkOffset::G54)),
+                    Token::GCode(GCode::RapidMove),
                     Token::Coord(Vec9 {
                         x: Some(Value::Float(0.0)),
                         y: Some(Value::Float(0.0)),
@@ -179,7 +179,7 @@ mod tests {
             subroutine(Cbs(input.as_bytes())),
             Token::SubroutineDefinition(Subroutine {
                 name: SubroutineName::External("external_file".into()),
-                tokens: vec![Token::WorkOffset(WorkOffset::G54)],
+                tokens: vec![Token::GCode(GCode::WorkOffset(WorkOffset::G54))],
             })
         );
     }
@@ -208,7 +208,7 @@ mod tests {
             Token::While(While {
                 name: SubroutineName::Number(100),
                 tokens: vec![
-                    Token::RapidMove,
+                    Token::GCode(GCode::RapidMove),
                     Token::Coord(Vec9 {
                         x: None,
                         y: None,
@@ -240,7 +240,7 @@ mod tests {
             control_flow(Cbs(input.as_bytes())),
             Token::Repeat(Repeat {
                 name: SubroutineName::Number(1),
-                tokens: vec![Token::WorkOffset(WorkOffset::G54)],
+                tokens: vec![Token::GCode(GCode::WorkOffset(WorkOffset::G54))],
                 condition: vec![ExpressionToken::Literal(10.0)],
             })
         );
@@ -261,7 +261,7 @@ mod tests {
                     ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
                     ExpressionToken::Literal(180.0),
                 ],
-                if_tokens: vec![Token::Units(Units::Inch)],
+                if_tokens: vec![Token::GCode(GCode::Units(Units::Inch))],
                 else_tokens: None,
             })
         );
@@ -284,8 +284,8 @@ mod tests {
                     ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
                     ExpressionToken::Literal(180.0),
                 ],
-                if_tokens: vec![Token::Units(Units::Inch)],
-                else_tokens: Some(vec![Token::Units(Units::Mm)]),
+                if_tokens: vec![Token::GCode(GCode::Units(Units::Inch))],
+                else_tokens: Some(vec![Token::GCode(GCode::Units(Units::Mm))]),
             })
         );
     }

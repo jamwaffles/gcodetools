@@ -33,23 +33,23 @@ G0 Z#<_global_var>
                     Parameter::Global("global_var".into()),
                     Value::Float(10.0),
                 )),
-                Token::RapidMove,
+                Token::GCode(GCode::RapidMove),
                 Token::Coord(Vec9 {
                     x: Some(Value::Float(0.0)),
                     y: Some(Value::Float(0.0)),
                     ..Default::default()
                 }),
-                Token::RapidMove,
+                Token::GCode(GCode::RapidMove),
                 Token::Coord(Vec9 {
                     z: Some(Value::Parameter(Parameter::Numbered(1234))),
                     ..Default::default()
                 }),
-                Token::RapidMove,
+                Token::GCode(GCode::RapidMove),
                 Token::Coord(Vec9 {
                     z: Some(Value::Parameter(Parameter::Named("named_var".into()))),
                     ..Default::default()
                 }),
-                Token::RapidMove,
+                Token::GCode(GCode::RapidMove),
                 Token::Coord(Vec9 {
                     z: Some(Value::Parameter(Parameter::Global("global_var".into()))),
                     ..Default::default()

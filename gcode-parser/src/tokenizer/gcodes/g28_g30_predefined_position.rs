@@ -1,6 +1,6 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::GCode;
 
 /// One of two predefined positions
 ///
@@ -13,11 +13,11 @@ pub enum PredefinedPosition {
     G30,
 }
 
-named!(pub predefined_position<CompleteByteSlice, Token>, alt!(
-    g_int!(28, Token::GoToPredefinedPosition(PredefinedPosition::G28)) |
-    g_int!(30, Token::GoToPredefinedPosition(PredefinedPosition::G30)) |
-    g_float!(28.1, Token::StorePredefinedPosition(PredefinedPosition::G28)) |
-    g_float!(30.1, Token::StorePredefinedPosition(PredefinedPosition::G30))
+named!(pub predefined_position<CompleteByteSlice, GCode>, alt!(
+    g_int!(28, GCode::GoToPredefinedPosition(PredefinedPosition::G28)) |
+    g_int!(30, GCode::GoToPredefinedPosition(PredefinedPosition::G30)) |
+    g_float!(28.1, GCode::StorePredefinedPosition(PredefinedPosition::G28)) |
+    g_float!(30.1, GCode::StorePredefinedPosition(PredefinedPosition::G30))
 ));
 
 #[cfg(test)]
@@ -29,8 +29,8 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
+        against: GCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
@@ -39,11 +39,11 @@ mod tests {
     fn it_goes_to_predefined_position() {
         check_token(
             predefined_position(Cbs(b"G28")),
-            Token::GoToPredefinedPosition(PredefinedPosition::G28),
+            GCode::GoToPredefinedPosition(PredefinedPosition::G28),
         );
         check_token(
             predefined_position(Cbs(b"G30")),
-            Token::GoToPredefinedPosition(PredefinedPosition::G30),
+            GCode::GoToPredefinedPosition(PredefinedPosition::G30),
         );
     }
 
@@ -51,11 +51,11 @@ mod tests {
     fn it_stores_predefined_position() {
         check_token(
             predefined_position(Cbs(b"G28.1")),
-            Token::StorePredefinedPosition(PredefinedPosition::G28),
+            GCode::StorePredefinedPosition(PredefinedPosition::G28),
         );
         check_token(
             predefined_position(Cbs(b"G30.1")),
-            Token::StorePredefinedPosition(PredefinedPosition::G30),
+            GCode::StorePredefinedPosition(PredefinedPosition::G30),
         );
     }
 }

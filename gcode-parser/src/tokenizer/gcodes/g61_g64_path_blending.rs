@@ -2,7 +2,7 @@ use nom::types::CompleteByteSlice;
 
 use super::super::helpers::*;
 use super::super::value::{preceded_float_value, Value};
-use super::super::Token;
+use super::GCode;
 
 #[derive(Debug, PartialEq)]
 pub enum PathBlendingMode {
@@ -12,7 +12,7 @@ pub enum PathBlendingMode {
     // ExactStop,
 }
 
-named!(pub path_blending<CompleteByteSlice, Token>, map!(
+named!(pub path_blending<CompleteByteSlice, GCode>, map!(
     alt!(
         ws!(do_parse!(
             call!(g, 64.0) >>
@@ -23,7 +23,7 @@ named!(pub path_blending<CompleteByteSlice, Token>, map!(
         )) |
         g_int!(61, PathBlendingMode::ExactPath)
     ),
-    |res| Token::PathBlendingMode(res)
+    |res| GCode::PathBlendingMode(res)
 ));
 
 #[cfg(test)]
@@ -36,8 +36,8 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
+        against: GCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
@@ -46,12 +46,12 @@ mod tests {
     fn it_parses_blending_mode() {
         check_token(
             path_blending(Cbs(b"G64")),
-            Token::PathBlendingMode(PathBlendingMode::Blended((None, None))),
+            GCode::PathBlendingMode(PathBlendingMode::Blended((None, None))),
         );
 
         check_token(
             path_blending(Cbs(b"G64 P0.01")),
-            Token::PathBlendingMode(PathBlendingMode::Blended((
+            GCode::PathBlendingMode(PathBlendingMode::Blended((
                 Some(Value::Float(0.01f32)),
                 None,
             ))),
@@ -59,7 +59,7 @@ mod tests {
 
         check_token(
             path_blending(Cbs(b"G64 P0.01 Q0.02")),
-            Token::PathBlendingMode(PathBlendingMode::Blended((
+            GCode::PathBlendingMode(PathBlendingMode::Blended((
                 Some(Value::Float(0.01f32)),
                 Some(Value::Float(0.02f32)),
             ))),
@@ -68,7 +68,7 @@ mod tests {
         // TODO
         // check_token(
         //     path_blending(Cbs(b"G64 Q0.02")),
-        //     Token::PathBlendingMode(PathBlendingMode { p: None, q: None })
+        //     GCode::PathBlendingMode(PathBlendingMode { p: None, q: None })
         // );
     }
 }

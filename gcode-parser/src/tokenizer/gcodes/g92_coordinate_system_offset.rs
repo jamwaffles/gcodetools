@@ -1,11 +1,11 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::GCode;
 
-named!(pub coordinate_system_offset<CompleteByteSlice, Token>, alt!(
-    g_float!(92.0, Token::CoordinateSystemOffset) |
-    g_float!(92.1, Token::CoordinateSystemOffsetHardReset) |
-    g_float!(92.2, Token::CoordinateSystemOffsetSoftReset)
+named!(pub coordinate_system_offset<CompleteByteSlice, GCode>, alt!(
+    g_float!(92.0, GCode::CoordinateSystemOffset) |
+    g_float!(92.1, GCode::CoordinateSystemOffsetHardReset) |
+    g_float!(92.2, GCode::CoordinateSystemOffsetSoftReset)
 ));
 
 #[cfg(test)]
@@ -17,8 +17,8 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
+        against: GCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
@@ -27,7 +27,7 @@ mod tests {
     fn it_parses_coord_system_hard_resets() {
         check_token(
             coordinate_system_offset(Cbs(b"G92.1")),
-            Token::CoordinateSystemOffsetHardReset,
+            GCode::CoordinateSystemOffsetHardReset,
         );
     }
 
@@ -35,7 +35,7 @@ mod tests {
     fn it_parses_coord_system_soft_resets() {
         check_token(
             coordinate_system_offset(Cbs(b"G92.2")),
-            Token::CoordinateSystemOffsetSoftReset,
+            GCode::CoordinateSystemOffsetSoftReset,
         );
     }
 }

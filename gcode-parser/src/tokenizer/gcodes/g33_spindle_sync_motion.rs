@@ -2,7 +2,7 @@ use nom::types::CompleteByteSlice;
 
 use super::super::helpers::*;
 use super::super::value::{float_value, Value};
-use super::super::Token;
+use super::GCode;
 
 #[derive(Debug, PartialEq)]
 pub struct SpindleSyncMotion {
@@ -14,7 +14,7 @@ pub struct SpindleSyncMotion {
 
 type SyncMotionReturn = (Option<Value>, Option<Value>, Option<Value>, Value);
 
-named!(pub spindle_sync_motion<CompleteByteSlice, Token>, map_res!(
+named!(pub spindle_sync_motion<CompleteByteSlice, GCode>, map_res!(
     ws!(preceded!(
         call!(g, 33.0),
         permutation!(
@@ -28,7 +28,7 @@ named!(pub spindle_sync_motion<CompleteByteSlice, Token>, map_res!(
         if x.is_none() && y.is_none() && z.is_none() {
             Err(())
         } else {
-            Ok(Token::SpindleSyncMotion(SpindleSyncMotion {
+            Ok(GCode::SpindleSyncMotion(SpindleSyncMotion {
                 x, y, z, k
             }))
         }
@@ -44,8 +44,8 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
+        against: GCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
@@ -54,7 +54,7 @@ mod tests {
     fn it_parses_spindle_sync_motion() {
         check_token(
             spindle_sync_motion(Cbs(b"G33 Z-1 K.0625")),
-            Token::SpindleSyncMotion(SpindleSyncMotion {
+            GCode::SpindleSyncMotion(SpindleSyncMotion {
                 x: None,
                 y: None,
                 z: Some(Value::Float(-1.0)),
@@ -63,7 +63,7 @@ mod tests {
         );
         check_token(
             spindle_sync_motion(Cbs(b"G33 Z-15 K1.5")),
-            Token::SpindleSyncMotion(SpindleSyncMotion {
+            GCode::SpindleSyncMotion(SpindleSyncMotion {
                 x: None,
                 y: None,
                 z: Some(Value::Float(-15.0)),
@@ -72,7 +72,7 @@ mod tests {
         );
         check_token(
             spindle_sync_motion(Cbs(b"G33 Z-2 K0.125")),
-            Token::SpindleSyncMotion(SpindleSyncMotion {
+            GCode::SpindleSyncMotion(SpindleSyncMotion {
                 x: None,
                 y: None,
                 z: Some(Value::Float(-2.0)),
@@ -81,7 +81,7 @@ mod tests {
         );
         check_token(
             spindle_sync_motion(Cbs(b"G33 X10 Z-2 K0.125")),
-            Token::SpindleSyncMotion(SpindleSyncMotion {
+            GCode::SpindleSyncMotion(SpindleSyncMotion {
                 x: Some(Value::Float(10.0)),
                 y: None,
                 z: Some(Value::Float(-2.0)),

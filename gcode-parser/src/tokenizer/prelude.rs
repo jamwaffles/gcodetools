@@ -1,6 +1,6 @@
 pub use super::arc::CenterArc;
 pub use super::gcodes::{
-    CutterCompensation, DistanceMode, FeedrateMode, PathBlendingMode, Plane,
+    CutterCompensation, DistanceMode, FeedrateMode, GCode, PathBlendingMode, Plane,
     ToolLengthCompensation, Units, WorkOffset,
 };
 pub use super::mcodes::{Coolant, MCode, SpindleRotation};
