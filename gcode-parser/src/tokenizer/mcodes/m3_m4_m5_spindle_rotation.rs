@@ -1,6 +1,6 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::MCode;
 
 /// Spindle rotation
 #[derive(Debug, PartialEq)]
@@ -13,13 +13,13 @@ pub enum SpindleRotation {
     Stop,
 }
 
-named!(pub spindle_rotation<CompleteByteSlice, Token>, map!(
+named!(pub spindle_rotation<CompleteByteSlice, MCode>, map!(
     alt!(
         m_int!(3, SpindleRotation::Cw) |
         m_int!(4, SpindleRotation::Ccw) |
         m_int!(5, SpindleRotation::Stop)
     ),
-    |res| Token::SpindleRotation(res)
+    |res| MCode::SpindleRotation(res)
 ));
 
 #[cfg(test)]
@@ -31,8 +31,8 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, MCode), nom::Err<CompleteByteSlice>>,
+        against: MCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
@@ -41,15 +41,15 @@ mod tests {
     fn it_parses_spindle_rotation() {
         check_token(
             spindle_rotation(Cbs(b"M3")),
-            Token::SpindleRotation(SpindleRotation::Cw),
+            MCode::SpindleRotation(SpindleRotation::Cw),
         );
         check_token(
             spindle_rotation(Cbs(b"M4")),
-            Token::SpindleRotation(SpindleRotation::Ccw),
+            MCode::SpindleRotation(SpindleRotation::Ccw),
         );
         check_token(
             spindle_rotation(Cbs(b"M5")),
-            Token::SpindleRotation(SpindleRotation::Stop),
+            MCode::SpindleRotation(SpindleRotation::Stop),
         );
 
         // It gets confused with M30

@@ -305,7 +305,7 @@ mod tests {
                     ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
                     ExpressionToken::Literal(180.0),
                 ],
-                if_tokens: vec![Token::EndProgram],
+                if_tokens: vec![Token::MCode(MCode::EndProgram)],
                 else_tokens: None,
             })
         );

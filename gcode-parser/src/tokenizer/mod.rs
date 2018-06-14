@@ -28,12 +28,9 @@ use self::othercodes::*;
 use self::parameter::*;
 use self::value::*;
 use self::vec9::*;
-use super::subroutine::{parser::{control_flow, subroutine},
-                        If,
-                        Repeat,
-                        Subroutine,
-                        SubroutineCall,
-                        While};
+use super::subroutine::{
+    parser::{control_flow, subroutine}, If, Repeat, Subroutine, SubroutineCall, While,
+};
 
 pub mod test_prelude;
 
@@ -64,7 +61,6 @@ pub enum Token {
     CenterArc(CenterArc),
     ClockwiseArc,
     Comment(String),
-    Coolant(Coolant),
     Coord(Vec9),
     CoordinateSystemOffset,
     CoordinateSystemOffsetHardReset,
@@ -73,7 +69,6 @@ pub enum Token {
     CutterCompensation(CutterCompensation),
     DistanceMode(DistanceMode),
     Dwell(Value),
-    EndProgram,
     FeedRate(Value),
     FeedrateMode(FeedrateMode),
     GlobalMove,
@@ -82,34 +77,26 @@ pub enum Token {
     LatheMeasurementMode(LatheMeasurementMode),
     LinearMove,
     LineNumber(u32),
-    ModalStateAutoRestore,
-    ModalStateInvalidate,
-    ModalStateRestore,
-    ModalStateSave,
-    OptionalPause,
     Parameter(Parameter),
     ParameterAssignment((Parameter, Value)),
     PathBlendingMode(PathBlendingMode),
-    Pause,
     PlaneSelect(Plane),
     RadiusArc(RadiusArc),
     RapidMove,
     Repeat(Repeat),
-    SpindleRotation(SpindleRotation),
     SpindleSpeed(Value),
     SpindleSyncMotion(SpindleSyncMotion),
     StorePredefinedPosition(PredefinedPosition),
     StraightProbe(StraightProbe),
     SubroutineCall(SubroutineCall),
     SubroutineDefinition(Subroutine),
-    ToolChange,
     ToolLengthCompensation(ToolLengthCompensation),
     ToolLengthCompensationToolNumber(Value),
     ToolSelect(Value),
     Units(Units),
-    UserCommand(u32),
     While(While),
     WorkOffset(WorkOffset),
+    MCode(MCode),
 }
 
 /// List of parsed GCode tokens
@@ -131,7 +118,7 @@ named!(pub token_not_subroutine<CompleteByteSlice, Token>,
     alt_complete!(
         block_delete |
         gcode |
-        mcode |
+        map!(mcode, |m| Token::MCode(m)) |
         othercode |
         arc |
         coord |

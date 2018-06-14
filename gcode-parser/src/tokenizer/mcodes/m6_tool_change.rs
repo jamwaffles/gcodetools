@@ -1,9 +1,9 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::MCode;
 
-named!(pub tool_change<CompleteByteSlice, Token>,
-    m_int!(6, Token::ToolChange)
+named!(pub tool_change<CompleteByteSlice, MCode>,
+    m_int!(6, MCode::ToolChange)
 );
 
 #[cfg(test)]
@@ -15,14 +15,14 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, MCode), nom::Err<CompleteByteSlice>>,
+        against: MCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
 
     #[test]
     fn it_parses_tool_changes() {
-        check_token(tool_change(Cbs(b"M6")), Token::ToolChange);
+        check_token(tool_change(Cbs(b"M6")), MCode::ToolChange);
     }
 }

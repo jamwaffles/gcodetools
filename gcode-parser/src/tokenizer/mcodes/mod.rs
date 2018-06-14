@@ -6,7 +6,6 @@ mod m6_tool_change;
 mod m70_m71_m72_m73_modal_state;
 mod m7_m8_m9_coolant;
 
-use super::Token;
 use nom::types::CompleteByteSlice;
 
 use self::m0_m1_pause::pause;
@@ -20,7 +19,7 @@ use self::m7_m8_m9_coolant::coolant;
 pub use self::m3_m4_m5_spindle_rotation::SpindleRotation;
 pub use self::m7_m8_m9_coolant::Coolant;
 
-named!(pub mcode<CompleteByteSlice, Token>, alt!(
+named!(pub mcode<CompleteByteSlice, MCode>, alt!(
     pause |
     user_command |
     end_program |
@@ -29,3 +28,19 @@ named!(pub mcode<CompleteByteSlice, Token>, alt!(
     modal_state |
     coolant
 ));
+
+/// Enum describing all supported M-codes
+#[derive(Debug, PartialEq)]
+pub enum MCode {
+    Coolant(Coolant),
+    EndProgram,
+    Pause,
+    OptionalPause,
+    SpindleRotation(SpindleRotation),
+    ToolChange,
+    UserCommand(u32),
+    ModalStateSave,
+    ModalStateInvalidate,
+    ModalStateRestore,
+    ModalStateAutoRestore,
+}

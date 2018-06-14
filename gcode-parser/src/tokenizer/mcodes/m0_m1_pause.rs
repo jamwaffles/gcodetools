@@ -1,10 +1,10 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::MCode;
 
-named!(pub pause<CompleteByteSlice, Token>, alt!(
-    m_int!(0, Token::Pause) |
-    m_int!(1, Token::OptionalPause)
+named!(pub pause<CompleteByteSlice, MCode>, alt!(
+    m_int!(0, MCode::Pause) |
+    m_int!(1, MCode::OptionalPause)
 ));
 
 #[cfg(test)]
@@ -16,18 +16,18 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, MCode), nom::Err<CompleteByteSlice>>,
+        against: MCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
 
     #[test]
     fn it_parses_pauses() {
-        check_token(pause(Cbs(b"M0")), Token::Pause);
-        check_token(pause(Cbs(b"M00")), Token::Pause);
+        check_token(pause(Cbs(b"M0")), MCode::Pause);
+        check_token(pause(Cbs(b"M00")), MCode::Pause);
 
-        check_token(pause(Cbs(b"M1")), Token::OptionalPause);
-        check_token(pause(Cbs(b"M01")), Token::OptionalPause);
+        check_token(pause(Cbs(b"M1")), MCode::OptionalPause);
+        check_token(pause(Cbs(b"M01")), MCode::OptionalPause);
     }
 }

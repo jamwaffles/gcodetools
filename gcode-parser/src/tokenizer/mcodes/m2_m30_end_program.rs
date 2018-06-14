@@ -1,10 +1,10 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::MCode;
 
-named!(pub end_program<CompleteByteSlice, Token>, alt!(
-    m_int!(30, Token::EndProgram) |
-    m_int!(2, Token::EndProgram)
+named!(pub end_program<CompleteByteSlice, MCode>, alt!(
+    m_int!(30, MCode::EndProgram) |
+    m_int!(2, MCode::EndProgram)
 ));
 
 #[cfg(test)]
@@ -16,15 +16,15 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, MCode), nom::Err<CompleteByteSlice>>,
+        against: MCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
 
     #[test]
     fn it_parses_end_program() {
-        check_token(end_program(Cbs(b"M2")), Token::EndProgram);
-        check_token(end_program(Cbs(b"M30")), Token::EndProgram);
+        check_token(end_program(Cbs(b"M2")), MCode::EndProgram);
+        check_token(end_program(Cbs(b"M30")), MCode::EndProgram);
     }
 }

@@ -1,6 +1,6 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::Token;
+use super::MCode;
 
 /// Coolant
 #[derive(Debug, PartialEq)]
@@ -13,10 +13,10 @@ pub enum Coolant {
     Off,
 }
 
-named!(pub coolant<CompleteByteSlice, Token>, alt!(
-    m_int!(7, Token::Coolant(Coolant::Mist)) |
-    m_int!(8, Token::Coolant(Coolant::Flood)) |
-    m_int!(9, Token::Coolant(Coolant::Off))
+named!(pub coolant<CompleteByteSlice, MCode>, alt!(
+    m_int!(7, MCode::Coolant(Coolant::Mist)) |
+    m_int!(8, MCode::Coolant(Coolant::Flood)) |
+    m_int!(9, MCode::Coolant(Coolant::Off))
 ));
 
 #[cfg(test)]
@@ -28,16 +28,16 @@ mod tests {
     const EMPTY: Cbs = Cbs(b"");
 
     fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
+        to_check: Result<(CompleteByteSlice, MCode), nom::Err<CompleteByteSlice>>,
+        against: MCode,
     ) {
         assert_eq!(to_check, Ok((EMPTY, against)))
     }
 
     #[test]
     fn it_parses_coolant() {
-        check_token(coolant(Cbs(b"M7")), Token::Coolant(Coolant::Mist));
-        check_token(coolant(Cbs(b"M8")), Token::Coolant(Coolant::Flood));
-        check_token(coolant(Cbs(b"M9")), Token::Coolant(Coolant::Off));
+        check_token(coolant(Cbs(b"M7")), MCode::Coolant(Coolant::Mist));
+        check_token(coolant(Cbs(b"M8")), MCode::Coolant(Coolant::Flood));
+        check_token(coolant(Cbs(b"M9")), MCode::Coolant(Coolant::Off));
     }
 }

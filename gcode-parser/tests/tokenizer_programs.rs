@@ -88,7 +88,7 @@ N50"#;
                     ..Default::default()
                 }),
                 Token::LineNumber(40),
-                Token::EndProgram,
+                Token::MCode(MCode::EndProgram),
                 Token::LineNumber(50),
             ]
         ))
@@ -122,7 +122,7 @@ M2
                     z: Some(Value::Float(10.0)),
                     ..Default::default()
                 }),
-                Token::EndProgram,
+                Token::MCode(MCode::EndProgram),
             ]
         ))
     );
@@ -154,7 +154,7 @@ M30
                     z: Some(Value::Float(10.0)),
                     ..Default::default()
                 }),
-                Token::EndProgram,
+                Token::MCode(MCode::EndProgram),
             ]
         ))
     );
@@ -232,7 +232,7 @@ M2"#;
                     z: Some(Value::Float(20.0)),
                     ..Default::default()
                 }),
-                Token::EndProgram,
+                Token::MCode(MCode::EndProgram),
             ]
         ))
     );
@@ -258,7 +258,7 @@ M2"#;
                     j: Some(Value::Float(0.3028)),
                     ..Default::default()
                 }),
-                Token::EndProgram,
+                Token::MCode(MCode::EndProgram),
             ]
         ))
     );
