@@ -1,9 +1,8 @@
-#[macro_export]
-macro_rules! g_int(
-    ($i:expr, $num:expr, $mapto:expr) => ({
+macro_rules! map_result(
+    ($func:expr, $i:expr, $num:expr, $mapto:expr) => ({
         use nom::*;
 
-        match preceded_u32($i, "G") {
+        match $func {
             Ok((remaining, num)) => if num == $num {
                 Ok((remaining, $mapto))
             } else {
@@ -11,21 +10,23 @@ macro_rules! g_int(
             },
             Err(args) => Err(args)
         }
+    })
+);
+
+#[macro_export]
+macro_rules! g_int(
+    ($i:expr, $num:expr, $mapto:expr) => ({
+        use $crate::tokenizer::helpers::preceded_u32;
+
+        map_result!(preceded_u32($i, "G"), $i, $num, $mapto)
     });
 );
 
 #[macro_export]
 macro_rules! g_float(
     ($i:expr, $num:expr, $mapto:expr) => ({
-        use nom::*;
+        use $crate::tokenizer::helpers::preceded_f32;
 
-        match preceded_f32($i, "G") {
-            Ok((remaining, num)) => if num == $num {
-                Ok((remaining, $mapto))
-            } else {
-                Err(Err::Error(Context::Code($i, ErrorKind::Digit::<u32>)))
-            },
-            Err(args) => Err(args)
-        }
+        map_result!(preceded_f32($i, "G"), $i, $num, $mapto)
     });
 );

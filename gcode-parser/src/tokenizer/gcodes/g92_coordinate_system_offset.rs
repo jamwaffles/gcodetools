@@ -1,6 +1,5 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::helpers::*;
 use super::super::Token;
 
 named!(pub coordinate_system_offset<CompleteByteSlice, Token>, alt!(
