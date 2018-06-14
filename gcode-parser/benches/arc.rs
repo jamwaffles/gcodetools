@@ -4,14 +4,14 @@ extern crate gcode_parser;
 extern crate nom;
 
 use criterion::Criterion;
-use gcode_parser::tokenizer::test_prelude::*;
+use gcode_parser::program;
 use nom::types::CompleteByteSlice as Cbs;
 use std::time::Duration;
 
 fn bench_center_arc(c: &mut Criterion) {
     c.bench_function("Center format arc", |b| {
         b.iter(|| {
-            center_arc(Cbs(b"X5.0417 Y1.9427Z2.123 I-0.3979 J0.3028 P99")).unwrap();
+            program(Cbs(b"X5.0417 Y1.9427Z2.123 I-0.3979 J0.3028 P99")).unwrap();
         })
     });
 }
@@ -19,7 +19,7 @@ fn bench_center_arc(c: &mut Criterion) {
 fn bench_radius_arc(c: &mut Criterion) {
     c.bench_function("Radius format arc", |b| {
         b.iter(|| {
-            radius_arc(Cbs(b"r1.997999 x1.613302 y-1.178668 z15.0000 P99")).unwrap();
+            program(Cbs(b"r1.997999 x1.613302 y-1.178668 z15.0000 P99")).unwrap();
         })
     });
 }
@@ -29,7 +29,7 @@ fn bench_arc_parse(c: &mut Criterion) {
         "Parse multiple arc samples",
         |b, input| {
             b.iter(|| {
-                parse_arc(Cbs(input.as_bytes())).unwrap();
+                program(Cbs(input.as_bytes())).unwrap();
             })
         },
         vec![

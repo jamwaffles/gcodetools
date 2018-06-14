@@ -1,6 +1,5 @@
 use nom::types::CompleteByteSlice;
 use nom::*;
-use nom::{need_more, Err, ErrorKind, IResult, Needed};
 
 named!(pub take_until_line_ending<CompleteByteSlice, CompleteByteSlice>, alt_complete!(take_until!("\r\n") | take_until!("\n")));
 
@@ -35,31 +34,6 @@ named_args!(
     pub preceded_u32<'a>(preceding: &str)<CompleteByteSlice<'a>, u32>,
     flat_map!(preceded!(tag_no_case!(preceding), terminated!(digit, not!(char!('.')))), parse_to!(u32))
 );
-
-named!(
-    pub parse_to_u32<CompleteByteSlice, u32>,
-    flat_map!(digit, parse_to!(u32))
-);
-
-pub fn one_of_no_case<'a>(
-    i: CompleteByteSlice<'a>,
-    inp: &str,
-) -> IResult<CompleteByteSlice<'a>, char> {
-    let inp_lower = inp.to_ascii_lowercase();
-
-    match i.iter_elements()
-        .next()
-        .map(|c| (c, inp_lower.as_str().find_token(c.to_ascii_lowercase())))
-    {
-        None => need_more(i, Needed::Size(1)),
-        Some((_, false)) => Err(Err::Error(error_position!(i, ErrorKind::OneOf::<u32>))),
-        //the unwrap should be safe here
-        Some((c, true)) => Ok((
-            i.slice(c.len()..),
-            i.iter_elements().next().unwrap().as_char(),
-        )),
-    }
-}
 
 named_args!(char_no_case(search: char)<CompleteByteSlice, char>,
     alt!(char!(search.to_ascii_lowercase()) | char!(search.to_ascii_uppercase()))

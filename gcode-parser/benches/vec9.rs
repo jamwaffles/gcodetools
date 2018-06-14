@@ -4,7 +4,7 @@ extern crate gcode_parser;
 extern crate nom;
 
 use criterion::Criterion;
-use gcode_parser::tokenizer::test_prelude::*;
+use gcode_parser::program;
 use nom::types::CompleteByteSlice as Cbs;
 use std::time::Duration;
 
@@ -13,7 +13,7 @@ fn bench_vec9(c: &mut Criterion) {
         "Parse multiple coordinate samples",
         |b, input| {
             b.iter(|| {
-                coord(Cbs(input.as_bytes())).unwrap();
+                program(Cbs(input.as_bytes())).unwrap();
             })
         },
         vec!["X10 Y20 X30", "X0Y1Z2", "X-0.5 Y-2 Z100", "Z1"],

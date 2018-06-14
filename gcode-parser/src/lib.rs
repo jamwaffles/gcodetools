@@ -19,14 +19,12 @@ mod macros;
 
 mod arc;
 mod comment;
+mod expression;
 mod gcodes;
-// FIXME: Should not be pub
-pub mod helpers;
+mod helpers;
 mod mcodes;
 mod othercodes;
-// FIXME: Should not be pub
-mod expression;
-pub mod parameter;
+mod parameter;
 pub mod prelude;
 mod subroutine;
 mod value;
@@ -47,8 +45,6 @@ use self::subroutine::{
 };
 use self::value::*;
 use self::vec9::*;
-
-pub mod test_prelude;
 
 /// Main interface to the parser
 #[derive(Debug)]

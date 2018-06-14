@@ -5,7 +5,7 @@ pub use super::gcodes::{
     ToolLengthCompensation, Units, WorkOffset,
 };
 pub use super::mcodes::{Coolant, MCode, SpindleRotation};
-pub use super::parameter::{Parameter, ParameterValue};
+pub use super::parameter::Parameter;
 pub use super::subroutine::{Subroutine, SubroutineCall, SubroutineName};
 pub use super::value::Value;
 pub use super::vec9::Vec9;

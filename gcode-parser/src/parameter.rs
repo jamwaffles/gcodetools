@@ -11,8 +11,6 @@ pub enum Parameter {
     Global(String),
 }
 
-pub type ParameterValue = f32;
-
 named!(numbered_parameter<CompleteByteSlice, Parameter>, map!(
     flat_map!(preceded!(char!('#'), digit), parse_to!(u32)),
     |res| Parameter::Numbered(res)

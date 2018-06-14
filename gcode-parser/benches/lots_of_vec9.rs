@@ -4,7 +4,7 @@ extern crate gcode_parser;
 extern crate nom;
 
 use criterion::Criterion;
-use gcode_parser::tokenizer::Tokenizer;
+use gcode_parser::Tokenizer;
 use std::time::Duration;
 
 // Attempt to represent a real-world case with a file containing mostly move tokens with some G0/

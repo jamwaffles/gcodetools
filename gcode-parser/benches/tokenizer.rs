@@ -6,8 +6,7 @@ extern crate nom;
 use nom::types::CompleteByteSlice as Cbs;
 
 use criterion::Criterion;
-use gcode_parser::tokenizer::Tokenizer;
-use gcode_parser::tokenizer::test_prelude::*;
+use gcode_parser::{program, Tokenizer};
 
 /// Benchmark parsing a contrived, but real-world-ish example
 fn parse_linear_program(c: &mut Criterion) {
@@ -45,10 +44,10 @@ fn parse_linear_program(c: &mut Criterion) {
 fn parse_vec9(c: &mut Criterion) {
     c.bench_function("Parse 9-dimension vectors", |b| {
         // An example coord written by a drunk programmer to test all code paths
-        let program = b"X0.1 y1.0z3.5 A 4 B5 c6 u7 V 8 W9";
+        let input = b"X0.1 y1.0z3.5 A 4 B5 c6 u7 V 8 W9";
 
         b.iter(|| {
-            vec9(Cbs(program)).unwrap();
+            program(Cbs(input)).unwrap();
         })
     });
 }
@@ -56,14 +55,14 @@ fn parse_vec9(c: &mut Criterion) {
 /// Parse a center format arc
 fn parse_expression(c: &mut Criterion) {
     c.bench_function("Parse expressions", |b| {
-        let program = r#"#<var> = 100.0
+        let input = r#"#<var> = 100.0
         G0 X[#<var> * 2] Y[#<var> + 3] Z[SIN[#<var>]]
         G1 X[#<var> * 1.1] X[#<var> + 2.2] X[#<var> / 3.3]
         M30
         "#;
 
         b.iter(|| {
-            let tokenizer = Tokenizer::new_from_str(&program);
+            let tokenizer = Tokenizer::new_from_str(&input);
 
             tokenizer.tokenize().unwrap();
         })

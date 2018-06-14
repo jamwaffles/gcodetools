@@ -2,7 +2,7 @@ extern crate gcode_parser;
 extern crate nom;
 
 use gcode_parser::prelude::*;
-use gcode_parser::*;
+use gcode_parser::program;
 use nom::types::CompleteByteSlice as Cbs;
 
 const EMPTY: Cbs = Cbs(b"");
