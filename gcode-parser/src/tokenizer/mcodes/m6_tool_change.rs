@@ -1,10 +1,9 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::helpers::*;
 use super::super::Token;
 
 named!(pub tool_change<CompleteByteSlice, Token>,
-    map!(call!(m, 6.0), |_| Token::ToolChange)
+    m_int!(6, Token::ToolChange)
 );
 
 #[cfg(test)]

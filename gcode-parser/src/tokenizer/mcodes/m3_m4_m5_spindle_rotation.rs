@@ -1,6 +1,5 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::helpers::*;
 use super::super::Token;
 
 /// Spindle rotation
@@ -16,9 +15,9 @@ pub enum SpindleRotation {
 
 named!(pub spindle_rotation<CompleteByteSlice, Token>, map!(
     alt!(
-        map!(call!(m, 3.0), |_| SpindleRotation::Cw) |
-        map!(call!(m, 4.0), |_| SpindleRotation::Ccw) |
-        map!(call!(m, 5.0), |_| SpindleRotation::Stop)
+        m_int!(3, SpindleRotation::Cw) |
+        m_int!(4, SpindleRotation::Ccw) |
+        m_int!(5, SpindleRotation::Stop)
     ),
     |res| Token::SpindleRotation(res)
 ));

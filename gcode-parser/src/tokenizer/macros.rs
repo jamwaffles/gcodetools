@@ -30,3 +30,21 @@ macro_rules! g_float(
         map_result!(preceded_f32($i, "G"), $i, $num, $mapto)
     });
 );
+
+#[macro_export]
+macro_rules! m_int(
+    ($i:expr, $num:expr, $mapto:expr) => ({
+        use $crate::tokenizer::helpers::preceded_u32;
+
+        map_result!(preceded_u32($i, "M"), $i, $num, $mapto)
+    });
+);
+
+#[macro_export]
+macro_rules! m_float(
+    ($i:expr, $num:expr, $mapto:expr) => ({
+        use $crate::tokenizer::helpers::preceded_f32;
+
+        map_result!(preceded_f32($i, "M"), $i, $num, $mapto)
+    });
+);

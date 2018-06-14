@@ -1,6 +1,5 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::helpers::*;
 use super::super::Token;
 
 /// Coolant
@@ -15,9 +14,9 @@ pub enum Coolant {
 }
 
 named!(pub coolant<CompleteByteSlice, Token>, alt!(
-    map!(call!(m, 7.0), |_| Token::Coolant(Coolant::Mist)) |
-    map!(call!(m, 8.0), |_| Token::Coolant(Coolant::Flood)) |
-    map!(call!(m, 9.0), |_| Token::Coolant(Coolant::Off))
+    m_int!(7, Token::Coolant(Coolant::Mist)) |
+    m_int!(8, Token::Coolant(Coolant::Flood)) |
+    m_int!(9, Token::Coolant(Coolant::Off))
 ));
 
 #[cfg(test)]

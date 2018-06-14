@@ -1,11 +1,10 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::helpers::*;
 use super::super::Token;
 
 named!(pub pause<CompleteByteSlice, Token>, alt!(
-    map!(call!(m, 0.0), |_| Token::Pause) |
-    map!(call!(m, 1.0), |_| Token::OptionalPause)
+    m_int!(0, Token::Pause) |
+    m_int!(1, Token::OptionalPause)
 ));
 
 #[cfg(test)]

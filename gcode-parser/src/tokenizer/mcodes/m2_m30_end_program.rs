@@ -1,14 +1,10 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::helpers::*;
 use super::super::Token;
 
-named!(pub end_program<CompleteByteSlice, Token>, map!(
-    alt!(
-        recognize!(call!(m, 30.0)) |
-        recognize!(call!(m, 2.0))
-    ),
-    |_| Token::EndProgram
+named!(pub end_program<CompleteByteSlice, Token>, alt!(
+    m_int!(30, Token::EndProgram) |
+    m_int!(2, Token::EndProgram)
 ));
 
 #[cfg(test)]
