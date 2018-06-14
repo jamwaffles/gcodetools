@@ -1,5 +1,8 @@
 //! Gcode parser
 
+#[macro_use]
+mod macros;
+
 mod arc;
 mod comment;
 mod gcodes;
@@ -25,9 +28,12 @@ use self::othercodes::*;
 use self::parameter::*;
 use self::value::*;
 use self::vec9::*;
-use super::subroutine::{
-    parser::{control_flow, subroutine}, If, Repeat, Subroutine, SubroutineCall, While,
-};
+use super::subroutine::{parser::{control_flow, subroutine},
+                        If,
+                        Repeat,
+                        Subroutine,
+                        SubroutineCall,
+                        While};
 
 pub mod test_prelude;
 
