@@ -4,12 +4,19 @@ use nom::{need_more, Err, ErrorKind, IResult, Needed};
 
 named!(pub take_until_line_ending<CompleteByteSlice, CompleteByteSlice>, alt_complete!(take_until!("\r\n") | take_until!("\n")));
 
-// Parse a GCode-style float, i.e. does not support "e" notation
+// Parse a GCode-style float, i.e. does not support scientific notation
 named!(recognize_float_no_exponent<CompleteByteSlice, CompleteByteSlice>, recognize!(
     tuple!(
-        opt!(alt!(char!('+') | char!('-'))),
+        opt!(one_of!("+-")),
         alt!(
-            value!((), tuple!(digit, opt!(pair!(char!('.'), opt!(digit))))) | value!((), tuple!(char!('.'), digit))
+            value!((), tuple!(
+                digit,
+                opt!(terminated!(char!('.'), opt!(digit)))
+            )) |
+            value!((), tuple!(
+                opt!(terminated!(opt!(digit), char!('.'))),
+                digit
+            ))
         )
     )
 ));
@@ -26,12 +33,12 @@ named_args!(
 
 named_args!(
     pub preceded_u32<'a>(preceding: &str)<CompleteByteSlice<'a>, u32>,
-    flat_map!(preceded!(tag_no_case!(preceding), terminated!(recognize!(digit), not!(char!('.')))), parse_to!(u32))
+    flat_map!(preceded!(tag_no_case!(preceding), terminated!(digit, not!(char!('.')))), parse_to!(u32))
 );
 
 named!(
     pub parse_to_u32<CompleteByteSlice, u32>,
-    flat_map!(recognize!(digit), parse_to!(u32))
+    flat_map!(digit, parse_to!(u32))
 );
 
 pub fn one_of_no_case<'a>(
@@ -40,8 +47,7 @@ pub fn one_of_no_case<'a>(
 ) -> IResult<CompleteByteSlice<'a>, char> {
     let inp_lower = inp.to_ascii_lowercase();
 
-    match i
-        .iter_elements()
+    match i.iter_elements()
         .next()
         .map(|c| (c, inp_lower.as_str().find_token(c.to_ascii_lowercase())))
     {
