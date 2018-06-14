@@ -45,9 +45,7 @@ named_args!(
     map_res!(
         call!(preceded_u32, preceding),
         |res| {
-            if code_low == code_high && res == code_low {
-                Ok(res)
-            } else if res >= code_low && res <= code_high {
+            if res >= code_low && res <= code_high {
                 Ok(res)
             } else {
                 Err(())
