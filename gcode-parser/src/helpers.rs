@@ -31,42 +31,29 @@ named_args!(
 );
 
 named_args!(
-    pub preceded_u32<'a>(preceding: &str)<CompleteByteSlice<'a>, u32>,
-    flat_map!(preceded!(tag_no_case!(preceding), terminated!(digit, not!(char!('.')))), parse_to!(u32))
-);
-
-named_args!(char_no_case(search: char)<CompleteByteSlice, char>,
-    alt!(char!(search.to_ascii_lowercase()) | char!(search.to_ascii_uppercase()))
+    pub recognize_preceded_u32<'a>(preceding: &str)<CompleteByteSlice<'a>, CompleteByteSlice<'a>>,
+    preceded!(tag_no_case!(preceding), terminated!(digit, not!(char!('.'))))
 );
 
 named_args!(
-    pub preceded_code_range_inclusive<'a>(preceding: char, code_low: f32, code_high: f32)<CompleteByteSlice<'a>, (char, f32)>,
+    pub preceded_u32<'a>(preceding: &str)<CompleteByteSlice<'a>, u32>,
+    flat_map!(call!(recognize_preceded_u32, preceding), parse_to!(u32))
+);
+
+named_args!(
+    pub preceded_code_range_inclusive<'a>(preceding: &str, code_low: u32, code_high: u32)<CompleteByteSlice<'a>, u32>,
     map_res!(
-        preceded!(call!(char_no_case, preceding), float_no_exponent),
+        call!(preceded_u32, preceding),
         |res| {
-            if code_low == code_high {
-                if res == code_low {
-                    Ok((preceding.to_ascii_uppercase(), res))
-                } else {
-                    Err(())
-                }
+            if code_low == code_high && res == code_low {
+                Ok(res)
             } else if res >= code_low && res <= code_high {
-                Ok((preceding.to_ascii_uppercase(), res))
+                Ok(res)
             } else {
                 Err(())
             }
         }
     )
-);
-
-named_args!(
-    pub g<'a>(c: f32)<CompleteByteSlice<'a>, CompleteByteSlice<'a>>,
-    recognize!(call!(preceded_code_range_inclusive, 'G', c, c))
-);
-
-named_args!(
-    pub m<'a>(c: f32)<CompleteByteSlice<'a>, CompleteByteSlice<'a>>,
-    recognize!(call!(preceded_code_range_inclusive, 'M', c, c))
 );
 
 #[cfg(test)]
@@ -125,16 +112,6 @@ mod tests {
         assert!(preceded_u32(Cbs(b"Y1.23"), "Y").is_err());
     }
 
-    #[test]
-    fn it_parses_gcodes() {
-        assert_eq!(g(Cbs(b"G54"), 54.0), Ok((EMPTY, Cbs(b"G54"))));
-    }
-
-    #[test]
-    fn it_parses_mcodes() {
-        assert_eq!(m(Cbs(b"M30"), 30.0), Ok((EMPTY, Cbs(b"M30"))));
-    }
-
     // Ripped from Nom 4 tests, sans test numbers with exponents
     #[test]
     fn it_parses_float_no_exponents() {
@@ -162,29 +139,5 @@ mod tests {
             assert_eq!(double(larger.as_bytes()), Ok((&b";"[..], expected64)));
             assert_eq!(double_s(&larger[..]), Ok((";", expected64)));
         }
-    }
-
-    #[test]
-    fn it_parses_ranges_of_preceded_codes() {
-        assert!(preceded_code_range_inclusive(Cbs(b"M100"), 'M', 100.0, 110.0).is_ok());
-        assert!(preceded_code_range_inclusive(Cbs(b"M110"), 'M', 100.0, 110.0).is_ok());
-        assert!(preceded_code_range_inclusive(Cbs(b"M105"), 'M', 100.0, 110.0).is_ok());
-        assert!(preceded_code_range_inclusive(Cbs(b"M111"), 'M', 100.0, 110.0).is_err());
-        assert!(preceded_code_range_inclusive(Cbs(b"M99"), 'M', 100.0, 110.0).is_err());
-
-        assert_eq!(
-            preceded_code_range_inclusive(Cbs(b"G54"), 'G', 54.0, 54.0),
-            Ok((EMPTY, ('G', 54.0)))
-        );
-
-        assert_eq!(
-            preceded_code_range_inclusive(Cbs(b"G17.1"), 'G', 17.1, 17.1),
-            Ok((EMPTY, ('G', 17.1)))
-        );
-
-        assert_eq!(
-            preceded_code_range_inclusive(Cbs(b"g00"), 'g', 0.0, 0.0),
-            Ok((EMPTY, ('G', 0.0)))
-        );
     }
 }

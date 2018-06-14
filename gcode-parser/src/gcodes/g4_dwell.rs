@@ -1,12 +1,11 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::helpers::*;
 use super::super::value::preceded_float_value;
 use super::GCode;
 
 named!(pub dwell<CompleteByteSlice, GCode>, map!(
     ws!(preceded!(
-        call!(g, 4.0),
+        g_int!(4),
         call!(preceded_float_value, "P")
     )),
     |res| GCode::Dwell(res)

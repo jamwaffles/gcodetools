@@ -1,6 +1,5 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::helpers::*;
 use super::super::vec9::{vec9, Vec9};
 use super::GCode;
 
@@ -20,7 +19,7 @@ named!(pub tool_length_compensation<CompleteByteSlice, GCode>, map!(
     alt!(
         g_int!(43, ToolLengthCompensation::ToolNumberOffset) |
         map!(
-            ws!(preceded!(call!(g, 43.1), vec9)),
+            ws!(preceded!(g_float!(43.1), vec9)),
             |offset| ToolLengthCompensation::Dynamic(offset)
         ) |
         g_int!(49, ToolLengthCompensation::Disable)

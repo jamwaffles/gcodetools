@@ -1,6 +1,5 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::helpers::*;
 use super::super::value::{preceded_float_value, Value};
 use super::GCode;
 
@@ -15,7 +14,7 @@ pub enum PathBlendingMode {
 named!(pub path_blending<CompleteByteSlice, GCode>, map!(
     alt!(
         ws!(do_parse!(
-            call!(g, 64.0) >>
+            g_int!(64) >>
             p: opt!(call!(preceded_float_value, "P")) >>
             q: opt!(call!(preceded_float_value, "Q")) >> ({
                 PathBlendingMode::Blended((p, q))

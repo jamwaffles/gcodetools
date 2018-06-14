@@ -1,6 +1,5 @@
 use nom::types::CompleteByteSlice;
 
-use super::super::helpers::*;
 use super::super::value::{preceded_unsigned_value, Value};
 use super::GCode;
 
@@ -26,11 +25,11 @@ named!(pub cutter_compensation<CompleteByteSlice, GCode>,
         alt!(
             g_int!(40, CutterCompensation::Off) |
             map!(
-                ws!(preceded!(call!(g, 41.0), opt!(call!(preceded_unsigned_value, "D")))),
+                ws!(preceded!(g_int!(41), opt!(call!(preceded_unsigned_value, "D")))),
                 |tool| CutterCompensation::Left(tool)
             ) |
             map!(
-                ws!(preceded!(call!(g, 42.0), opt!(call!(preceded_unsigned_value, "D")))),
+                ws!(preceded!(g_int!(42), opt!(call!(preceded_unsigned_value, "D")))),
                 |tool| CutterCompensation::Right(tool)
             )
         ),
