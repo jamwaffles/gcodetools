@@ -5,9 +5,9 @@ extern crate encoding;
 extern crate gcode_parser;
 extern crate nom;
 
-use chardet::{detect, charset2encoding};
-use encoding::DecoderTrap;
+use chardet::{charset2encoding, detect};
 use encoding::label::encoding_from_whatwg_label;
+use encoding::DecoderTrap;
 use std::error::Error;
 use std::ffi::OsStr;
 use std::fs;
@@ -16,7 +16,7 @@ use std::io;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 
-use gcode_parser::tokenizer::Tokenizer;
+use gcode_parser::Tokenizer;
 
 pub fn collect_source_files(dir: &Path) -> io::Result<Vec<PathBuf>> {
     let mut files = Vec::new();

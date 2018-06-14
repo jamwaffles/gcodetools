@@ -1,6 +1,6 @@
 use super::super::expression::parser::expression;
-use super::super::tokenizer::helpers::*;
-use super::super::tokenizer::{token_not_subroutine, Token};
+use super::super::helpers::*;
+use super::super::{token_not_subroutine, Token};
 use super::{If, Repeat, Subroutine, SubroutineCall, SubroutineName, While};
 use nom::types::CompleteByteSlice;
 
@@ -116,7 +116,7 @@ named!(pub subroutine<CompleteByteSlice, Token>,
 #[cfg(test)]
 mod tests {
     use super::super::super::expression::{BinaryOperator, ExpressionToken};
-    use super::super::super::tokenizer::prelude::*;
+    use super::super::super::prelude::*;
     use super::*;
     use nom::types::CompleteByteSlice as Cbs;
 

@@ -54,7 +54,7 @@ named!(pub parameters<CompleteByteSlice, Token>, alt_complete!(
 
 #[cfg(test)]
 mod tests {
-    use super::super::super::expression::{ArithmeticOperator, ExpressionToken};
+    use super::super::expression::{ArithmeticOperator, ExpressionToken};
     use super::*;
     use nom::types::CompleteByteSlice as Cbs;
 

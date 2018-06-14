@@ -1,4 +1,4 @@
-use super::super::tokenizer::prelude::*;
+use super::super::prelude::*;
 use super::*;
 use std::collections::HashMap;
 

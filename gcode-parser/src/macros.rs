@@ -16,7 +16,7 @@ macro_rules! map_result(
 #[macro_export]
 macro_rules! g_int(
     ($i:expr, $num:expr, $mapto:expr) => ({
-        use $crate::tokenizer::helpers::preceded_u32;
+        use $crate::helpers::preceded_u32;
 
         map_result!(preceded_u32($i, "G"), $i, $num, $mapto)
     });
@@ -25,7 +25,7 @@ macro_rules! g_int(
 #[macro_export]
 macro_rules! g_float(
     ($i:expr, $num:expr, $mapto:expr) => ({
-        use $crate::tokenizer::helpers::preceded_f32;
+        use $crate::helpers::preceded_f32;
 
         map_result!(preceded_f32($i, "G"), $i, $num, $mapto)
     });
@@ -34,7 +34,7 @@ macro_rules! g_float(
 #[macro_export]
 macro_rules! m_int(
     ($i:expr, $num:expr, $mapto:expr) => ({
-        use $crate::tokenizer::helpers::preceded_u32;
+        use $crate::helpers::preceded_u32;
 
         map_result!(preceded_u32($i, "M"), $i, $num, $mapto)
     });
@@ -43,7 +43,7 @@ macro_rules! m_int(
 #[macro_export]
 macro_rules! m_float(
     ($i:expr, $num:expr, $mapto:expr) => ({
-        use $crate::tokenizer::helpers::preceded_f32;
+        use $crate::helpers::preceded_f32;
 
         map_result!(preceded_f32($i, "M"), $i, $num, $mapto)
     });

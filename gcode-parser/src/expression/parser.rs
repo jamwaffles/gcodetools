@@ -1,5 +1,5 @@
-use super::super::tokenizer::helpers::float_no_exponent;
-use super::super::tokenizer::parameter::{not_numbered_parameter, parameter, Parameter};
+use super::super::helpers::float_no_exponent;
+use super::super::parameter::{not_numbered_parameter, parameter, Parameter};
 use super::{
     ArithmeticOperator, BinaryOperator, Expression, ExpressionToken, Function, LogicalOperator,
 };

@@ -2,7 +2,7 @@ pub mod evaluator;
 pub mod parser;
 
 pub use self::parser::expression;
-use super::tokenizer::prelude::Parameter;
+use super::prelude::Parameter;
 
 /// Arithmetic (`/`, `*`, `+`, `-`) operator
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]

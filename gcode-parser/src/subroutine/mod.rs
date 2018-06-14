@@ -1,7 +1,7 @@
 pub mod parser;
 
 use super::expression::Expression;
-use super::tokenizer::ProgramTokens;
+use super::ProgramTokens;
 
 /// Subroutine name
 #[derive(Clone, Debug, PartialEq)]
