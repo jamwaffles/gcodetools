@@ -9,20 +9,10 @@ named!(pub global_move<CompleteByteSlice, GCode>,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    const EMPTY: Cbs = Cbs(b"");
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
-        against: GCode,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
 
     #[test]
     fn it_parses_global_moves() {
-        check_token(global_move(Cbs(b"G53")), GCode::GlobalMove);
+        assert_complete_parse!(global_move(Cbs(b"G53")), GCode::GlobalMove);
     }
 }

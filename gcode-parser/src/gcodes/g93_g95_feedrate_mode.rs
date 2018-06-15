@@ -21,31 +21,21 @@ named!(pub feedrate_mode<CompleteByteSlice, GCode>, map!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    const EMPTY: Cbs = Cbs(b"");
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
-        against: GCode,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
 
     #[test]
     fn it_parses_feedrate_mode() {
-        check_token(
+        assert_complete_parse!(
             feedrate_mode(Cbs(b"G93")),
-            GCode::FeedrateMode(FeedrateMode::InverseTime),
+            GCode::FeedrateMode(FeedrateMode::InverseTime)
         );
-        check_token(
+        assert_complete_parse!(
             feedrate_mode(Cbs(b"G94")),
-            GCode::FeedrateMode(FeedrateMode::UnitsPerMinute),
+            GCode::FeedrateMode(FeedrateMode::UnitsPerMinute)
         );
-        check_token(
+        assert_complete_parse!(
             feedrate_mode(Cbs(b"G95")),
-            GCode::FeedrateMode(FeedrateMode::UnitsPerRevolution),
+            GCode::FeedrateMode(FeedrateMode::UnitsPerRevolution)
         );
     }
 }

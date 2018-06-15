@@ -29,43 +29,33 @@ named!(pub path_blending<CompleteByteSlice, GCode>, map!(
 mod tests {
     use super::super::super::value::Value;
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    const EMPTY: Cbs = Cbs(b"");
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
-        against: GCode,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
 
     #[test]
     fn it_parses_blending_mode() {
-        check_token(
+        assert_complete_parse!(
             path_blending(Cbs(b"G64")),
-            GCode::PathBlendingMode(PathBlendingMode::Blended((None, None))),
+            GCode::PathBlendingMode(PathBlendingMode::Blended((None, None)))
         );
 
-        check_token(
+        assert_complete_parse!(
             path_blending(Cbs(b"G64 P0.01")),
             GCode::PathBlendingMode(PathBlendingMode::Blended((
                 Some(Value::Float(0.01f32)),
                 None,
-            ))),
+            )))
         );
 
-        check_token(
+        assert_complete_parse!(
             path_blending(Cbs(b"G64 P0.01 Q0.02")),
             GCode::PathBlendingMode(PathBlendingMode::Blended((
                 Some(Value::Float(0.01f32)),
                 Some(Value::Float(0.02f32)),
-            ))),
+            )))
         );
 
         // TODO
-        // check_token(
+        // assert_complete_parse!(
         //     path_blending(Cbs(b"G64 Q0.02")),
         //     GCode::PathBlendingMode(PathBlendingMode { p: None, q: None })
         // );

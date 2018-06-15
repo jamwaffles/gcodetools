@@ -99,17 +99,7 @@ named!(pub arc<CompleteByteSlice, Token>, alt_complete!(center_arc | radius_arc)
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
-
-    const EMPTY: Cbs = Cbs(b"");
 
     #[test]
     fn it_ignores_linear_moves() {
@@ -119,7 +109,7 @@ mod tests {
 
     #[test]
     fn it_handles_no_whitespace() {
-        check_token(
+        assert_complete_parse!(
             arc(Cbs(b"X5.0417Y1.9427I-0.3979J0.3028")),
             Token::CenterArc(CenterArc {
                 x: Some(Value::Float(5.0417)),
@@ -127,13 +117,13 @@ mod tests {
                 i: Some(Value::Float(-0.3979)),
                 j: Some(Value::Float(0.3028)),
                 ..Default::default()
-            }),
+            })
         );
     }
 
     #[test]
     fn it_parses_xy_center_format_arcs() {
-        check_token(
+        assert_complete_parse!(
             arc(Cbs(b"X1 Y2 I3 J4")),
             Token::CenterArc(CenterArc {
                 x: Some(Value::Float(1.0)),
@@ -141,10 +131,10 @@ mod tests {
                 i: Some(Value::Float(3.0)),
                 j: Some(Value::Float(4.0)),
                 ..Default::default()
-            }),
+            })
         );
 
-        check_token(
+        assert_complete_parse!(
             arc(Cbs(b"X1 Y2 Z5 I3 J4 P6")),
             Token::CenterArc(CenterArc {
                 x: Some(Value::Float(1.0)),
@@ -154,10 +144,10 @@ mod tests {
                 j: Some(Value::Float(4.0)),
                 p: Some(Value::Unsigned(6)),
                 ..Default::default()
-            }),
+            })
         );
 
-        check_token(
+        assert_complete_parse!(
             arc(Cbs(b"X1 Y1 z 20 I20 J0")),
             Token::CenterArc(CenterArc {
                 x: Some(Value::Float(1.0)),
@@ -166,10 +156,10 @@ mod tests {
                 i: Some(Value::Float(20.0)),
                 j: Some(Value::Float(0.0)),
                 ..Default::default()
-            }),
+            })
         );
 
-        check_token(
+        assert_complete_parse!(
             arc(Cbs(b"X1 Y2 I3 J4 Z10")),
             Token::CenterArc(CenterArc {
                 x: Some(Value::Float(1.0)),
@@ -178,13 +168,13 @@ mod tests {
                 i: Some(Value::Float(3.0)),
                 j: Some(Value::Float(4.0)),
                 ..Default::default()
-            }),
+            })
         );
     }
 
     #[test]
     fn it_parses_xz_center_format_arcs() {
-        check_token(
+        assert_complete_parse!(
             arc(Cbs(b"X1 Z2 I3 K4")),
             Token::CenterArc(CenterArc {
                 x: Some(Value::Float(1.0)),
@@ -192,10 +182,10 @@ mod tests {
                 i: Some(Value::Float(3.0)),
                 k: Some(Value::Float(4.0)),
                 ..Default::default()
-            }),
+            })
         );
 
-        check_token(
+        assert_complete_parse!(
             arc(Cbs(b"X1 Z2 Y5 I3 K4 P6")),
             Token::CenterArc(CenterArc {
                 x: Some(Value::Float(1.0)),
@@ -205,13 +195,13 @@ mod tests {
                 k: Some(Value::Float(4.0)),
                 p: Some(Value::Unsigned(6)),
                 ..Default::default()
-            }),
+            })
         );
     }
 
     #[test]
     fn it_parses_yz_center_format_arcs() {
-        check_token(
+        assert_complete_parse!(
             arc(Cbs(b"Y1 Z2 J3 K4")),
             Token::CenterArc(CenterArc {
                 y: Some(Value::Float(1.0)),
@@ -219,10 +209,10 @@ mod tests {
                 j: Some(Value::Float(3.0)),
                 k: Some(Value::Float(4.0)),
                 ..Default::default()
-            }),
+            })
         );
 
-        check_token(
+        assert_complete_parse!(
             arc(Cbs(b"Y1 Z2 X5 J3 K4 P6")),
             Token::CenterArc(CenterArc {
                 x: Some(Value::Float(5.0)),
@@ -232,10 +222,10 @@ mod tests {
                 k: Some(Value::Float(4.0)),
                 p: Some(Value::Unsigned(6)),
                 ..Default::default()
-            }),
+            })
         );
 
-        check_token(
+        assert_complete_parse!(
             arc(Cbs(b"Y20.9595 Z-0.5838 I-1.5875 J0.0066")),
             Token::CenterArc(CenterArc {
                 y: Some(Value::Float(20.9595)),
@@ -243,35 +233,35 @@ mod tests {
                 i: Some(Value::Float(-1.5875)),
                 j: Some(Value::Float(0.0066)),
                 ..Default::default()
-            }),
+            })
         );
     }
 
     #[test]
     fn it_parses_optional_coords() {
-        check_token(
+        assert_complete_parse!(
             arc(Cbs(b"i.5 j.5")),
             Token::CenterArc(CenterArc {
                 i: Some(Value::Float(0.5)),
                 j: Some(Value::Float(0.5)),
                 ..Default::default()
-            }),
+            })
         );
     }
 
     #[test]
     fn it_parses_radius_format_arcs() {
-        check_token(
+        assert_complete_parse!(
             arc(Cbs(b"r1.997999 x1.613302 y-1.178668")),
             Token::RadiusArc(RadiusArc {
                 x: Some(Value::Float(1.613302)),
                 y: Some(Value::Float(-1.178668)),
                 r: Some(Value::Float(1.997999)),
                 ..Default::default()
-            }),
+            })
         );
 
-        check_token(
+        assert_complete_parse!(
             arc(Cbs(b"X10 Y15 R20 Z5")),
             Token::RadiusArc(RadiusArc {
                 x: Some(Value::Float(10.0)),
@@ -279,7 +269,7 @@ mod tests {
                 z: Some(Value::Float(5.0)),
                 r: Some(Value::Float(20.0)),
                 ..Default::default()
-            }),
+            })
         );
     }
 }

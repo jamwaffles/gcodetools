@@ -73,8 +73,6 @@ mod tests {
     use super::*;
     use nom::types::CompleteByteSlice as Cbs;
 
-    const EMPTY: Cbs = Cbs(b"");
-
     #[test]
     fn it_takes_until_any_line_ending() {
         assert_eq!(
@@ -96,30 +94,30 @@ mod tests {
 
     #[test]
     fn it_parses_preceded_floats() {
-        assert_eq!(preceded_f32(Cbs(b"J0"), "J"), Ok((EMPTY, 0.0f32)));
-        assert_eq!(preceded_f32(Cbs(b"I20"), "I"), Ok((EMPTY, 20.0f32)));
-        assert_eq!(preceded_f32(Cbs(b"x 1."), "X"), Ok((EMPTY, 1.0f32)));
-        assert_eq!(preceded_f32(Cbs(b"x1."), "X"), Ok((EMPTY, 1.0f32)));
+        assert_complete_parse!(preceded_f32(Cbs(b"J0"), "J"), 0.0f32);
+        assert_complete_parse!(preceded_f32(Cbs(b"I20"), "I"), 20.0f32);
+        assert_complete_parse!(preceded_f32(Cbs(b"x 1."), "X"), 1.0f32);
+        assert_complete_parse!(preceded_f32(Cbs(b"x1."), "X"), 1.0f32);
 
-        assert_eq!(preceded_f32(Cbs(b"x1.23"), "X"), Ok((EMPTY, 1.23f32)));
-        assert_eq!(preceded_f32(Cbs(b"y-1.23"), "Y"), Ok((EMPTY, -1.23f32)));
-        assert_eq!(preceded_f32(Cbs(b"z+1.23"), "Z"), Ok((EMPTY, 1.23f32)));
-        assert_eq!(preceded_f32(Cbs(b"a123"), "A"), Ok((EMPTY, 123.0f32)));
+        assert_complete_parse!(preceded_f32(Cbs(b"x1.23"), "X"), 1.23f32);
+        assert_complete_parse!(preceded_f32(Cbs(b"y-1.23"), "Y"), -1.23f32);
+        assert_complete_parse!(preceded_f32(Cbs(b"z+1.23"), "Z"), 1.23f32);
+        assert_complete_parse!(preceded_f32(Cbs(b"a123"), "A"), 123.0f32);
 
-        assert_eq!(preceded_f32(Cbs(b"X1.23"), "X"), Ok((EMPTY, 1.23f32)));
-        assert_eq!(preceded_f32(Cbs(b"Y-1.23"), "Y"), Ok((EMPTY, -1.23f32)));
-        assert_eq!(preceded_f32(Cbs(b"Z+1.23"), "Z"), Ok((EMPTY, 1.23f32)));
-        assert_eq!(preceded_f32(Cbs(b"A123"), "A"), Ok((EMPTY, 123.0f32)));
+        assert_complete_parse!(preceded_f32(Cbs(b"X1.23"), "X"), 1.23f32);
+        assert_complete_parse!(preceded_f32(Cbs(b"Y-1.23"), "Y"), -1.23f32);
+        assert_complete_parse!(preceded_f32(Cbs(b"Z+1.23"), "Z"), 1.23f32);
+        assert_complete_parse!(preceded_f32(Cbs(b"A123"), "A"), 123.0f32);
     }
 
     #[test]
     fn it_recognizes_preceded_codes() {
-        assert_eq!(code(Cbs(b"G00"), "G", "0"), Ok((EMPTY, Cbs(b"0"))));
-        assert_eq!(code(Cbs(b"G01"), "G", "1"), Ok((EMPTY, Cbs(b"1"))));
-        assert_eq!(code(Cbs(b"G1"), "G", "1"), Ok((EMPTY, Cbs(b"1"))));
-        assert_eq!(code(Cbs(b"G10"), "G", "10"), Ok((EMPTY, Cbs(b"10"))));
-        assert_eq!(code(Cbs(b"G38.2"), "G", "38.2"), Ok((EMPTY, Cbs(b"38.2"))));
-        assert_eq!(code(Cbs(b"G038.2"), "G", "38.2"), Ok((EMPTY, Cbs(b"38.2"))));
+        assert_complete_parse!(code(Cbs(b"G00"), "G", "0"), Cbs(b"0"));
+        assert_complete_parse!(code(Cbs(b"G01"), "G", "1"), Cbs(b"1"));
+        assert_complete_parse!(code(Cbs(b"G1"), "G", "1"), Cbs(b"1"));
+        assert_complete_parse!(code(Cbs(b"G10"), "G", "10"), Cbs(b"10"));
+        assert_complete_parse!(code(Cbs(b"G38.2"), "G", "38.2"), Cbs(b"38.2"));
+        assert_complete_parse!(code(Cbs(b"G038.2"), "G", "38.2"), Cbs(b"38.2"));
 
         assert!(code(Cbs(b"G10"), "G", "10.1").is_err());
         assert!(code(Cbs(b"G10.5"), "G", "10.6").is_err());
@@ -127,13 +125,13 @@ mod tests {
 
     #[test]
     fn it_parses_preceded_unsigned_integers() {
-        assert_eq!(preceded_u32(Cbs(b"x123"), "X"), Ok((EMPTY, 123u32)));
-        assert_eq!(preceded_u32(Cbs(b"X123"), "X"), Ok((EMPTY, 123u32)));
-        assert_eq!(preceded_u32(Cbs(b"y 123"), "Y"), Ok((EMPTY, 123u32)));
-        assert_eq!(preceded_u32(Cbs(b"y 123"), "Y"), Ok((EMPTY, 123u32)));
-        assert_eq!(preceded_u32(Cbs(b"G00"), "G"), Ok((EMPTY, 0u32)));
-        assert_eq!(preceded_u32(Cbs(b"G01"), "G"), Ok((EMPTY, 1u32)));
-        assert_eq!(preceded_u32(Cbs(b"G1"), "G"), Ok((EMPTY, 1u32)));
+        assert_complete_parse!(preceded_u32(Cbs(b"x123"), "X"), 123u32);
+        assert_complete_parse!(preceded_u32(Cbs(b"X123"), "X"), 123u32);
+        assert_complete_parse!(preceded_u32(Cbs(b"y 123"), "Y"), 123u32);
+        assert_complete_parse!(preceded_u32(Cbs(b"y 123"), "Y"), 123u32);
+        assert_complete_parse!(preceded_u32(Cbs(b"G00"), "G"), 0u32);
+        assert_complete_parse!(preceded_u32(Cbs(b"G01"), "G"), 1u32);
+        assert_complete_parse!(preceded_u32(Cbs(b"G1"), "G"), 1u32);
 
         assert!(preceded_u32(Cbs(b"y-123"), "Y").is_err());
         assert!(preceded_u32(Cbs(b"Y-123"), "Y").is_err());
@@ -154,8 +152,8 @@ mod tests {
             let expected64 = str::parse::<f64>(test).unwrap();
 
             assert_eq!(
-                recognize_float_no_exponent(CompleteByteSlice(test.as_bytes())),
-                Ok((CompleteByteSlice(b""), CompleteByteSlice(test.as_bytes())))
+                recognize_float_no_exponent(Cbs(test.as_bytes())),
+                Ok((Cbs(b""), Cbs(test.as_bytes())))
             );
             let larger = format!("{};", test);
             assert_eq!(

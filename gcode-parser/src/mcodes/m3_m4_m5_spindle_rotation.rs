@@ -28,28 +28,19 @@ mod tests {
     use nom;
     use nom::types::CompleteByteSlice as Cbs;
 
-    const EMPTY: Cbs = Cbs(b"");
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, MCode), nom::Err<CompleteByteSlice>>,
-        against: MCode,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
-
     #[test]
     fn it_parses_spindle_rotation() {
-        check_token(
+        assert_complete_parse!(
             spindle_rotation(Cbs(b"M3")),
-            MCode::SpindleRotation(SpindleRotation::Cw),
+            MCode::SpindleRotation(SpindleRotation::Cw)
         );
-        check_token(
+        assert_complete_parse!(
             spindle_rotation(Cbs(b"M4")),
-            MCode::SpindleRotation(SpindleRotation::Ccw),
+            MCode::SpindleRotation(SpindleRotation::Ccw)
         );
-        check_token(
+        assert_complete_parse!(
             spindle_rotation(Cbs(b"M5")),
-            MCode::SpindleRotation(SpindleRotation::Stop),
+            MCode::SpindleRotation(SpindleRotation::Stop)
         );
 
         // It gets confused with M30

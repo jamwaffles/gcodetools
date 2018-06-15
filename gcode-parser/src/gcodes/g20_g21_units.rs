@@ -22,21 +22,11 @@ named!(pub units<CompleteByteSlice, GCode>, map!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    const EMPTY: Cbs = Cbs(b"");
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
-        against: GCode,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
 
     #[test]
     fn it_parses_units() {
-        check_token(units(Cbs(b"G20")), GCode::Units(Units::Inch));
-        check_token(units(Cbs(b"G21")), GCode::Units(Units::Mm));
+        assert_complete_parse!(units(Cbs(b"G20")), GCode::Units(Units::Inch));
+        assert_complete_parse!(units(Cbs(b"G21")), GCode::Units(Units::Mm));
     }
 }

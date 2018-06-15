@@ -120,21 +120,13 @@ mod tests {
     use super::*;
     use nom::types::CompleteByteSlice as Cbs;
 
-    const EMPTY: Cbs = Cbs(b"");
-
-    macro_rules! assert_expr {
-        ($to_check:expr, $against:expr) => {
-            assert_eq!($to_check, Ok((EMPTY, $against)))
-        };
-    }
-
     #[test]
     fn it_parses_subroutine_names() {
-        assert_expr!(
+        assert_complete_parse!(
             subroutine_name(Cbs(b"O100")),
             SubroutineName::Number(100u32)
         );
-        assert_expr!(
+        assert_complete_parse!(
             subroutine_name(Cbs(b"O<external_name>")),
             SubroutineName::External("external_name".into())
         );
@@ -146,7 +138,7 @@ mod tests {
           G54 G0 X0 Y0 Z0
         o100 endsub"#;
 
-        assert_expr!(
+        assert_complete_parse!(
             subroutine(Cbs(input.as_bytes())),
             Token::SubroutineDefinition(Subroutine {
                 name: SubroutineName::Number(100u32),
@@ -175,7 +167,7 @@ mod tests {
           G54
         o<external_file> endsub"#;
 
-        assert_expr!(
+        assert_complete_parse!(
             subroutine(Cbs(input.as_bytes())),
             Token::SubroutineDefinition(Subroutine {
                 name: SubroutineName::External("external_file".into()),
@@ -188,7 +180,7 @@ mod tests {
     fn it_parses_external_subroutine_calls() {
         let input = r#"o<external_file> call"#;
 
-        assert_expr!(
+        assert_complete_parse!(
             subroutine_call(Cbs(input.as_bytes())),
             SubroutineCall {
                 name: SubroutineName::External("external_file".into()),
@@ -203,7 +195,7 @@ mod tests {
             g0 z0
         o100 endwhile"#;
 
-        assert_expr!(
+        assert_complete_parse!(
             control_flow(Cbs(input.as_bytes())),
             Token::While(While {
                 name: SubroutineName::Number(100),
@@ -236,7 +228,7 @@ mod tests {
             g54
         o1 endrepeat"#;
 
-        assert_expr!(
+        assert_complete_parse!(
             control_flow(Cbs(input.as_bytes())),
             Token::Repeat(Repeat {
                 name: SubroutineName::Number(1),
@@ -252,7 +244,7 @@ mod tests {
             g20
         o100 endif"#;
 
-        assert_expr!(
+        assert_complete_parse!(
             control_flow(Cbs(input.as_bytes())),
             Token::If(If {
                 name: SubroutineName::Number(100),
@@ -275,7 +267,7 @@ mod tests {
             g21
         o100 endif"#;
 
-        assert_expr!(
+        assert_complete_parse!(
             control_flow(Cbs(input.as_bytes())),
             Token::If(If {
                 name: SubroutineName::Number(100),
@@ -296,7 +288,7 @@ mod tests {
             m2
         o100 endif"#;
 
-        assert_expr!(
+        assert_complete_parse!(
             control_flow(Cbs(input.as_bytes())),
             Token::If(If {
                 name: SubroutineName::Number(100),
@@ -339,7 +331,7 @@ mod tests {
     fn it_parses_calls_with_args() {
         let input = r#"o100 call [10] [20]"#;
 
-        assert_expr!(
+        assert_complete_parse!(
             control_flow(Cbs(input.as_bytes())),
             Token::SubroutineCall(SubroutineCall {
                 name: SubroutineName::Number(100u32),

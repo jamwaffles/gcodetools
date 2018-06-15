@@ -37,55 +37,45 @@ named!(pub spindle_sync_motion<CompleteByteSlice, GCode>, map_res!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    const EMPTY: Cbs = Cbs(b"");
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
-        against: GCode,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
 
     #[test]
     fn it_parses_spindle_sync_motion() {
-        check_token(
+        assert_complete_parse!(
             spindle_sync_motion(Cbs(b"G33 Z-1 K.0625")),
             GCode::SpindleSyncMotion(SpindleSyncMotion {
                 x: None,
                 y: None,
                 z: Some(Value::Float(-1.0)),
                 k: Value::Float(0.0625),
-            }),
+            })
         );
-        check_token(
+        assert_complete_parse!(
             spindle_sync_motion(Cbs(b"G33 Z-15 K1.5")),
             GCode::SpindleSyncMotion(SpindleSyncMotion {
                 x: None,
                 y: None,
                 z: Some(Value::Float(-15.0)),
                 k: Value::Float(1.5),
-            }),
+            })
         );
-        check_token(
+        assert_complete_parse!(
             spindle_sync_motion(Cbs(b"G33 Z-2 K0.125")),
             GCode::SpindleSyncMotion(SpindleSyncMotion {
                 x: None,
                 y: None,
                 z: Some(Value::Float(-2.0)),
                 k: Value::Float(0.125),
-            }),
+            })
         );
-        check_token(
+        assert_complete_parse!(
             spindle_sync_motion(Cbs(b"G33 X10 Z-2 K0.125")),
             GCode::SpindleSyncMotion(SpindleSyncMotion {
                 x: Some(Value::Float(10.0)),
                 y: None,
                 z: Some(Value::Float(-2.0)),
                 k: Value::Float(0.125),
-            }),
+            })
         );
         assert!(spindle_sync_motion(Cbs(b"G33 K10")).is_err());
     }

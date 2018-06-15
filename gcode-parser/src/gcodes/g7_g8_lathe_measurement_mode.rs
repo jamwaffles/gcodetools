@@ -19,27 +19,17 @@ named!(pub lathe_measurement_mode<CompleteByteSlice, GCode>, map!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    const EMPTY: Cbs = Cbs(b"");
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
-        against: GCode,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
 
     #[test]
     fn it_parses_lathe_measurement_mode() {
-        check_token(
+        assert_complete_parse!(
             lathe_measurement_mode(Cbs(b"G7")),
-            GCode::LatheMeasurementMode(LatheMeasurementMode::Diameter),
+            GCode::LatheMeasurementMode(LatheMeasurementMode::Diameter)
         );
-        check_token(
+        assert_complete_parse!(
             lathe_measurement_mode(Cbs(b"G8")),
-            GCode::LatheMeasurementMode(LatheMeasurementMode::Radius),
+            GCode::LatheMeasurementMode(LatheMeasurementMode::Radius)
         );
     }
 }

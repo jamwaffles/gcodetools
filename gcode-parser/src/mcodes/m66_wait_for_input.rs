@@ -79,17 +79,9 @@ mod tests {
     use super::*;
     use nom::types::CompleteByteSlice as Cbs;
 
-    const EMPTY: Cbs = Cbs(b"");
-
-    macro_rules! assert_expr {
-        ($to_check:expr, $against:expr) => {
-            assert_eq!($to_check, Ok((EMPTY, $against)))
-        };
-    }
-
     #[test]
     fn it_parses_wait_for_input() {
-        assert_expr!(
+        assert_complete_parse!(
             wait_for_input(Cbs(b"M66 P0 L3 Q5")),
             MCode::WaitForInput(WaitForInput {
                 input_number: 0,
@@ -98,7 +90,7 @@ mod tests {
                 trigger: InputTrigger::High,
             })
         );
-        assert_expr!(
+        assert_complete_parse!(
             wait_for_input(Cbs(b"M66 P0 L1 Q5")),
             MCode::WaitForInput(WaitForInput {
                 input_number: 0,
@@ -107,7 +99,7 @@ mod tests {
                 trigger: InputTrigger::RisingEdge,
             })
         );
-        assert_expr!(
+        assert_complete_parse!(
             wait_for_input(Cbs(b"M66 P2 L0")),
             MCode::WaitForInput(WaitForInput {
                 input_number: 2,
@@ -116,7 +108,7 @@ mod tests {
                 trigger: InputTrigger::Immediate,
             })
         );
-        assert_expr!(
+        assert_complete_parse!(
             wait_for_input(Cbs(b"M66 E3 L0")),
             MCode::WaitForInput(WaitForInput {
                 input_number: 3,

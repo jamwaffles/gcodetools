@@ -19,28 +19,18 @@ named!(pub distance_mode<CompleteByteSlice, GCode>, map!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    const EMPTY: Cbs = Cbs(b"");
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
-        against: GCode,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
 
     #[test]
     fn it_parses_distance_mode() {
-        check_token(
+        assert_complete_parse!(
             distance_mode(Cbs(b"G90")),
-            GCode::DistanceMode(DistanceMode::Absolute),
+            GCode::DistanceMode(DistanceMode::Absolute)
         );
 
-        check_token(
+        assert_complete_parse!(
             distance_mode(Cbs(b"G91")),
-            GCode::DistanceMode(DistanceMode::Incremental),
+            GCode::DistanceMode(DistanceMode::Incremental)
         );
     }
 }

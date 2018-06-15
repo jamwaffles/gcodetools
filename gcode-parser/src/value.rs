@@ -116,54 +116,42 @@ mod tests {
     use super::*;
     use nom::types::CompleteByteSlice as Cbs;
 
-    fn check_value(
-        to_check: Result<(CompleteByteSlice, Value), Err<CompleteByteSlice>>,
-        against: Value,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
-
-    const EMPTY: Cbs = Cbs(b"");
-
     #[test]
     fn it_parses_signed_integers_or_else() {
-        check_value(
+        assert_complete_parse!(
             preceded_signed_value(Cbs(b"A10"), "A"),
-            Value::Signed(10i32),
+            Value::Signed(10i32)
         );
 
-        check_value(
+        assert_complete_parse!(
             preceded_signed_value(Cbs(b"A-10"), "A"),
-            Value::Signed(-10i32),
+            Value::Signed(-10i32)
         );
 
-        check_value(
+        assert_complete_parse!(
             preceded_signed_value(Cbs(b"A#<test>"), "A"),
-            Value::Parameter(Parameter::Named("test".into())),
+            Value::Parameter(Parameter::Named("test".into()))
         );
 
-        check_value(
+        assert_complete_parse!(
             preceded_signed_value(Cbs(b"A[1 + 2]"), "A"),
             Value::Expression(vec![
                 ExpressionToken::Literal(1.0),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                 ExpressionToken::Literal(2.0),
-            ]),
+            ])
         );
     }
 
     #[test]
     fn it_parses_preceded_expressions() {
-        assert_eq!(
+        assert_complete_parse!(
             preceded_float_value(Cbs(b"Z[#<zscale>*10.]"), "Z"),
-            Ok((
-                EMPTY,
-                Value::Expression(vec![
-                    ExpressionToken::Parameter(Parameter::Named("zscale".into())),
-                    ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
-                    ExpressionToken::Literal(10.0),
-                ])
-            ))
+            Value::Expression(vec![
+                ExpressionToken::Parameter(Parameter::Named("zscale".into())),
+                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
+                ExpressionToken::Literal(10.0),
+            ])
         );
     }
 }

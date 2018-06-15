@@ -41,43 +41,33 @@ named!(pub cutter_compensation<CompleteByteSlice, GCode>,
 mod tests {
     use super::super::super::value::Value;
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    const EMPTY: Cbs = Cbs(b"");
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
-        against: GCode,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
 
     #[test]
     fn it_parses_cutter_comp() {
-        check_token(
+        assert_complete_parse!(
             cutter_compensation(Cbs(b"G40")),
-            GCode::CutterCompensation(CutterCompensation::Off),
+            GCode::CutterCompensation(CutterCompensation::Off)
         );
 
-        check_token(
+        assert_complete_parse!(
             cutter_compensation(Cbs(b"G41 D1")),
-            GCode::CutterCompensation(CutterCompensation::Left(Some(Value::Unsigned(1u32)))),
+            GCode::CutterCompensation(CutterCompensation::Left(Some(Value::Unsigned(1u32))))
         );
 
-        check_token(
+        assert_complete_parse!(
             cutter_compensation(Cbs(b"G42 D1")),
-            GCode::CutterCompensation(CutterCompensation::Right(Some(Value::Unsigned(1u32)))),
+            GCode::CutterCompensation(CutterCompensation::Right(Some(Value::Unsigned(1u32))))
         );
 
-        check_token(
+        assert_complete_parse!(
             cutter_compensation(Cbs(b"G42 D0")),
-            GCode::CutterCompensation(CutterCompensation::Right(Some(Value::Unsigned(0u32)))),
+            GCode::CutterCompensation(CutterCompensation::Right(Some(Value::Unsigned(0u32))))
         );
 
-        check_token(
+        assert_complete_parse!(
             cutter_compensation(Cbs(b"G42")),
-            GCode::CutterCompensation(CutterCompensation::Right(None)),
+            GCode::CutterCompensation(CutterCompensation::Right(None))
         );
     }
 }

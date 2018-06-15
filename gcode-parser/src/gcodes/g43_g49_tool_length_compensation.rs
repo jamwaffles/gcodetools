@@ -31,26 +31,16 @@ named!(pub tool_length_compensation<CompleteByteSlice, GCode>, map!(
 mod tests {
     use super::super::super::value::Value;
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    const EMPTY: Cbs = Cbs(b"");
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
-        against: GCode,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
 
     #[test]
     fn it_parses_dynamic_tool_length_offset() {
-        check_token(
+        assert_complete_parse!(
             tool_length_compensation(Cbs(b"G43.1 Z0.250")),
             GCode::ToolLengthCompensation(ToolLengthCompensation::Dynamic(Vec9 {
                 z: Some(Value::Float(0.250)),
                 ..Default::default()
-            })),
+            }))
         );
     }
 }

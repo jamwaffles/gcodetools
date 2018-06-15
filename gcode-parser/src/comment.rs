@@ -26,28 +26,18 @@ named!(pub comment<CompleteByteSlice, Token>,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
-
-    const EMPTY: Cbs = Cbs(b"");
 
     #[test]
     fn it_parses_comments() {
-        check_token(
+        assert_complete_parse!(
             comment(Cbs(b"(Hello world)")),
-            Token::Comment("Hello world".into()),
+            Token::Comment("Hello world".into())
         );
 
-        check_token(
+        assert_complete_parse!(
             comment(Cbs(b"( Hello world )")),
-            Token::Comment("Hello world".into()),
+            Token::Comment("Hello world".into())
         );
 
         assert_eq!(

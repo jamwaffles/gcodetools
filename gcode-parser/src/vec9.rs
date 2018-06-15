@@ -83,71 +83,54 @@ mod tests {
     use super::*;
     use nom::types::CompleteByteSlice as Cbs;
 
-    const EMPTY: Cbs = Cbs(b"");
-
     #[test]
     fn it_parses_vectors() {
-        assert_eq!(
+        assert_complete_parse!(
             vec9(Cbs(b"X0 Y1 Z2")),
-            Ok((
-                EMPTY,
-                Vec9 {
-                    x: Some(Value::Float(0.0f32)),
-                    y: Some(Value::Float(1.0f32)),
-                    z: Some(Value::Float(2.0f32)),
-                    ..Default::default()
-                }
-            ))
+            Vec9 {
+                x: Some(Value::Float(0.0f32)),
+                y: Some(Value::Float(1.0f32)),
+                z: Some(Value::Float(2.0f32)),
+                ..Default::default()
+            }
         );
 
-        assert_eq!(
+        assert_complete_parse!(
             vec9(Cbs(b"X0Y1Z2")),
-            Ok((
-                EMPTY,
-                Vec9 {
-                    x: Some(Value::Float(0.0f32)),
-                    y: Some(Value::Float(1.0f32)),
-                    z: Some(Value::Float(2.0f32)),
-                    ..Default::default()
-                }
-            ))
+            Vec9 {
+                x: Some(Value::Float(0.0f32)),
+                y: Some(Value::Float(1.0f32)),
+                z: Some(Value::Float(2.0f32)),
+                ..Default::default()
+            }
         );
 
-        assert_eq!(
+        assert_complete_parse!(
             vec9(Cbs(b"X-0.5 Y-2 Z100")),
-            Ok((
-                EMPTY,
-                Vec9 {
-                    x: Some(Value::Float(-0.5f32)),
-                    y: Some(Value::Float(-2.0f32)),
-                    z: Some(Value::Float(100.0f32)),
-                    ..Default::default()
-                }
-            ))
+            Vec9 {
+                x: Some(Value::Float(-0.5f32)),
+                y: Some(Value::Float(-2.0f32)),
+                z: Some(Value::Float(100.0f32)),
+                ..Default::default()
+            }
         );
 
-        assert_eq!(
+        assert_complete_parse!(
             vec9(Cbs(b"Z1")),
-            Ok((
-                EMPTY,
-                Vec9 {
-                    z: Some(Value::Float(1.0f32)),
-                    ..Default::default()
-                }
-            ))
+            Vec9 {
+                z: Some(Value::Float(1.0f32)),
+                ..Default::default()
+            }
         );
 
-        assert_eq!(
+        assert_complete_parse!(
             vec9(Cbs(b"U2.5 V3.5 W4.5")),
-            Ok((
-                EMPTY,
-                Vec9 {
-                    u: Some(Value::Float(2.5f32)),
-                    v: Some(Value::Float(3.5f32)),
-                    w: Some(Value::Float(4.5f32)),
-                    ..Default::default()
-                }
-            ))
+            Vec9 {
+                u: Some(Value::Float(2.5f32)),
+                v: Some(Value::Float(3.5f32)),
+                w: Some(Value::Float(4.5f32)),
+                ..Default::default()
+            }
         );
 
         assert_eq!(

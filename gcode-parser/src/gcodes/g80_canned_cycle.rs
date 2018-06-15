@@ -9,20 +9,10 @@ named!(pub canned_cycle<CompleteByteSlice, GCode>,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    const EMPTY: Cbs = Cbs(b"");
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
-        against: GCode,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
 
     #[test]
     fn it_parses_canned_cycles() {
-        check_token(canned_cycle(Cbs(b"G80")), GCode::CancelCannedCycle);
+        assert_complete_parse!(canned_cycle(Cbs(b"G80")), GCode::CancelCannedCycle);
     }
 }

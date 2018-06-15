@@ -42,89 +42,79 @@ named!(pub othercode<CompleteByteSlice, Token>,
 mod tests {
     use super::super::parameter::Parameter;
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    const EMPTY: Cbs = Cbs(b"");
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, Token), nom::Err<CompleteByteSlice>>,
-        against: Token,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
 
     #[test]
     fn it_parses_feed_rate() {
-        check_token(
+        assert_complete_parse!(
             feedrate(Cbs(b"F100")),
-            Token::FeedRate(Value::Float(100.0f32)),
+            Token::FeedRate(Value::Float(100.0f32))
         );
-        check_token(
+        assert_complete_parse!(
             feedrate(Cbs(b"F36.4")),
-            Token::FeedRate(Value::Float(36.4f32)),
+            Token::FeedRate(Value::Float(36.4f32))
         );
-        check_token(
+        assert_complete_parse!(
             feedrate(Cbs(b"F-200")),
-            Token::FeedRate(Value::Float(-200.0f32)),
+            Token::FeedRate(Value::Float(-200.0f32))
         );
     }
 
     #[test]
     fn it_parses_spindle_speed() {
-        check_token(
+        assert_complete_parse!(
             spindle_speed(Cbs(b"S0")),
-            Token::SpindleSpeed(Value::Signed(0i32)),
+            Token::SpindleSpeed(Value::Signed(0i32))
         );
-        check_token(
+        assert_complete_parse!(
             spindle_speed(Cbs(b"S1000")),
-            Token::SpindleSpeed(Value::Signed(1000i32)),
+            Token::SpindleSpeed(Value::Signed(1000i32))
         );
-        check_token(
+        assert_complete_parse!(
             spindle_speed(Cbs(b"S1000.0000")),
-            Token::SpindleSpeed(Value::Signed(1000i32)),
+            Token::SpindleSpeed(Value::Signed(1000i32))
         );
-        check_token(
+        assert_complete_parse!(
             spindle_speed(Cbs(b"S-250")),
-            Token::SpindleSpeed(Value::Signed(-250i32)),
+            Token::SpindleSpeed(Value::Signed(-250i32))
         );
     }
 
     #[test]
     fn it_parses_tool_number() {
-        check_token(
+        assert_complete_parse!(
             tool_number(Cbs(b"T0")),
-            Token::ToolSelect(Value::Unsigned(0u32)),
+            Token::ToolSelect(Value::Unsigned(0u32))
         );
-        check_token(
+        assert_complete_parse!(
             tool_number(Cbs(b"T99")),
-            Token::ToolSelect(Value::Unsigned(99u32)),
+            Token::ToolSelect(Value::Unsigned(99u32))
         );
     }
 
     #[test]
     fn it_parses_line_numbers() {
-        check_token(line_number(Cbs(b"N10")), Token::LineNumber(10u32));
-        check_token(line_number(Cbs(b"N999")), Token::LineNumber(999u32));
+        assert_complete_parse!(line_number(Cbs(b"N10")), Token::LineNumber(10u32));
+        assert_complete_parse!(line_number(Cbs(b"N999")), Token::LineNumber(999u32));
     }
 
     #[test]
     fn it_parses_tool_length_offset_values() {
-        check_token(
+        assert_complete_parse!(
             tool_length_compensation_tool_number(Cbs(b"H10")),
-            Token::ToolLengthCompensationToolNumber(Value::Unsigned(10u32)),
+            Token::ToolLengthCompensationToolNumber(Value::Unsigned(10u32))
         );
-        check_token(
+        assert_complete_parse!(
             tool_length_compensation_tool_number(Cbs(b"H0")),
-            Token::ToolLengthCompensationToolNumber(Value::Unsigned(0u32)),
+            Token::ToolLengthCompensationToolNumber(Value::Unsigned(0u32))
         );
     }
 
     #[test]
     fn it_parses_parameterised_feed() {
-        check_token(
+        assert_complete_parse!(
             feedrate(Cbs(b"f #<feedrate>")),
-            Token::FeedRate(Value::Parameter(Parameter::Named("feedrate".into()))),
+            Token::FeedRate(Value::Parameter(Parameter::Named("feedrate".into())))
         );
     }
 }

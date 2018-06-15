@@ -60,9 +60,9 @@ mod tests {
 
     #[test]
     fn it_parses_named_parameters() {
-        assert_eq!(
+        assert_complete_parse!(
             named_parameter(Cbs(b"#<foo_bar>")),
-            Ok((EMPTY, Parameter::Named("foo_bar".into())))
+            Parameter::Named("foo_bar".into())
         );
     }
 
@@ -75,25 +75,22 @@ mod tests {
 
     #[test]
     fn it_parses_global_parameters() {
-        assert_eq!(
+        assert_complete_parse!(
             global_parameter(Cbs(b"#<_bar_baz>")),
-            Ok((EMPTY, Parameter::Global("bar_baz".into())))
+            Parameter::Global("bar_baz".into())
         );
     }
 
     #[test]
     fn it_parses_parameters() {
-        assert_eq!(
-            parameter(Cbs(b"#1234")),
-            Ok((EMPTY, Parameter::Numbered(1234u32)))
-        );
-        assert_eq!(
+        assert_complete_parse!(parameter(Cbs(b"#1234")), Parameter::Numbered(1234u32));
+        assert_complete_parse!(
             parameter(Cbs(b"#<foo_bar>")),
-            Ok((EMPTY, Parameter::Named("foo_bar".into())))
+            Parameter::Named("foo_bar".into())
         );
-        assert_eq!(
+        assert_complete_parse!(
             parameter(Cbs(b"#<_bar_baz>")),
-            Ok((EMPTY, Parameter::Global("bar_baz".into())))
+            Parameter::Global("bar_baz".into())
         );
     }
 
@@ -101,75 +98,63 @@ mod tests {
     fn it_parses_parameters_with_spaces_after_hash() {
         assert!(parameter(Cbs(b"# 1234")).is_err());
 
-        assert_eq!(
+        assert_complete_parse!(
             parameter(Cbs(b"# <foo_bar>")),
-            Ok((EMPTY, Parameter::Named("foo_bar".into())))
+            Parameter::Named("foo_bar".into())
         );
-        assert_eq!(
+        assert_complete_parse!(
             parameter(Cbs(b"# <_bar_baz>")),
-            Ok((EMPTY, Parameter::Global("bar_baz".into())))
+            Parameter::Global("bar_baz".into())
         );
     }
 
     #[test]
     fn it_parses_parameter_assignment() {
-        assert_eq!(
+        assert_complete_parse!(
             parameter_assignment(Cbs(b"#1234 = 4.5")),
-            Ok((EMPTY, (Parameter::Numbered(1234u32), Value::Float(4.5f32))))
+            (Parameter::Numbered(1234u32), Value::Float(4.5f32))
         );
-        assert_eq!(
+        assert_complete_parse!(
             parameter_assignment(Cbs(b"#1234 = 4")),
-            Ok((EMPTY, (Parameter::Numbered(1234u32), Value::Float(4.0f32))))
+            (Parameter::Numbered(1234u32), Value::Float(4.0f32))
         );
-        assert_eq!(
+        assert_complete_parse!(
             parameter_assignment(Cbs(b"#1234=4.5")),
-            Ok((EMPTY, (Parameter::Numbered(1234u32), Value::Float(4.5f32))))
+            (Parameter::Numbered(1234u32), Value::Float(4.5f32))
         );
-        assert_eq!(
+        assert_complete_parse!(
             parameter_assignment(Cbs(b"#<foo_bar> = 4.5")),
-            Ok((
-                EMPTY,
-                (Parameter::Named("foo_bar".into()), Value::Float(4.5f32))
-            ))
+            (Parameter::Named("foo_bar".into()), Value::Float(4.5f32))
         );
-        assert_eq!(
+        assert_complete_parse!(
             parameter_assignment(Cbs(b"#<_bar_baz> = 4.5")),
-            Ok((
-                EMPTY,
-                (Parameter::Global("bar_baz".into()), Value::Float(4.5f32))
-            ))
+            (Parameter::Global("bar_baz".into()), Value::Float(4.5f32))
         );
     }
 
     #[test]
     fn it_parses_parameter_to_parameter_assignments() {
-        assert_eq!(
+        assert_complete_parse!(
             parameter_assignment(Cbs(b"#<toolno>     =  #1")),
-            Ok((
-                EMPTY,
-                (
-                    Parameter::Named("toolno".into()),
-                    Value::Parameter(Parameter::Numbered(1))
-                )
-            ))
+            (
+                Parameter::Named("toolno".into()),
+                Value::Parameter(Parameter::Numbered(1))
+            )
         );
     }
 
     #[test]
     fn it_parses_expression_assignments() {
-        assert_eq!(
+        assert_complete_parse!(
             parameter_assignment(Cbs(b"#<_bar_baz> = [1 + 2]")),
-            Ok((
-                EMPTY,
-                (
-                    Parameter::Global("bar_baz".into()),
-                    Value::Expression(vec![
-                        ExpressionToken::Literal(1.0),
-                        ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-                        ExpressionToken::Literal(2.0),
-                    ])
-                )
-            ))
+            (
+                Parameter::Global("bar_baz".into()),
+                Value::Expression(vec![
+                    ExpressionToken::Literal(1.0),
+                    ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                    ExpressionToken::Literal(2.0),
+                ])
+            )
         );
     }
 

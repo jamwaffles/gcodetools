@@ -19,21 +19,11 @@ named!(pub work_offset<CompleteByteSlice, GCode>, map!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    const EMPTY: Cbs = Cbs(b"");
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
-        against: GCode,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
 
     #[test]
     fn it_parses_work_offsets() {
-        check_token(work_offset(Cbs(b"G54")), GCode::WorkOffset(WorkOffset::G54));
-        check_token(work_offset(Cbs(b"G55")), GCode::WorkOffset(WorkOffset::G55));
+        assert_complete_parse!(work_offset(Cbs(b"G54")), GCode::WorkOffset(WorkOffset::G54));
+        assert_complete_parse!(work_offset(Cbs(b"G55")), GCode::WorkOffset(WorkOffset::G55));
     }
 }

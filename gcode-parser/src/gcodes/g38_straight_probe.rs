@@ -30,17 +30,7 @@ named!(pub straight_probe<CompleteByteSlice, GCode>, map!(
 mod tests {
     use super::super::super::value::Value;
     use super::*;
-    use nom;
     use nom::types::CompleteByteSlice as Cbs;
-
-    const EMPTY: Cbs = Cbs(b"");
-
-    fn check_token(
-        to_check: Result<(CompleteByteSlice, GCode), nom::Err<CompleteByteSlice>>,
-        against: GCode,
-    ) {
-        assert_eq!(to_check, Ok((EMPTY, against)))
-    }
 
     #[test]
     fn it_parses_straight_probes() {
@@ -78,7 +68,7 @@ mod tests {
         ];
 
         for (test, expected) in cases {
-            check_token(straight_probe(Cbs(test.as_bytes())), expected);
+            assert_complete_parse!(straight_probe(Cbs(test.as_bytes())), expected);
         }
     }
 }
