@@ -32,7 +32,7 @@ named_args!(
 
 named_args!(
     pub recognize_preceded_u32<'a>(preceding: &str)<CompleteByteSlice<'a>, CompleteByteSlice<'a>>,
-    preceded!(tag_no_case!(preceding), terminated!(digit, not!(char!('.'))))
+    ws!(preceded!(tag_no_case!(preceding), terminated!(digit, not!(char!('.')))))
 );
 
 named_args!(
@@ -102,6 +102,11 @@ mod tests {
     fn it_parses_preceded_unsigned_integers() {
         assert_eq!(preceded_u32(Cbs(b"x123"), "X"), Ok((EMPTY, 123u32)));
         assert_eq!(preceded_u32(Cbs(b"X123"), "X"), Ok((EMPTY, 123u32)));
+        assert_eq!(preceded_u32(Cbs(b"y 123"), "Y"), Ok((EMPTY, 123u32)));
+        assert_eq!(preceded_u32(Cbs(b"y 123"), "Y"), Ok((EMPTY, 123u32)));
+        assert_eq!(preceded_u32(Cbs(b"G00"), "G"), Ok((EMPTY, 0u32)));
+        assert_eq!(preceded_u32(Cbs(b"G01"), "G"), Ok((EMPTY, 1u32)));
+        assert_eq!(preceded_u32(Cbs(b"G1"), "G"), Ok((EMPTY, 1u32)));
 
         assert!(preceded_u32(Cbs(b"y-123"), "Y").is_err());
         assert!(preceded_u32(Cbs(b"Y-123"), "Y").is_err());
