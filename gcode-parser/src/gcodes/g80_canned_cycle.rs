@@ -3,7 +3,7 @@ use nom::types::CompleteByteSlice;
 use super::GCode;
 
 named!(pub canned_cycle<CompleteByteSlice, GCode>,
-    g_int!(80, GCode::CancelCannedCycle)
+    g_code!("80", GCode::CancelCannedCycle)
 );
 
 #[cfg(test)]

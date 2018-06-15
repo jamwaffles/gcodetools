@@ -13,8 +13,8 @@ pub enum Units {
 
 named!(pub units<CompleteByteSlice, GCode>, map!(
     alt!(
-        g_int!(20, Units::Inch) |
-        g_int!(21, Units::Mm)
+        g_code!("20", Units::Inch) |
+        g_code!("21", Units::Mm)
     ),
     |res| GCode::Units(res)
 ));

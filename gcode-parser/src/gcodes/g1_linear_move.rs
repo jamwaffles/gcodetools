@@ -3,7 +3,7 @@ use nom::types::CompleteByteSlice;
 use super::GCode;
 
 named!(pub linear_move<CompleteByteSlice, GCode>,
-    g_int!(1, GCode::LinearMove)
+    g_code!("1", GCode::LinearMove)
 );
 
 #[cfg(test)]

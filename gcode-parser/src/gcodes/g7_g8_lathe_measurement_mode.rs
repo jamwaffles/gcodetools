@@ -10,8 +10,8 @@ pub enum LatheMeasurementMode {
 
 named!(pub lathe_measurement_mode<CompleteByteSlice, GCode>, map!(
     alt!(
-        g_int!(7, LatheMeasurementMode::Diameter) |
-        g_int!(8, LatheMeasurementMode::Radius)
+        g_code!("7", LatheMeasurementMode::Diameter) |
+        g_code!("8", LatheMeasurementMode::Radius)
     ),
     |res| GCode::LatheMeasurementMode(res)
 ));

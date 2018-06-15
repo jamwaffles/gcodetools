@@ -10,8 +10,8 @@ pub enum DistanceMode {
 
 named!(pub distance_mode<CompleteByteSlice, GCode>, map!(
     alt!(
-        g_int!(90, DistanceMode::Absolute) |
-        g_int!(91, DistanceMode::Incremental)
+        g_code!("90", DistanceMode::Absolute) |
+        g_code!("91", DistanceMode::Incremental)
     ),
     |res| GCode::DistanceMode(res)
 ));

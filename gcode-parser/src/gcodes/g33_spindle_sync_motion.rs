@@ -15,7 +15,7 @@ type SyncMotionReturn = (Option<Value>, Option<Value>, Option<Value>, Value);
 
 named!(pub spindle_sync_motion<CompleteByteSlice, GCode>, map_res!(
     ws!(preceded!(
-        g_int!(33),
+        g_code!("33"),
         permutation!(
             ws!(preceded!(one_of!("Xx"), float_value))?,
             ws!(preceded!(one_of!("Yy"), float_value))?,

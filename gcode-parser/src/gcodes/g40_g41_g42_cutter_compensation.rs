@@ -23,13 +23,13 @@ pub enum CutterCompensation {
 named!(pub cutter_compensation<CompleteByteSlice, GCode>,
     map!(
         alt!(
-            g_int!(40, CutterCompensation::Off) |
+            g_code!("40", CutterCompensation::Off) |
             map!(
-                ws!(preceded!(g_int!(41), opt!(call!(preceded_unsigned_value, "D")))),
+                ws!(preceded!(g_code!("41"), opt!(call!(preceded_unsigned_value, "D")))),
                 |tool| CutterCompensation::Left(tool)
             ) |
             map!(
-                ws!(preceded!(g_int!(42), opt!(call!(preceded_unsigned_value, "D")))),
+                ws!(preceded!(g_code!("42"), opt!(call!(preceded_unsigned_value, "D")))),
                 |tool| CutterCompensation::Right(tool)
             )
         ),

@@ -3,8 +3,8 @@ use nom::types::CompleteByteSlice;
 use super::GCode;
 
 named!(pub arc<CompleteByteSlice, GCode>, alt!(
-    g_int!(2, GCode::ClockwiseArc) |
-    g_int!(3, GCode::CounterclockwiseArc)
+    g_code!("2", GCode::ClockwiseArc) |
+    g_code!("3", GCode::CounterclockwiseArc)
 ));
 
 #[cfg(test)]

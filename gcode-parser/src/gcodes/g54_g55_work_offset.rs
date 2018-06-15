@@ -10,8 +10,8 @@ pub enum WorkOffset {
 
 named!(pub work_offset<CompleteByteSlice, GCode>, map!(
     alt!(
-        g_int!(54, WorkOffset::G54) |
-        g_int!(55, WorkOffset::G55)
+        g_code!("54", WorkOffset::G54) |
+        g_code!("55", WorkOffset::G55)
     ),
     |res| GCode::WorkOffset(res)
 ));

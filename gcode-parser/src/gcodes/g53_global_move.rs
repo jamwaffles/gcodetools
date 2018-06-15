@@ -3,7 +3,7 @@ use nom::types::CompleteByteSlice;
 use super::GCode;
 
 named!(pub global_move<CompleteByteSlice, GCode>,
-    g_int!(53, GCode::GlobalMove)
+    g_code!("53", GCode::GlobalMove)
 );
 
 #[cfg(test)]

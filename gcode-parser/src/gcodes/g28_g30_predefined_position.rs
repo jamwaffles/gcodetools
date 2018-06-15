@@ -14,10 +14,10 @@ pub enum PredefinedPosition {
 }
 
 named!(pub predefined_position<CompleteByteSlice, GCode>, alt!(
-    g_int!(28, GCode::GoToPredefinedPosition(PredefinedPosition::G28)) |
-    g_int!(30, GCode::GoToPredefinedPosition(PredefinedPosition::G30)) |
-    g_float!(28.1, GCode::StorePredefinedPosition(PredefinedPosition::G28)) |
-    g_float!(30.1, GCode::StorePredefinedPosition(PredefinedPosition::G30))
+    g_code!("28", GCode::GoToPredefinedPosition(PredefinedPosition::G28)) |
+    g_code!("30", GCode::GoToPredefinedPosition(PredefinedPosition::G30)) |
+    g_code!("28.1", GCode::StorePredefinedPosition(PredefinedPosition::G28)) |
+    g_code!("30.1", GCode::StorePredefinedPosition(PredefinedPosition::G30))
 ));
 
 #[cfg(test)]

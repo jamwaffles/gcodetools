@@ -18,10 +18,10 @@ pub enum StraightProbe {
 
 named!(pub straight_probe<CompleteByteSlice, GCode>, map!(
     alt!(
-        map!(ws!(preceded!(g_float!(38.2), vec9)), |pos| StraightProbe::Towards(pos)) |
-        map!(ws!(preceded!(g_float!(38.3), vec9)), |pos| StraightProbe::TowardsWithError(pos)) |
-        map!(ws!(preceded!(g_float!(38.4), vec9)), |pos| StraightProbe::Away(pos)) |
-        map!(ws!(preceded!(g_float!(38.5), vec9)), |pos| StraightProbe::AwayWithError(pos))
+        map!(ws!(preceded!(g_code!("38.2"), vec9)), |pos| StraightProbe::Towards(pos)) |
+        map!(ws!(preceded!(g_code!("38.3"), vec9)), |pos| StraightProbe::TowardsWithError(pos)) |
+        map!(ws!(preceded!(g_code!("38.4"), vec9)), |pos| StraightProbe::Away(pos)) |
+        map!(ws!(preceded!(g_code!("38.5"), vec9)), |pos| StraightProbe::AwayWithError(pos))
     ),
     |res| GCode::StraightProbe(res)
 ));

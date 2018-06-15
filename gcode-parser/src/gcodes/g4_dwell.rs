@@ -5,7 +5,7 @@ use super::GCode;
 
 named!(pub dwell<CompleteByteSlice, GCode>, map!(
     ws!(preceded!(
-        g_int!(4),
+        g_code!("4"),
         call!(preceded_float_value, "P")
     )),
     |res| GCode::Dwell(res)

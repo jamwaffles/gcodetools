@@ -58,12 +58,12 @@ named_args!(
     pub code<'a>(preceding: &str, code: &str)<CompleteByteSlice<'a>, CompleteByteSlice<'a>>,
     preceded!(
         tag_no_case!(preceding),
-        preceded!(
-            opt!(char!('0')),
-            terminated!(
-                tag!(code),
-                not!(char!('.'))
-            )
+        terminated!(
+            alt!(
+                preceded!(char!('0'), tag!(code)) |
+                tag!(code)
+            ),
+            not!(one_of!(".1234567890"))
         )
     )
 );

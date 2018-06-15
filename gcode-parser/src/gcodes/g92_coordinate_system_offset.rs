@@ -3,9 +3,9 @@ use nom::types::CompleteByteSlice;
 use super::GCode;
 
 named!(pub coordinate_system_offset<CompleteByteSlice, GCode>, alt!(
-    g_float!(92.0, GCode::CoordinateSystemOffset) |
-    g_float!(92.1, GCode::CoordinateSystemOffsetHardReset) |
-    g_float!(92.2, GCode::CoordinateSystemOffsetSoftReset)
+    g_code!("92", GCode::CoordinateSystemOffset) |
+    g_code!("92.1", GCode::CoordinateSystemOffsetHardReset) |
+    g_code!("92.2", GCode::CoordinateSystemOffsetSoftReset)
 ));
 
 #[cfg(test)]

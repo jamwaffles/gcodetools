@@ -21,12 +21,12 @@ pub enum Plane {
 
 named!(pub plane_select<CompleteByteSlice, GCode>, map!(
     alt!(
-        g_float!(17.1, Plane::Uv) |
-        g_float!(18.1, Plane::Wu) |
-        g_float!(19.1, Plane::Vw) |
-        g_float!(17.0, Plane::Xy) |
-        g_float!(18.0, Plane::Zx) |
-        g_float!(19.0, Plane::Yz)
+        g_code!("17.1", Plane::Uv) |
+        g_code!("18.1", Plane::Wu) |
+        g_code!("19.1", Plane::Vw) |
+        g_code!("17", Plane::Xy) |
+        g_code!("18", Plane::Zx) |
+        g_code!("19", Plane::Yz)
     ),
     |res| GCode::PlaneSelect(res)
 ));

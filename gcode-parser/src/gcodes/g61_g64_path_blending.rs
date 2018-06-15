@@ -14,13 +14,13 @@ pub enum PathBlendingMode {
 named!(pub path_blending<CompleteByteSlice, GCode>, map!(
     alt!(
         ws!(do_parse!(
-            g_int!(64) >>
+            g_code!("64") >>
             p: opt!(call!(preceded_float_value, "P")) >>
             q: opt!(call!(preceded_float_value, "Q")) >> ({
                 PathBlendingMode::Blended((p, q))
             })
         )) |
-        g_int!(61, PathBlendingMode::ExactPath)
+        g_code!("61", PathBlendingMode::ExactPath)
     ),
     |res| GCode::PathBlendingMode(res)
 ));
