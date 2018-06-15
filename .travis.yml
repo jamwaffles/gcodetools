@@ -20,9 +20,6 @@ before_install:
 # install:
 #   - cargo install cargo-travis || true
 
-before_script:
-  - cargo install cargo-travis || echo "cargo-travis already installed"
-
 script:
   - cargo build --release
   - cargo test --release
@@ -34,7 +31,12 @@ script:
 
 after_success: |
   if [[ "$TRAVIS_RUST_VERSION" == stable ]]; then
-    cargo coverage
+    bash <(curl https://raw.githubusercontent.com/xd009642/tarpaulin/master/travis-install.sh)
+    # Uncomment the following line for coveralls.io
+    # cargo tarpaulin --ciserver travis-ci --coveralls $TRAVIS_JOB_ID
+
+    # Uncomment the following two lines create and upload a report for codecov.io
+    cargo tarpaulin --out Xml
     bash <(curl -s https://codecov.io/bash)
 
     cargo doc-upload
