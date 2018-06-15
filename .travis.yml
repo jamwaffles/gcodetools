@@ -23,7 +23,6 @@ before_install:
 script:
   - cargo build --release
   - cargo test --release
-  - cargo doc
 
 # after_success:
 #   - cargo doc --release
@@ -39,6 +38,7 @@ after_success: |
     cargo tarpaulin --out Xml
     bash <(curl -s https://codecov.io/bash)
 
+    cargo doc
     cargo doc-upload
   fi
 
