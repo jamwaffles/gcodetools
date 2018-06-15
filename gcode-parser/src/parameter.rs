@@ -16,11 +16,11 @@ named!(numbered_parameter<CompleteByteSlice, Parameter>, map!(
     |res| Parameter::Numbered(res)
 ));
 named!(named_parameter<CompleteByteSlice, Parameter>, map!(
-    flat_map!(delimited!(tag!("#<"), take_until!(">"), char!('>')), parse_to!(String)),
+    flat_map!(delimited!(ws!(tuple!(char!('#'), char!('<'))), take_until!(">"), char!('>')), parse_to!(String)),
     |res| Parameter::Named(res)
 ));
 named!(global_parameter<CompleteByteSlice, Parameter>, map!(
-    flat_map!(delimited!(tag!("#<_"), take_until!(">"), char!('>')), parse_to!(String)),
+    flat_map!(delimited!(ws!(tuple!(char!('#'), tag!("<_"))), take_until!(">"), char!('>')), parse_to!(String)),
     |res| Parameter::Global(res)
 ));
 
@@ -93,6 +93,20 @@ mod tests {
         );
         assert_eq!(
             parameter(Cbs(b"#<_bar_baz>")),
+            Ok((EMPTY, Parameter::Global("bar_baz".into())))
+        );
+    }
+
+    #[test]
+    fn it_parses_parameters_with_spaces_after_hash() {
+        assert!(parameter(Cbs(b"# 1234")).is_err());
+
+        assert_eq!(
+            parameter(Cbs(b"# <foo_bar>")),
+            Ok((EMPTY, Parameter::Named("foo_bar".into())))
+        );
+        assert_eq!(
+            parameter(Cbs(b"# <_bar_baz>")),
             Ok((EMPTY, Parameter::Global("bar_baz".into())))
         );
     }
