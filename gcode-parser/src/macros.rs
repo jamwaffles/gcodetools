@@ -1,30 +1,3 @@
-macro_rules! map_result(
-    ($func:expr, $i:expr, $num:expr, $mapto:expr) => ({
-        use nom::*;
-
-        match $func {
-            Ok((remaining, num)) => if num == $num {
-                Ok((remaining, $mapto))
-            } else {
-                Err(Err::Error(Context::Code($i, ErrorKind::Digit::<u32>)))
-            },
-            Err(args) => Err(args)
-        }
-    });
-    ($func:expr, $i:expr, $num:expr) => ({
-        use nom::*;
-
-        match $func {
-            Ok((remaining, num)) => if num == $num {
-                Ok((remaining, num))
-            } else {
-                Err(Err::Error(Context::Code($i, ErrorKind::Digit::<u32>)))
-            },
-            Err(args) => Err(args)
-        }
-    })
-);
-
 macro_rules! map_code_result(
     ($func:expr, $mapto:expr) => ({
         match $func {
