@@ -26,6 +26,7 @@ before_script:
 script:
   - cargo build --release
   - cargo test --release
+  - cargo doc
 
 # after_success:
 #   - cargo doc --release
@@ -35,6 +36,8 @@ after_success: |
   if [[ "$TRAVIS_RUST_VERSION" == stable ]]; then
     cargo coverage
     bash <(curl -s https://codecov.io/bash)
+
+    cargo doc-upload
   fi
 
 cache: cargo
