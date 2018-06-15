@@ -14,9 +14,9 @@ pub enum Coolant {
 }
 
 named!(pub coolant<CompleteByteSlice, MCode>, alt!(
-    m_int!(7, MCode::Coolant(Coolant::Mist)) |
-    m_int!(8, MCode::Coolant(Coolant::Flood)) |
-    m_int!(9, MCode::Coolant(Coolant::Off))
+    m_code!("7", MCode::Coolant(Coolant::Mist)) |
+    m_code!("8", MCode::Coolant(Coolant::Flood)) |
+    m_code!("9", MCode::Coolant(Coolant::Off))
 ));
 
 #[cfg(test)]

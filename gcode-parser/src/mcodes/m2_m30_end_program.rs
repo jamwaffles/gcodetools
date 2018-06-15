@@ -3,8 +3,8 @@ use nom::types::CompleteByteSlice;
 use super::MCode;
 
 named!(pub end_program<CompleteByteSlice, MCode>, alt!(
-    m_int!(30, MCode::EndProgram) |
-    m_int!(2, MCode::EndProgram)
+    m_code!("30", MCode::EndProgram) |
+    m_code!("2", MCode::EndProgram)
 ));
 
 #[cfg(test)]

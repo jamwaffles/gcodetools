@@ -25,6 +25,15 @@ macro_rules! map_result(
     })
 );
 
+macro_rules! map_code_result(
+    ($func:expr, $mapto:expr) => ({
+        match $func {
+            Ok((remaining, _)) => Ok((remaining, $mapto)),
+            Err(args) => Err(args)
+        }
+    });
+);
+
 #[macro_export]
 macro_rules! g_int(
     ($i:expr, $num:expr, $mapto:expr) => ({
@@ -54,15 +63,15 @@ macro_rules! g_float(
 );
 
 #[macro_export]
-macro_rules! m_int(
+macro_rules! m_code(
     ($i:expr, $num:expr, $mapto:expr) => ({
-        use $crate::helpers::preceded_u32;
+        use $crate::helpers::code;
 
-        map_result!(preceded_u32($i, "M"), $i, $num, $mapto)
+        map_code_result!(code($i, "M", $num), $mapto)
     });
     ($i:expr, $num:expr) => ({
         use $crate::helpers::preceded_u32;
 
-        map_result!(preceded_u32($i, "M"), $i, $num)
+        code($i, "M", $num)
     });
 );

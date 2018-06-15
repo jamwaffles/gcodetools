@@ -3,7 +3,7 @@ use nom::types::CompleteByteSlice;
 use super::MCode;
 
 named!(pub tool_change<CompleteByteSlice, MCode>,
-    m_int!(6, MCode::ToolChange)
+    m_code!("6", MCode::ToolChange)
 );
 
 #[cfg(test)]

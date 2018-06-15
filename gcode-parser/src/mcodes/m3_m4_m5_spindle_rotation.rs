@@ -15,9 +15,9 @@ pub enum SpindleRotation {
 
 named!(pub spindle_rotation<CompleteByteSlice, MCode>, map!(
     alt!(
-        m_int!(3, SpindleRotation::Cw) |
-        m_int!(4, SpindleRotation::Ccw) |
-        m_int!(5, SpindleRotation::Stop)
+        m_code!("3", SpindleRotation::Cw) |
+        m_code!("4", SpindleRotation::Ccw) |
+        m_code!("5", SpindleRotation::Stop)
     ),
     |res| MCode::SpindleRotation(res)
 ));

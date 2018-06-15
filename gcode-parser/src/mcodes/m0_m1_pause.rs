@@ -3,8 +3,8 @@ use nom::types::CompleteByteSlice;
 use super::MCode;
 
 named!(pub pause<CompleteByteSlice, MCode>, alt!(
-    m_int!(0, MCode::Pause) |
-    m_int!(1, MCode::OptionalPause)
+    m_code!("0", MCode::Pause) |
+    m_code!("1", MCode::OptionalPause)
 ));
 
 #[cfg(test)]

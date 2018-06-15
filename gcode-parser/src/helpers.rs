@@ -54,6 +54,20 @@ named_args!(
     )
 );
 
+named_args!(
+    pub code<'a>(preceding: &str, code: &str)<CompleteByteSlice<'a>, CompleteByteSlice<'a>>,
+    preceded!(
+        tag_no_case!(preceding),
+        preceded!(
+            opt!(char!('0')),
+            terminated!(
+                tag!(code),
+                not!(char!('.'))
+            )
+        )
+    )
+);
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -96,6 +110,19 @@ mod tests {
         assert_eq!(preceded_f32(Cbs(b"Y-1.23"), "Y"), Ok((EMPTY, -1.23f32)));
         assert_eq!(preceded_f32(Cbs(b"Z+1.23"), "Z"), Ok((EMPTY, 1.23f32)));
         assert_eq!(preceded_f32(Cbs(b"A123"), "A"), Ok((EMPTY, 123.0f32)));
+    }
+
+    #[test]
+    fn it_recognizes_preceded_codes() {
+        assert_eq!(code(Cbs(b"G00"), "G", "0"), Ok((EMPTY, Cbs(b"0"))));
+        assert_eq!(code(Cbs(b"G01"), "G", "1"), Ok((EMPTY, Cbs(b"1"))));
+        assert_eq!(code(Cbs(b"G1"), "G", "1"), Ok((EMPTY, Cbs(b"1"))));
+        assert_eq!(code(Cbs(b"G10"), "G", "10"), Ok((EMPTY, Cbs(b"10"))));
+        assert_eq!(code(Cbs(b"G38.2"), "G", "38.2"), Ok((EMPTY, Cbs(b"38.2"))));
+        assert_eq!(code(Cbs(b"G038.2"), "G", "38.2"), Ok((EMPTY, Cbs(b"38.2"))));
+
+        assert!(code(Cbs(b"G10"), "G", "10.1").is_err());
+        assert!(code(Cbs(b"G10.5"), "G", "10.6").is_err());
     }
 
     #[test]
