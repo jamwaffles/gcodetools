@@ -1,7 +1,7 @@
 use super::super::expression::parser::expression;
 use super::super::helpers::*;
 use super::super::{token_not_subroutine, Token};
-use super::{If, Repeat, Subroutine, SubroutineCall, SubroutineName, While};
+use super::{DoWhile, If, Repeat, Subroutine, SubroutineCall, SubroutineName, While};
 use nom::types::CompleteByteSlice;
 
 named!(subroutine_name<CompleteByteSlice, SubroutineName>, alt_complete!(
@@ -30,6 +30,20 @@ named!(while_definition<CompleteByteSlice, While>, ws!(
         ) >>
         ({
             While { name, tokens, condition }
+        })
+    )
+));
+
+named!(do_while_definition<CompleteByteSlice, DoWhile>, ws!(
+    do_parse!(
+        name: call!(start_section, "do".into()) >>
+        tokens: terminated!(
+            many0!(token_not_subroutine),
+            call!(end_section, "while".into(), name.clone().into())
+        ) >>
+        condition: expression >>
+        ({
+            DoWhile { name, tokens, condition }
         })
     )
 ));
@@ -103,6 +117,7 @@ named!(subroutine_call<CompleteByteSlice, SubroutineCall>, do_parse!(
 ));
 
 named!(pub control_flow<CompleteByteSlice, Token>, alt_complete!(
+    map!(do_while_definition, |dw| Token::DoWhile(dw)) |
     map!(while_definition, |w| Token::While(w)) |
     map!(if_definition, |i| Token::If(i)) |
     map!(repeat_definition, |r| Token::Repeat(r)) |
@@ -217,6 +232,41 @@ mod tests {
                     ExpressionToken::Parameter(Parameter::Numbered(100)),
                     ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
                     ExpressionToken::Literal(180.0),
+                ],
+            })
+        );
+    }
+
+    #[test]
+    fn it_parses_do_whiles() {
+        let input = r#"o10 do
+            g0 z0
+        o10 while [[#<n>] LT 5]"#;
+
+        assert_complete_parse!(
+            control_flow(Cbs(input.as_bytes())),
+            Token::DoWhile(DoWhile {
+                name: SubroutineName::Number(10),
+                tokens: vec![
+                    Token::GCode(GCode::RapidMove),
+                    Token::Coord(Vec9 {
+                        x: None,
+                        y: None,
+                        z: Some(Value::Float(0.0)),
+                        a: None,
+                        b: None,
+                        c: None,
+                        u: None,
+                        v: None,
+                        w: None,
+                    }),
+                ],
+                condition: vec![
+                    ExpressionToken::Expression(vec![ExpressionToken::Parameter(
+                        Parameter::Named("n".into()),
+                    )]),
+                    ExpressionToken::BinaryOperator(BinaryOperator::LessThan),
+                    ExpressionToken::Literal(5.0),
                 ],
             })
         );

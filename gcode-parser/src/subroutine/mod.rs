@@ -39,6 +39,14 @@ pub struct While {
     pub condition: Expression,
 }
 
+/// `do ... while` block
+#[derive(Debug, PartialEq)]
+pub struct DoWhile {
+    pub name: SubroutineName,
+    pub tokens: ProgramTokens,
+    pub condition: Expression,
+}
+
 // TODO: Elseif
 /// `if`/`else` block
 #[derive(Debug, PartialEq)]

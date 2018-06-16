@@ -44,7 +44,7 @@ use self::parameter::*;
 use self::polar::polar_coordinate;
 use self::polar::PolarCoordinate;
 use self::subroutine::{
-    parser::{control_flow, subroutine}, If, Repeat, Subroutine, SubroutineCall, While,
+    parser::{control_flow, subroutine}, DoWhile, If, Repeat, Subroutine, SubroutineCall, While,
 };
 use self::value::*;
 use self::vec9::*;
@@ -75,6 +75,7 @@ pub enum Token {
     CenterArc(CenterArc),
     Comment(String),
     Coord(Vec9),
+    DoWhile(DoWhile),
     FeedRate(Value),
     GCode(GCode),
     If(If),
