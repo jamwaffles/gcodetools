@@ -25,6 +25,7 @@ mod helpers;
 mod mcodes;
 mod othercodes;
 mod parameter;
+mod polar;
 pub mod prelude;
 mod subroutine;
 mod value;
@@ -40,6 +41,8 @@ use self::helpers::*;
 use self::mcodes::*;
 use self::othercodes::*;
 use self::parameter::*;
+use self::polar::polar_coordinate;
+use self::polar::PolarCoordinate;
 use self::subroutine::{
     parser::{control_flow, subroutine}, If, Repeat, Subroutine, SubroutineCall, While,
 };
@@ -73,20 +76,21 @@ pub enum Token {
     Comment(String),
     Coord(Vec9),
     FeedRate(Value),
+    GCode(GCode),
     If(If),
     LineNumber(u32),
+    MCode(MCode),
     Parameter(Parameter),
     ParameterAssignment((Parameter, Value)),
+    PolarCoordinate(PolarCoordinate),
     RadiusArc(RadiusArc),
     Repeat(Repeat),
     SpindleSpeed(Value),
     SubroutineCall(SubroutineCall),
     SubroutineDefinition(Subroutine),
+    ToolLengthCompensationToolNumber(Value),
     ToolSelect(Value),
     While(While),
-    MCode(MCode),
-    GCode(GCode),
-    ToolLengthCompensationToolNumber(Value),
 }
 
 /// List of parsed GCode tokens
@@ -114,7 +118,8 @@ named!(pub token_not_subroutine<CompleteByteSlice, Token>,
         coord |
         comment |
         parameters |
-        control_flow
+        control_flow |
+        polar_coordinate
     )
 );
 
