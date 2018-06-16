@@ -42,3 +42,14 @@ macro_rules! assert_complete_parse {
         assert_eq!($to_check, Ok((CompleteByteSlice(b""), $against)))
     };
 }
+
+#[cfg(test)]
+#[macro_export]
+macro_rules! assert_remaining {
+    ($to_check:expr) => {
+        match $to_check {
+            Ok((rem, _)) => assert!(rem.len() > 0),
+            _ => assert!(false),
+        }
+    };
+}
