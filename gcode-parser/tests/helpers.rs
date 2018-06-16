@@ -42,7 +42,7 @@ pub fn collect_source_files(dir: &Path) -> io::Result<Vec<PathBuf>> {
         }
     }
 
-    files.sort();
+    files.sort_unstable_by(|a, b| a.file_name().unwrap().cmp(b.file_name().unwrap()));
 
     Ok(files)
 }
