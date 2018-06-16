@@ -17,6 +17,7 @@ mod g80_canned_cycle;
 mod g90_g91_distance_mode;
 mod g92_coordinate_system_offset;
 mod g93_g95_feedrate_mode;
+mod g96_g97_spindle_control_mode;
 
 use super::value::Value;
 use nom::types::CompleteByteSlice;
@@ -40,6 +41,7 @@ use self::g80_canned_cycle::canned_cycle;
 use self::g90_g91_distance_mode::distance_mode;
 use self::g92_coordinate_system_offset::coordinate_system_offset;
 use self::g93_g95_feedrate_mode::feedrate_mode;
+use self::g96_g97_spindle_control_mode::lathe_spindle_control_mode;
 
 pub use self::g17_g19_plane_select::Plane;
 pub use self::g20_g21_units::Units;
@@ -53,6 +55,7 @@ pub use self::g61_g64_path_blending::PathBlendingMode;
 pub use self::g7_g8_lathe_measurement_mode::LatheMeasurementMode;
 pub use self::g90_g91_distance_mode::DistanceMode;
 pub use self::g93_g95_feedrate_mode::FeedrateMode;
+pub use self::g96_g97_spindle_control_mode::{ConstantSurfaceSpeed, SpindleControlMode};
 
 named!(pub gcode<CompleteByteSlice, GCode>, alt!(
     rapid_move |
@@ -73,11 +76,13 @@ named!(pub gcode<CompleteByteSlice, GCode>, alt!(
     distance_mode |
     coordinate_system_offset |
     feedrate_mode |
-    spindle_sync_motion
+    spindle_sync_motion |
+    lathe_spindle_control_mode
 ));
 
 #[derive(Debug, PartialEq)]
 pub enum GCode {
+    SpindleControlMode(SpindleControlMode),
     CancelCannedCycle,
     ClockwiseArc,
     CoordinateSystemOffset,
