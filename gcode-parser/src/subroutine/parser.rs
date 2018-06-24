@@ -56,9 +56,7 @@ named!(if_no_else_definition<CompleteByteSlice, If>, ws!(
             many0!(token_not_subroutine),
             call!(end_section, "endif".into(), name.clone().into())
         ) >>
-        ({
-            If { name, condition, if_tokens, else_tokens: None }
-        })
+        (If { name, condition, if_tokens, else_tokens: None, elseif_tokens: None })
     )
 ));
 
@@ -74,9 +72,7 @@ named!(if_else_definition<CompleteByteSlice, If>, ws!(
             many0!(token_not_subroutine),
             call!(end_section, "endif".into(), name.clone().into())
         ) >>
-        ({
-            If { name, condition, if_tokens, else_tokens: Some(else_tokens) }
-        })
+        (If { name, condition, if_tokens, else_tokens: Some(else_tokens), elseif_tokens: None })
     )
 ));
 
@@ -305,6 +301,7 @@ mod tests {
                 ],
                 if_tokens: vec![Token::GCode(GCode::Units(Units::Inch))],
                 else_tokens: None,
+                elseif_tokens: None,
             })
         );
     }
@@ -328,6 +325,33 @@ mod tests {
                 ],
                 if_tokens: vec![Token::GCode(GCode::Units(Units::Inch))],
                 else_tokens: Some(vec![Token::GCode(GCode::Units(Units::Mm))]),
+                elseif_tokens: None,
+            })
+        );
+    }
+
+    #[test]
+    fn it_parses_if_elseif_elses() {
+        let input = r#"o100 if [ #100 le 180 ]
+            g20
+        o100 else if [ #101 le 90 ]
+            g21
+        o100 else
+            g0
+        o100 endif"#;
+
+        assert_complete_parse!(
+            control_flow(Cbs(input.as_bytes())),
+            Token::If(If {
+                name: SubroutineName::Number(100),
+                condition: vec![
+                    ExpressionToken::Parameter(Parameter::Numbered(100)),
+                    ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
+                    ExpressionToken::Literal(180.0),
+                ],
+                if_tokens: vec![Token::GCode(GCode::Units(Units::Inch))],
+                else_tokens: Some(vec![Token::GCode(GCode::Units(Units::Mm))]),
+                elseif_tokens: Some(vec![vec![Token::GCode(GCode::RapidMove)]]),
             })
         );
     }
@@ -349,6 +373,7 @@ mod tests {
                 ],
                 if_tokens: vec![Token::MCode(MCode::EndProgram)],
                 else_tokens: None,
+                elseif_tokens: None,
             })
         );
     }

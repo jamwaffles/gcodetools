@@ -55,6 +55,7 @@ pub struct If {
     pub condition: Expression,
     pub if_tokens: ProgramTokens,
     pub else_tokens: Option<ProgramTokens>,
+    pub elseif_tokens: Option<Vec<ProgramTokens>>,
 }
 
 /// A subroutine call with optional arguments
