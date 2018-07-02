@@ -1,8 +1,9 @@
 use super::super::expression::parser::expression;
 use super::super::helpers::*;
 use super::super::{token_not_subroutine, Token};
-use super::{DoWhile, If, Repeat, Subroutine, SubroutineCall, SubroutineName, While};
+use super::{DoWhile, If, IfBranch, Repeat, Subroutine, SubroutineCall, SubroutineName, While};
 use nom::types::CompleteByteSlice;
+use std::iter;
 
 named!(subroutine_name<CompleteByteSlice, SubroutineName>, alt_complete!(
     map!(call!(preceded_u32, "O"), |res| SubroutineName::Number(res)) |
@@ -48,38 +49,44 @@ named!(do_while_definition<CompleteByteSlice, DoWhile>, ws!(
     )
 ));
 
-named!(if_no_else_definition<CompleteByteSlice, If>, ws!(
-    do_parse!(
-        name: call!(start_section, "if".into()) >>
-        condition: expression >>
-        if_tokens: terminated!(
-            many0!(token_not_subroutine),
-            call!(end_section, "endif".into(), name.clone().into())
-        ) >>
-        (If { name, condition, if_tokens, else_tokens: None, elseif_tokens: None })
-    )
-));
+named!(if_definition<CompleteByteSlice, If>, ws!(do_parse!(
+    name: call!(start_section, "if".into()) >>
+    if_condition: expression >>
+    if_tokens: many0!(token_not_subroutine) >>
 
-named!(if_else_definition<CompleteByteSlice, If>, ws!(
-    do_parse!(
-        name: call!(start_section, "if".into()) >>
-        condition: expression >>
-        if_tokens: terminated!(
-            many0!(token_not_subroutine),
-            call!(end_section, "else".into(), name.clone().into())
-        ) >>
-        else_tokens: terminated!(
-            many0!(token_not_subroutine),
-            call!(end_section, "endif".into(), name.clone().into())
-        ) >>
-        (If { name, condition, if_tokens, else_tokens: Some(else_tokens), elseif_tokens: None })
-    )
-));
+    elseif_tokens: many0!(map!(
+        preceded!(
+            call!(end_section, "elseif".into(), name.clone().into()),
+            tuple!(expression, many0!(token_not_subroutine))
+        ),
+        |(condition, tokens)| IfBranch { condition: Some(condition), tokens }
+    )) >>
 
-named!(if_definition<CompleteByteSlice, If>, alt!(
-    if_no_else_definition |
-    if_else_definition
-));
+    else_tokens: opt!(map!(
+        preceded!(
+            call!(end_section, "else".into(), name.clone().into()),
+            many0!(token_not_subroutine)
+        ),
+        |tokens| vec![ IfBranch { condition: None, tokens } ]
+    )) >>
+
+    call!(end_section, "endif".into(), name.clone().into()) >>
+    ({
+        let branches = iter::once(
+            IfBranch {
+                condition: Some(if_condition),
+                tokens: if_tokens
+            })
+            .chain(elseif_tokens)
+            .chain(else_tokens.unwrap_or(Vec::new()))
+            .collect();
+
+        If {
+            name: SubroutineName::Number(100),
+            branches
+        }
+    })
+)));
 
 named!(repeat_definition<CompleteByteSlice, Repeat>, ws!(
     do_parse!(
@@ -294,14 +301,14 @@ mod tests {
             control_flow(Cbs(input.as_bytes())),
             Token::If(If {
                 name: SubroutineName::Number(100),
-                condition: vec![
-                    ExpressionToken::Parameter(Parameter::Numbered(100)),
-                    ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
-                    ExpressionToken::Literal(180.0),
-                ],
-                if_tokens: vec![Token::GCode(GCode::Units(Units::Inch))],
-                else_tokens: None,
-                elseif_tokens: None,
+                branches: vec![IfBranch {
+                    condition: Some(vec![
+                        ExpressionToken::Parameter(Parameter::Numbered(100)),
+                        ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
+                        ExpressionToken::Literal(180.0),
+                    ]),
+                    tokens: vec![Token::GCode(GCode::Units(Units::Inch))],
+                }],
             })
         );
     }
@@ -318,14 +325,20 @@ mod tests {
             control_flow(Cbs(input.as_bytes())),
             Token::If(If {
                 name: SubroutineName::Number(100),
-                condition: vec![
-                    ExpressionToken::Parameter(Parameter::Numbered(100)),
-                    ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
-                    ExpressionToken::Literal(180.0),
+                branches: vec![
+                    IfBranch {
+                        condition: Some(vec![
+                            ExpressionToken::Parameter(Parameter::Numbered(100)),
+                            ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
+                            ExpressionToken::Literal(180.0),
+                        ]),
+                        tokens: vec![Token::GCode(GCode::Units(Units::Inch))],
+                    },
+                    IfBranch {
+                        condition: None,
+                        tokens: vec![Token::GCode(GCode::Units(Units::Mm))],
+                    },
                 ],
-                if_tokens: vec![Token::GCode(GCode::Units(Units::Inch))],
-                else_tokens: Some(vec![Token::GCode(GCode::Units(Units::Mm))]),
-                elseif_tokens: None,
             })
         );
     }
@@ -334,7 +347,7 @@ mod tests {
     fn it_parses_if_elseif_elses() {
         let input = r#"o100 if [ #100 le 180 ]
             g20
-        o100 else if [ #101 le 90 ]
+        o100 elseif [ #101 le 90 ]
             g21
         o100 else
             g0
@@ -344,14 +357,28 @@ mod tests {
             control_flow(Cbs(input.as_bytes())),
             Token::If(If {
                 name: SubroutineName::Number(100),
-                condition: vec![
-                    ExpressionToken::Parameter(Parameter::Numbered(100)),
-                    ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
-                    ExpressionToken::Literal(180.0),
+                branches: vec![
+                    IfBranch {
+                        condition: Some(vec![
+                            ExpressionToken::Parameter(Parameter::Numbered(100)),
+                            ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
+                            ExpressionToken::Literal(180.0),
+                        ]),
+                        tokens: vec![Token::GCode(GCode::Units(Units::Inch))],
+                    },
+                    IfBranch {
+                        condition: Some(vec![
+                            ExpressionToken::Parameter(Parameter::Numbered(101)),
+                            ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
+                            ExpressionToken::Literal(90.0),
+                        ]),
+                        tokens: vec![Token::GCode(GCode::Units(Units::Mm))],
+                    },
+                    IfBranch {
+                        condition: None,
+                        tokens: vec![Token::GCode(GCode::RapidMove)],
+                    },
                 ],
-                if_tokens: vec![Token::GCode(GCode::Units(Units::Inch))],
-                else_tokens: Some(vec![Token::GCode(GCode::Units(Units::Mm))]),
-                elseif_tokens: Some(vec![vec![Token::GCode(GCode::RapidMove)]]),
             })
         );
     }
@@ -366,14 +393,14 @@ mod tests {
             control_flow(Cbs(input.as_bytes())),
             Token::If(If {
                 name: SubroutineName::Number(100),
-                condition: vec![
-                    ExpressionToken::Parameter(Parameter::Numbered(100)),
-                    ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
-                    ExpressionToken::Literal(180.0),
-                ],
-                if_tokens: vec![Token::MCode(MCode::EndProgram)],
-                else_tokens: None,
-                elseif_tokens: None,
+                branches: vec![IfBranch {
+                    condition: Some(vec![
+                        ExpressionToken::Parameter(Parameter::Numbered(100)),
+                        ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual),
+                        ExpressionToken::Literal(180.0),
+                    ]),
+                    tokens: vec![Token::MCode(MCode::EndProgram)],
+                }],
             })
         );
     }

@@ -47,15 +47,18 @@ pub struct DoWhile {
     pub condition: Expression,
 }
 
-// TODO: Elseif
-/// `if`/`else` block
+/// A single branch of an if/elseif/else block
+#[derive(Debug, PartialEq)]
+pub struct IfBranch {
+    pub condition: Option<Expression>,
+    pub tokens: ProgramTokens,
+}
+
+/// If/elseif/else
 #[derive(Debug, PartialEq)]
 pub struct If {
     pub name: SubroutineName,
-    pub condition: Expression,
-    pub if_tokens: ProgramTokens,
-    pub else_tokens: Option<ProgramTokens>,
-    pub elseif_tokens: Option<Vec<ProgramTokens>>,
+    pub branches: Vec<IfBranch>,
 }
 
 /// A subroutine call with optional arguments
