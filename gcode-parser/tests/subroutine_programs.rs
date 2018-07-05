@@ -37,6 +37,7 @@ fn it_parses_programs_with_numbered_subroutines() {
                             w: None,
                         }),
                     ],
+                    arguments: vec![],
                 }),
                 Token::SubroutineCall(SubroutineCall {
                     name: SubroutineName::Number(100),
@@ -77,6 +78,7 @@ fn it_parses_subroutine_calls_with_args() {
                             w: None,
                         }),
                     ],
+                    arguments: vec![],
                 }),
                 Token::SubroutineCall(SubroutineCall {
                     name: SubroutineName::Number(100),
@@ -121,6 +123,7 @@ fn it_parses_named_subroutines() {
                         w: None,
                     }),
                 ],
+                arguments: vec![],
             })]
         ))
     );

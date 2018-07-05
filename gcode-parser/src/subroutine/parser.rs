@@ -1,7 +1,9 @@
 use super::super::expression::parser::expression;
 use super::super::helpers::*;
 use super::super::{token_not_subroutine, Token};
-use super::{DoWhile, If, IfBranch, Repeat, Subroutine, SubroutineCall, SubroutineName, While};
+use super::{
+    DoWhile, If, IfBranch, Repeat, Return, Subroutine, SubroutineCall, SubroutineName, While,
+};
 use nom::types::CompleteByteSlice;
 use std::iter;
 
@@ -102,6 +104,16 @@ named!(repeat_definition<CompleteByteSlice, Repeat>, ws!(
     )
 ));
 
+named!(return_definition<CompleteByteSlice, Return>, ws!(
+    map!(
+        preceded!(
+            call!(start_section, "return".into()),
+            opt!(expression)
+        ),
+        |value| Return { value }
+    )
+));
+
 named!(subroutine_definition<CompleteByteSlice, Subroutine>, ws!(
     do_parse!(
         name: call!(start_section, "sub".into()) >>
@@ -109,7 +121,8 @@ named!(subroutine_definition<CompleteByteSlice, Subroutine>, ws!(
             many0!(token_not_subroutine),
             call!(end_section, "endsub".into(), name.clone().into())
         ) >>
-        (Subroutine { name, tokens })
+        arguments: many0!(expression) >>
+        (Subroutine { name, tokens, arguments })
     )
 ));
 
@@ -124,6 +137,7 @@ named!(pub control_flow<CompleteByteSlice, Token>, alt_complete!(
     map!(while_definition, |w| Token::While(w)) |
     map!(if_definition, |i| Token::If(i)) |
     map!(repeat_definition, |r| Token::Repeat(r)) |
+    map!(return_definition, |r| Token::Return(r)) |
     map!(subroutine_call, |sub| Token::SubroutineCall(sub))
 ));
 
@@ -175,6 +189,29 @@ mod tests {
                         w: None,
                     }),
                 ],
+                arguments: vec![],
+            })
+        );
+    }
+
+    #[test]
+    fn it_parses_subroutines_with_arguments() {
+        let input = r#"o100 sub
+          G0
+          o1010 return [10]
+        o100 endsub [2000]"#;
+
+        assert_complete_parse!(
+            subroutine(Cbs(input.as_bytes())),
+            Token::SubroutineDefinition(Subroutine {
+                name: SubroutineName::Number(100u32),
+                tokens: vec![
+                    Token::GCode(GCode::RapidMove),
+                    Token::Return(Return {
+                        value: Some(vec![ExpressionToken::Literal(10.0)]),
+                    }),
+                ],
+                arguments: vec![vec![ExpressionToken::Literal(2000.0)]],
             })
         );
     }
@@ -190,6 +227,7 @@ mod tests {
             Token::SubroutineDefinition(Subroutine {
                 name: SubroutineName::External("external_file".into()),
                 tokens: vec![Token::GCode(GCode::WorkOffset(WorkOffset::G54))],
+                arguments: vec![],
             })
         );
     }

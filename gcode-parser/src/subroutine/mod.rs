@@ -29,6 +29,7 @@ impl From<SubroutineName> for String {
 pub struct Subroutine {
     pub name: SubroutineName,
     pub tokens: ProgramTokens,
+    pub arguments: Vec<Expression>,
 }
 
 /// `while` block
@@ -73,6 +74,11 @@ pub struct Repeat {
     pub name: SubroutineName,
     pub condition: Expression,
     pub tokens: ProgramTokens,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Return {
+    pub value: Option<Expression>,
 }
 
 #[cfg(test)]
