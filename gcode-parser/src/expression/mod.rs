@@ -22,10 +22,8 @@ pub enum ArithmeticOperator {
 pub enum LogicalOperator {
     /// Logical AND
     And,
-
     /// Logical OR
     Or,
-
     /// Logical NOT (negation)
     Not,
 }
