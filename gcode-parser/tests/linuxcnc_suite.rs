@@ -8,7 +8,7 @@ mod helpers;
 use helpers::*;
 use std::path::Path;
 
-#[test]
+// #[test]
 fn it_parses_all_linuxcnc_samples() {
     let dir = Path::new("./tests/test_files/linuxcnc")
         .canonicalize()
