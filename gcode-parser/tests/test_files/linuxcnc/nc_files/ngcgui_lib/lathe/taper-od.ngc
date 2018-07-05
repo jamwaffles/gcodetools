@@ -20,7 +20,7 @@ T#<Tool> M6
 #<tooldiam>=#5410
 G43 (load tool offset)
 G42 (start cutter comp)
-M3 M#<Coolant>
+M3 ; M#<Coolant>
 G0 X#<StartDiameter> Z[#<Z-Start> + .1000]
 G1 X#<StartDiameter> Z#<Z-Start> F#<FeedRate>
 X#<X-End> Z#<Z-End>
