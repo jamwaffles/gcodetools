@@ -5,7 +5,7 @@ extern crate nom;
 
 mod helpers;
 
-use helpers::*;
+use crate::helpers::*;
 use std::path::Path;
 
 // #[test]
