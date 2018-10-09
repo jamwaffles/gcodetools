@@ -44,8 +44,8 @@ use self::parameter::*;
 use self::polar::polar_coordinate;
 use self::polar::PolarCoordinate;
 use self::subroutine::{
-    parser::{control_flow, subroutine}, DoWhile, If, Repeat, Return, Subroutine, SubroutineCall,
-    While,
+    parser::{control_flow, subroutine},
+    DoWhile, If, Repeat, Return, Subroutine, SubroutineCall, While,
 };
 use self::value::*;
 use self::vec9::*;
