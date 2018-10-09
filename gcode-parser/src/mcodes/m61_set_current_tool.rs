@@ -13,9 +13,9 @@ named!(pub set_current_tool<CompleteByteSlice, MCode>, map!(
 
 #[cfg(test)]
 mod tests {
-    use super::super::super::parameter::Parameter;
-    use super::super::super::value::Value;
     use super::*;
+    use crate::value::Value;
+    use expression::Parameter;
     use nom::types::CompleteByteSlice as Cbs;
 
     #[test]

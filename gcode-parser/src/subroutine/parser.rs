@@ -1,9 +1,9 @@
-use super::super::expression::parser::expression;
 use super::super::helpers::*;
 use super::super::{token_not_subroutine, Token};
 use super::{
     DoWhile, If, IfBranch, Repeat, Return, Subroutine, SubroutineCall, SubroutineName, While,
 };
+use expression::parser::gcode_expression;
 use nom::types::CompleteByteSlice;
 use std::iter;
 
@@ -26,7 +26,7 @@ named_args!(end_section(section_tag: String, sub_name: String)<CompleteByteSlice
 named!(while_definition<CompleteByteSlice, While>, ws!(
     do_parse!(
         name: call!(start_section, "while".into()) >>
-        condition: expression >>
+        condition: gcode_expression >>
         tokens: terminated!(
             many0!(token_not_subroutine),
             call!(end_section, "endwhile".into(), name.clone().into())
@@ -44,7 +44,7 @@ named!(do_while_definition<CompleteByteSlice, DoWhile>, ws!(
             many0!(token_not_subroutine),
             call!(end_section, "while".into(), name.clone().into())
         ) >>
-        condition: expression >>
+        condition: gcode_expression >>
         ({
             DoWhile { name, tokens, condition }
         })
@@ -53,13 +53,13 @@ named!(do_while_definition<CompleteByteSlice, DoWhile>, ws!(
 
 named!(if_definition<CompleteByteSlice, If>, ws!(do_parse!(
     name: call!(start_section, "if".into()) >>
-    if_condition: expression >>
+    if_condition: gcode_expression >>
     if_tokens: many0!(token_not_subroutine) >>
 
     elseif_tokens: many0!(map!(
         preceded!(
             call!(end_section, "elseif".into(), name.clone().into()),
-            tuple!(expression, many0!(token_not_subroutine))
+            tuple!(gcode_expression, many0!(token_not_subroutine))
         ),
         |(condition, tokens)| IfBranch { condition: Some(condition), tokens }
     )) >>
@@ -93,7 +93,7 @@ named!(if_definition<CompleteByteSlice, If>, ws!(do_parse!(
 named!(repeat_definition<CompleteByteSlice, Repeat>, ws!(
     do_parse!(
         name: call!(start_section, "repeat".into()) >>
-        condition: expression >>
+        condition: gcode_expression >>
         tokens: terminated!(
             many0!(token_not_subroutine),
             call!(end_section, "endrepeat".into(), name.clone().into())
@@ -108,7 +108,7 @@ named!(return_definition<CompleteByteSlice, Return>, ws!(
     map!(
         preceded!(
             call!(start_section, "return".into()),
-            opt!(expression)
+            opt!(gcode_expression)
         ),
         |value| Return { value }
     )
@@ -121,14 +121,14 @@ named!(subroutine_definition<CompleteByteSlice, Subroutine>, ws!(
             many0!(token_not_subroutine),
             call!(end_section, "endsub".into(), name.clone().into())
         ) >>
-        arguments: many0!(expression) >>
+        arguments: many0!(gcode_expression) >>
         (Subroutine { name, tokens, arguments })
     )
 ));
 
 named!(subroutine_call<CompleteByteSlice, SubroutineCall>, do_parse!(
     name: ws!(terminated!(subroutine_name, tag!("call"))) >>
-    args: opt!(ws!(many1!(expression))) >>
+    args: opt!(ws!(many1!(gcode_expression))) >>
     (SubroutineCall { name, args })
 ));
 
@@ -147,9 +147,9 @@ named!(pub subroutine<CompleteByteSlice, Token>,
 
 #[cfg(test)]
 mod tests {
-    use super::super::super::expression::{BinaryOperator, ExpressionToken};
     use super::super::super::prelude::*;
     use super::*;
+    use expression::{BinaryOperator, ExpressionToken, Parameter};
     use nom::types::CompleteByteSlice as Cbs;
 
     #[test]

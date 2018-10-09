@@ -1,9 +1,8 @@
 use nom::types::CompleteByteSlice;
 use nom::*;
 
-use super::expression::*;
 use super::helpers::float_no_exponent;
-use super::parameter::{parameter, Parameter};
+use expression::{parser::gcode_expression, parser::gcode_parameter, Expression, Parameter};
 
 #[derive(Debug, PartialEq)]
 pub enum Value {
@@ -66,12 +65,12 @@ named!(value_float<CompleteByteSlice, Value>, map!(
 ));
 
 named!(value_parameter<CompleteByteSlice, Value>, map!(
-    parameter,
+    gcode_parameter,
     |param| Value::Parameter(param)
 ));
 
 named!(value_expression<CompleteByteSlice, Value>, map!(
-    expression,
+    gcode_expression,
     |expr| Value::Expression(expr)
 ));
 
@@ -114,6 +113,7 @@ named_args!(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use expression::{ArithmeticOperator, ExpressionToken};
     use nom::types::CompleteByteSlice as Cbs;
 
     #[test]

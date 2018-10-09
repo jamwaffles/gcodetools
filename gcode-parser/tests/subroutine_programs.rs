@@ -1,6 +1,7 @@
 extern crate gcode_parser;
 extern crate nom;
 
+use expression::{ArithmeticOperator, ExpressionToken, Parameter};
 use gcode_parser::prelude::*;
 use gcode_parser::program;
 use nom::types::CompleteByteSlice as Cbs;

@@ -1,43 +1,13 @@
 use super::value::{float_value, Value};
+use expression::{parser::gcode_parameter, Parameter};
 use nom::types::CompleteByteSlice;
 use nom::*;
 
 use super::Token;
 
-#[derive(Eq, Hash, Clone, Debug, PartialEq)]
-pub enum Parameter {
-    Numbered(u32),
-    Named(String),
-    Global(String),
-}
-
-named!(numbered_parameter<CompleteByteSlice, Parameter>, map!(
-    flat_map!(preceded!(char!('#'), digit), parse_to!(u32)),
-    |res| Parameter::Numbered(res)
-));
-named!(named_parameter<CompleteByteSlice, Parameter>, map!(
-    flat_map!(delimited!(ws!(tuple!(char!('#'), char!('<'))), take_until!(">"), char!('>')), parse_to!(String)),
-    |res| Parameter::Named(res)
-));
-named!(global_parameter<CompleteByteSlice, Parameter>, map!(
-    flat_map!(delimited!(ws!(tuple!(char!('#'), tag!("<_"))), take_until!(">"), char!('>')), parse_to!(String)),
-    |res| Parameter::Global(res)
-));
-
-named!(
-    pub parameter<CompleteByteSlice, Parameter>,
-    // Order is significant
-    alt_complete!(numbered_parameter | global_parameter | named_parameter)
-);
-
-named!(
-    pub not_numbered_parameter<CompleteByteSlice, Parameter>,
-    alt_complete!(global_parameter | named_parameter)
-);
-
 named!(parameter_assignment<CompleteByteSlice, (Parameter, Value)>, ws!(
     do_parse!(
-        param: parameter >>
+        param: gcode_parameter >>
         char!('=') >>
         value: float_value >>
         ((param, value))
@@ -47,7 +17,7 @@ named!(parameter_assignment<CompleteByteSlice, (Parameter, Value)>, ws!(
 named!(pub parameters<CompleteByteSlice, Token>, alt_complete!(
     // Order matters
     map!(parameter_assignment, |res| Token::ParameterAssignment(res)) |
-    map!(parameter, |res| Token::Parameter(res))
+    map!(gcode_parameter, |res| Token::Parameter(res))
 ));
 
 #[cfg(test)]
@@ -57,56 +27,6 @@ mod tests {
     use nom::types::CompleteByteSlice as Cbs;
 
     const EMPTY: Cbs = Cbs(b"");
-
-    #[test]
-    fn it_parses_named_parameters() {
-        assert_complete_parse!(
-            named_parameter(Cbs(b"#<foo_bar>")),
-            Parameter::Named("foo_bar".into())
-        );
-    }
-
-    #[test]
-    fn it_parses_not_numbered_parameters() {
-        assert!(not_numbered_parameter(Cbs(b"#<foo_bar>")).is_ok());
-        assert!(not_numbered_parameter(Cbs(b"#<_global>")).is_ok());
-        assert!(not_numbered_parameter(Cbs(b"#1234")).is_err());
-    }
-
-    #[test]
-    fn it_parses_global_parameters() {
-        assert_complete_parse!(
-            global_parameter(Cbs(b"#<_bar_baz>")),
-            Parameter::Global("bar_baz".into())
-        );
-    }
-
-    #[test]
-    fn it_parses_parameters() {
-        assert_complete_parse!(parameter(Cbs(b"#1234")), Parameter::Numbered(1234u32));
-        assert_complete_parse!(
-            parameter(Cbs(b"#<foo_bar>")),
-            Parameter::Named("foo_bar".into())
-        );
-        assert_complete_parse!(
-            parameter(Cbs(b"#<_bar_baz>")),
-            Parameter::Global("bar_baz".into())
-        );
-    }
-
-    #[test]
-    fn it_parses_parameters_with_spaces_after_hash() {
-        assert!(parameter(Cbs(b"# 1234")).is_err());
-
-        assert_complete_parse!(
-            parameter(Cbs(b"# <foo_bar>")),
-            Parameter::Named("foo_bar".into())
-        );
-        assert_complete_parse!(
-            parameter(Cbs(b"# <_bar_baz>")),
-            Parameter::Global("bar_baz".into())
-        );
-    }
 
     #[test]
     fn it_parses_parameter_assignment() {

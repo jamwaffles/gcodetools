@@ -2,5 +2,5 @@
 
 pub mod expression;
 mod helpers;
-mod parameter;
+pub mod parameter;
 mod value;

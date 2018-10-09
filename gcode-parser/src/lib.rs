@@ -7,19 +7,18 @@
         unstable_features,
         unused_import_braces/*, unused_qualifications*/)]
 
-#[macro_use]
 #[cfg(test)]
+#[macro_use]
 extern crate maplit;
-
 #[macro_use]
 extern crate nom;
+extern crate expression;
 
 #[macro_use]
 mod macros;
 
 mod arc;
 mod comment;
-mod expression;
 mod gcodes;
 mod helpers;
 mod mcodes;
@@ -31,6 +30,7 @@ mod subroutine;
 mod value;
 mod vec9;
 
+use expression::Parameter;
 use nom::types::CompleteByteSlice;
 use nom::*;
 

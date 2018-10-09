@@ -1,6 +1,7 @@
 extern crate gcode_parser;
 extern crate nom;
 
+use expression::Parameter;
 use gcode_parser::prelude::*;
 use gcode_parser::*;
 use nom::types::CompleteByteSlice as Cbs;

@@ -40,8 +40,8 @@ named!(pub othercode<CompleteByteSlice, Token>,
 
 #[cfg(test)]
 mod tests {
-    use super::super::parameter::Parameter;
     use super::*;
+    use expression::Parameter;
     use nom::types::CompleteByteSlice as Cbs;
 
     #[test]

@@ -26,6 +26,7 @@ name = "lots_of_vec9"
 [dependencies]
 nom = "4.1.0"
 cpuprofiler = { version = "0.0.3", optional = true }
+expression = { path = "../expression" }
 
 [dev-dependencies]
 chardet = "0.2.4"
