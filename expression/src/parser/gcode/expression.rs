@@ -27,9 +27,9 @@ named!(arithmetic<CompleteByteSlice, ExpressionToken>, map!(
 
 named!(logical_operator<CompleteByteSlice, ExpressionToken>, map!(
     alt_complete!(
-        map!(tag_no_case!("AND"), |_| LogicalOperator::Or) |
+        map!(tag_no_case!("AND"), |_| LogicalOperator::And) |
         map!(tag_no_case!("OR"), |_| LogicalOperator::Or) |
-        map!(tag_no_case!("NOT"), |_| LogicalOperator::Or)
+        map!(tag_no_case!("NOT"), |_| LogicalOperator::Not)
     ),
     |res| ExpressionToken::LogicalOperator(res)
 ));
@@ -249,18 +249,55 @@ mod tests {
 
     #[test]
     fn it_parses_logical_operators() {
-        let inputs: Vec<String> = vec![
-            "[1 AND 2]".into(),
-            "[1 OR 2]".into(),
-            "[1 NOT 2]".into(),
-            "[[#<fraction> GT .99] OR [#<fraction> LT .01]]".into(),
+        let inputs: Vec<(String, Expression)> = vec![
+            (
+                "[1 AND 2]".into(),
+                vec![
+                    ExpressionToken::Literal(1.0),
+                    ExpressionToken::LogicalOperator(LogicalOperator::And),
+                    ExpressionToken::Literal(2.0),
+                ],
+            ),
+            (
+                "[1 OR 2]".into(),
+                vec![
+                    ExpressionToken::Literal(1.0),
+                    ExpressionToken::LogicalOperator(LogicalOperator::Or),
+                    ExpressionToken::Literal(2.0),
+                ],
+            ),
+            (
+                "[1 NOT 2]".into(),
+                vec![
+                    ExpressionToken::Literal(1.0),
+                    ExpressionToken::LogicalOperator(LogicalOperator::Not),
+                    ExpressionToken::Literal(2.0),
+                ],
+            ),
+            (
+                "[[#<fraction> GT .99] OR [#<fraction> LT .01]]".into(),
+                vec![
+                    ExpressionToken::Expression(vec![
+                        ExpressionToken::Parameter(Parameter::Named("fraction".into())),
+                        ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan),
+                        ExpressionToken::Literal(0.99),
+                    ]),
+                    ExpressionToken::LogicalOperator(LogicalOperator::Or),
+                    ExpressionToken::Expression(vec![
+                        ExpressionToken::Parameter(Parameter::Named("fraction".into())),
+                        ExpressionToken::BinaryOperator(BinaryOperator::LessThan),
+                        ExpressionToken::Literal(0.01),
+                    ]),
+                ],
+            ),
         ];
 
-        for input in inputs.into_iter() {
-            let parsed = expression(Cbs(input.as_bytes()));
+        for (input, expected) in inputs.into_iter() {
+            let parsed = expression(Cbs(input.as_bytes()))
+                .expect(&format!("Could not parse expr {}", input));
 
-            assert!(parsed.is_ok());
-            assert_eq!(parsed.unwrap().0, EMPTY);
+            assert_eq!(parsed.0, EMPTY);
+            assert_eq!(parsed.1, expected);
         }
     }
 
