@@ -28,12 +28,12 @@ harness = false
 name = "lots_of_vec9"
 
 [dependencies]
-nom = "4.0.0"
+nom = "4.1.0"
 cpuprofiler = { version = "0.0.3", optional = true }
 
 [dev-dependencies]
 chardet = "0.2.4"
-criterion = "0.2.3"
+criterion = "0.2.5"
 encoding = "0.2.33"
 maplit = "1.0.1"
 
