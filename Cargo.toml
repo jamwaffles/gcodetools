@@ -2,5 +2,6 @@
 
 members = [
     "gcode-parser",
-    "expression"
+    "expression",
+    "trajectory-planner"
 ]

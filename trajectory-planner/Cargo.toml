@@ -1,0 +1,10 @@
+[package]
+name = "trajectory-planner"
+version = "0.1.0"
+authors = ["James Waples <jamwaffles@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+trajectories = { git = "https://github.com/jamwaffles/trajectories.git" }
+gcode-parser = { path = "../gcode-parser" }
+nalgebra = "0.16.4"
