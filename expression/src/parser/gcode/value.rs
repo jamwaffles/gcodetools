@@ -75,6 +75,7 @@ named_args!(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{ArithmeticOperator, ExpressionToken, Parameter};
     use nom::types::CompleteByteSlice as Cbs;
 
     #[test]

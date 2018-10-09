@@ -1,9 +1,4 @@
-use crate::{ArithmeticOperator, Expression, ExpressionToken, Function, Parameter};
-use std::collections::HashMap;
-
-/// List of parameters (variables) to pass in as the environment for the evaluation of an
-/// expression.
-pub type Context = HashMap<Parameter, f32>;
+use crate::{ArithmeticOperator, Context, Expression, ExpressionToken, Function};
 
 fn shunting_yard(tokens: Expression, context: Option<&Context>) -> Vec<ExpressionToken> {
     let mut output: Vec<ExpressionToken> = Vec::new();
@@ -124,6 +119,7 @@ pub fn evaluate(expression: Expression, context: Option<&Context>) -> Result<f32
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Parameter;
 
     macro_rules! assert_near {
         ($compare:expr, $expected:expr) => {

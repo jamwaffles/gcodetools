@@ -11,13 +11,18 @@ extern crate nom;
 #[macro_use]
 extern crate maplit;
 
-mod evaluator;
-mod parser;
-mod value;
 #[macro_use]
 mod macros;
+mod evaluator;
+pub mod parser;
+mod value;
 
-pub use self::parser::gcode;
+pub use self::evaluator::evaluate;
+use std::collections::HashMap;
+
+/// List of parameters (variables) to pass in as the environment for the evaluation of an
+/// expression.
+pub type Context = HashMap<Parameter, f32>;
 
 /// Arithmetic (`/`, `*`, `+`, `-`) operator
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]

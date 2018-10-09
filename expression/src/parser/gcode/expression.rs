@@ -1,5 +1,3 @@
-//! Parse expressions in the LinuxCNC GCode format
-
 use super::helpers::float_no_exponent;
 use super::parameter::{not_numbered_parameter, parameter};
 use crate::{

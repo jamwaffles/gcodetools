@@ -4,13 +4,11 @@
 extern crate criterion;
 #[macro_use]
 extern crate maplit;
-extern crate gcode_parser;
 extern crate nom;
 
-use nom::types::CompleteByteSlice as Cbs;
-
 use criterion::Criterion;
-use gcode_parser::program;
+use expression::{evaluate, parser::gcode, Context, Parameter};
+use nom::types::CompleteByteSlice as Cbs;
 
 fn parse_and_evaluate(c: &mut Criterion) {
     c.bench_function("Parse and evaluate expression", |b| {
@@ -24,7 +22,7 @@ fn parse_and_evaluate(c: &mut Criterion) {
         ]"#;
 
         b.iter(|| {
-            let parsed = program(Cbs(expr.as_bytes())).unwrap();
+            let parsed = gcode(Cbs(expr.as_bytes())).unwrap();
 
             evaluate(parsed.1, None)
         })
@@ -49,7 +47,7 @@ fn parse_and_evaluate_with_context(c: &mut Criterion) {
         ]"#;
 
         b.iter(|| {
-            let parsed = program(Cbs(expr.as_bytes())).unwrap();
+            let parsed = gcode(Cbs(expr.as_bytes())).unwrap();
 
             evaluate(parsed.1, Some(&context))
         })
