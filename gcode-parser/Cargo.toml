@@ -9,10 +9,6 @@ name = "tokenizer"
 
 [[bench]]
 harness = false
-name = "expression"
-
-[[bench]]
-harness = false
 name = "helpers"
 
 [[bench]]

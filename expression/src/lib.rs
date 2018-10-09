@@ -1,8 +1,23 @@
-pub mod evaluator;
-pub mod parser;
+#![deny(/*missing_docs,*/
+        missing_debug_implementations, /*missing_copy_implementations,*/
+        trivial_casts, trivial_numeric_casts,
+        unsafe_code,
+        unstable_features,
+        unused_import_braces/*, unused_qualifications*/)]
 
-pub use self::parser::expression;
-use super::prelude::Parameter;
+#[macro_use]
+extern crate nom;
+#[cfg(test)]
+#[macro_use]
+extern crate maplit;
+
+mod evaluator;
+mod parser;
+mod value;
+#[macro_use]
+mod macros;
+
+pub use self::parser::gcode;
 
 /// Arithmetic (`/`, `*`, `+`, `-`) operator
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
@@ -99,3 +114,10 @@ pub enum ExpressionToken {
 
 /// Wrapping expression type
 pub type Expression = Vec<ExpressionToken>;
+
+#[derive(Eq, Hash, Clone, Debug, PartialEq)]
+pub enum Parameter {
+    Numbered(u32),
+    Named(String),
+    Global(String),
+}
