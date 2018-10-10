@@ -145,4 +145,21 @@ mod tests {
             ))
         );
     }
+
+    #[test]
+    fn newlines_make_new_coords() {
+        let input = Cbs(b"X3.4000Y8.9431\nZ0.05");
+
+        assert_eq!(
+            vec9(input),
+            Ok((
+                Cbs(b"Z0.05"),
+                Vec9 {
+                    x: Some(Value::Float(3.4f32)),
+                    y: Some(Value::Float(8.9431f32)),
+                    ..Default::default()
+                },
+            ))
+        );
+    }
 }
