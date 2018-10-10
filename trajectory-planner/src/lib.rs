@@ -1,7 +1,7 @@
 use gcode_parser::{Program, Token};
 use nalgebra::{VectorN, U9};
 use std::path::Path as FilePath;
-use trajectories::{Coord, Path};
+use trajectories::{Coord, Path, Trajectory};
 
 type Coord9 = Coord<U9>;
 
@@ -87,5 +87,13 @@ mod tests {
         let program = Program::from_file(&FilePath::new("./assets/simple_traj.ngc"));
 
         let path = convert_tokens_to_path(&program);
+
+        let _trajectory = Trajectory::new(
+            path,
+            Coord9::repeat(1.0),
+            Coord9::repeat(1.0),
+            0.000001,
+            0.001,
+        );
     }
 }
