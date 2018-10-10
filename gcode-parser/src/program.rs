@@ -27,8 +27,8 @@ impl Program {
     /// Parse a file into a token list
     ///
     /// This does not currently stream the file, so is not memory efficient
-    pub fn from_file(input: &Path) -> Self {
-        let contents = fs::read_to_string(input).expect("Could not read file");
+    pub fn from_file(path: &Path) -> Self {
+        let contents = fs::read_to_string(path).expect("Could not read file");
 
         let (_remaining, tokens) =
             program(CompleteByteSlice(contents.as_bytes())).expect("Could not parse program");

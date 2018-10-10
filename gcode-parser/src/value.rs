@@ -13,9 +13,29 @@ pub enum Value {
     Expression(Expression),
 }
 
+impl Value {
+    /// Attempt to cast the value into an f64
+    ///
+    /// This will fail if the variant is not numeric
+    pub fn as_f64(&self) -> Result<f64, ()> {
+        match self {
+            Value::Unsigned(num) => Ok(*num as f64),
+            Value::Signed(num) => Ok(*num as f64),
+            Value::Float(num) => Ok(*num as f64),
+            _ => Err(()),
+        }
+    }
+}
+
 impl From<f32> for Value {
     fn from(other: f32) -> Self {
         Value::Float(other)
+    }
+}
+
+impl From<f64> for Value {
+    fn from(other: f64) -> Self {
+        Value::Float(other as f32)
     }
 }
 
