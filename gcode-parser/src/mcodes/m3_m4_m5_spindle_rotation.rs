@@ -46,7 +46,7 @@ mod tests {
         // It gets confused with M30
         assert_eq!(
             spindle_rotation(Cbs(b"M30")),
-            Err(nom::Err::Error(nom::simple_errors::Context::Code(
+            Err(nom::Err::Error(nom::verbose_errors::Context::Code(
                 CompleteByteSlice(b"M30"),
                 nom::ErrorKind::Alt
             )))
