@@ -20,7 +20,7 @@ fn bench_vec9(c: &mut Criterion) {
     );
 }
 
-criterion_group!{
+criterion_group! {
     name = vec9;
     config = Criterion::default()
         .warm_up_time(Duration::from_millis(100))
