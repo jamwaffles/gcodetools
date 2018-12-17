@@ -2,6 +2,7 @@ use nom::types::CompleteByteSlice;
 use nom::*;
 
 named!(pub take_until_line_ending<CompleteByteSlice, CompleteByteSlice>, alt_complete!(take_until!("\r\n") | take_until!("\n")));
+named!(pub take_until_line_ending_and_consumer<CompleteByteSlice, CompleteByteSlice>, alt_complete!(take_until_and_consume!("\r\n") | take_until_and_consume!("\n")));
 
 // Parse a GCode-style float, i.e. does not support scientific notation
 named!(recognize_float_no_exponent<CompleteByteSlice, CompleteByteSlice>, recognize!(
@@ -27,12 +28,12 @@ named!(pub float_no_exponent<CompleteByteSlice, f32>, flat_map!(
 
 named_args!(
     pub preceded_f32<'a>(preceding: &str)<CompleteByteSlice<'a>, f32>,
-    ws!(preceded!(tag_no_case!(preceding), float_no_exponent))
+    sep!(space0, preceded!(tag_no_case!(preceding), float_no_exponent))
 );
 
 named_args!(
     pub recognize_preceded_u32<'a>(preceding: &str)<CompleteByteSlice<'a>, CompleteByteSlice<'a>>,
-    ws!(preceded!(tag_no_case!(preceding), terminated!(digit, not!(char!('.')))))
+    sep!(space0, preceded!(tag_no_case!(preceding), terminated!(digit, not!(char!('.')))))
 );
 
 named_args!(

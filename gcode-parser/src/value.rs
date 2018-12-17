@@ -125,7 +125,7 @@ named!(
 ));
 
 named_args!(
-    pub preceded_float_value<'a>(preceding: &str)<CompleteByteSlice<'a>, Value>, ws!(preceded!(
+    pub preceded_float_value<'a>(preceding: &str)<CompleteByteSlice<'a>, Value>, sep!(space0, preceded!(
     tag_no_case!(preceding),
     float_value
 )));

@@ -1,6 +1,7 @@
 //! 9-dimension vector used for all linear moves
 
 use super::value::*;
+use nom::space0;
 use nom::types::CompleteByteSlice;
 
 use super::Token;
@@ -37,7 +38,7 @@ impl Default for Vec9 {
 named!(
     pub vec9<CompleteByteSlice, Vec9>,
     map_res!(
-        ws!(do_parse!(
+        sep!(space0, do_parse!(
             x: opt!(call!(preceded_float_value, "X")) >>
             y: opt!(call!(preceded_float_value, "Y")) >>
             z: opt!(call!(preceded_float_value, "Z")) >>
@@ -153,7 +154,7 @@ mod tests {
         assert_eq!(
             vec9(input),
             Ok((
-                Cbs(b"Z0.05"),
+                Cbs(b"\nZ0.05"),
                 Vec9 {
                     x: Some(Value::Float(3.4f32)),
                     y: Some(Value::Float(8.9431f32)),
