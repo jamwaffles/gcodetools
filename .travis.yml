@@ -19,32 +19,11 @@ addons:
 before_install:
   -  pip install linkchecker --user
 
-before_cache:
-  - |
-    # Cargo tarpaulin only works on nightly
-    if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
-      set -e
-
-      RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin
-    fi
-
 script:
   - cargo test --release
 
-after_success: |
-  # Cargo tarpaulin only works on nightly
-  if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
-    set -e
-
-    # Uncomment the following line for coveralls.io
-    # cargo tarpaulin --ciserver travis-ci --coveralls $TRAVIS_JOB_ID
-
-    # Uncomment the following two lines create and upload a report for codecov.io
-    cargo tarpaulin --out Xml
-    bash <(curl -s https://codecov.io/bash)
-  fi
-
-  linkchecker target/doc/gcode_parser
+after_success:
+  - linkchecker target/doc/gcode_parser
 
 cache: cargo
 before_cache:
