@@ -13,7 +13,6 @@ addons:
     packages:
       - libssl-dev
       - libeigen3-dev
-      - build-essential
       - libclang-7-dev
       - llvm-7-dev
 
