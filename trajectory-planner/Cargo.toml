@@ -5,6 +5,6 @@ authors = ["James Waples <jamwaffles@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-trajectories = { git = "https://github.com/jamwaffles/trajectories.git" }
+trajectories = { git = "https://github.com/jamwaffles/trajectories.git", rev = "6a9190bf391692e60a86e60f1fc55364f9503a4b" }
 gcode-parser = { path = "../gcode-parser" }
 nalgebra = "0.16.12"
