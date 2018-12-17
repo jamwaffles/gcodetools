@@ -19,13 +19,22 @@ addons:
 
 before_install:
   -  pip install linkchecker --user
+  - |
+    # Cargo tarpaulin only works on nightly
+    if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
+      set -e
+
+      RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin
+    fi
 
 script:
   - cargo test --release
 
 after_success: |
-  if [[ "$TRAVIS_RUST_VERSION" == stable ]]; then
-    `RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin`
+  # Cargo tarpaulin only works on nightly
+  if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
+    set -e
+
     # Uncomment the following line for coveralls.io
     # cargo tarpaulin --ciserver travis-ci --coveralls $TRAVIS_JOB_ID
 
