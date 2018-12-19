@@ -3,5 +3,6 @@
 members = [
     "gcode-parser",
     "expression",
-    "trajectory-planner"
+    # TODO: Re-add to project
+    # "trajectory-planner"
 ]
