@@ -1,4 +1,3 @@
-#[cfg(test)]
 macro_rules! print_code {
     ($remaining:expr, $e:expr, $input:expr) => {{
         let remaining = String::from_utf8($remaining.fragment.to_vec()).unwrap();
@@ -15,7 +14,6 @@ macro_rules! print_code {
     }}
 }
 
-#[cfg(test)]
 #[macro_export]
 macro_rules! assert_parse {
     (parser = $parser:expr, input = $input:expr, expected = $compare:expr) => {
@@ -38,7 +36,6 @@ macro_rules! assert_parse {
     };
 }
 
-#[cfg(test)]
 #[macro_export]
 macro_rules! coord {
     ($x:expr, $y:expr, $z:expr) => {
@@ -51,7 +48,6 @@ macro_rules! coord {
     }; // TODO: Other permutations of args
 }
 
-#[cfg(test)]
 #[macro_export]
 macro_rules! span {
     ($content:expr, offset = $offset:expr, line = $line:expr) => {{
@@ -79,7 +75,6 @@ macro_rules! span {
     }};
 }
 
-#[cfg(test)]
 #[macro_export]
 macro_rules! empty_span {
     (offset = $offset:expr, line = $line:expr) => {{

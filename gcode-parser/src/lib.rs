@@ -4,7 +4,7 @@ use nom::types::CompleteByteSlice;
 use nom_locate::LocatedSpan;
 
 #[macro_use]
-mod helpers;
+mod macros;
 mod line;
 mod parsers;
 mod token;
