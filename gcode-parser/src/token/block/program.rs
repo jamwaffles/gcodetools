@@ -34,13 +34,12 @@ named!(percent_delimited_program<Span, Program>,
     )
 );
 
-// TODO: Replace alt!(tag!() | tag!()) with tag_no_case!()
 named!(m2_terminated_program<Span, Program>,
     map!(
         ws!(
             terminated!(
                 many0!(line),
-                alt!(tag!("M2") | tag!("m2"))
+                tag_no_case!("M2")
             )
         ),
         |lines| {
