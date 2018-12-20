@@ -11,6 +11,6 @@ pub enum Block<'a> {
 
 named!(pub block<Span, Block>,
 	alt_complete!(
-		map!(program, |res| Block::Program(res))
+		map!(program, Block::Program)
 	)
 );

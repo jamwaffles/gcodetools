@@ -1,7 +1,4 @@
-// TODO: Is there a better place to keep `CodeNumber`? In this file perhaps?
-// use crate::token::CodeNumber;
 use crate::Span;
-use nom::types::CompleteByteSlice;
 use nom::*;
 
 pub type CodeNumber = f32;

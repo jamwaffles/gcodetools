@@ -1,7 +1,6 @@
 //! Parse coordinates into a vector
 
 use crate::Span;
-use nom::types::CompleteByteSlice;
 use nom::*;
 
 #[derive(Debug, PartialEq)]

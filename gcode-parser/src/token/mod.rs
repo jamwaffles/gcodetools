@@ -10,16 +10,8 @@ pub use self::gcode::GCode;
 use self::mcode::mcode;
 pub use self::mcode::MCode;
 use crate::Span;
-use nom::types::CompleteByteSlice;
 use nom::*;
 use nom_locate::position;
-
-// TODO: Delete
-// #[derive(Debug, PartialEq)]
-// pub enum CodeNumber {
-//     Int(u16),
-//     Float(f32),
-// }
 
 #[derive(Debug, PartialEq)]
 pub enum TokenType<'a> {

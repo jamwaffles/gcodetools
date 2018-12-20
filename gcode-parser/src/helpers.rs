@@ -20,6 +20,7 @@ macro_rules! print_code {
 macro_rules! assert_parse {
     (parser = $parser:expr, input = $input:expr, expected = $compare:expr) => {
         use crate::Span;
+        use nom::types::CompleteByteSlice;
 
         match $parser($input) {
             Ok(result) => assert_eq!(result, (Span::new(CompleteByteSlice(b"")), $compare)),
@@ -53,44 +54,56 @@ macro_rules! coord {
 #[cfg(test)]
 #[macro_export]
 macro_rules! span {
-    ($content:expr, offset = $offset:expr, line = $line:expr) => {
+    ($content:expr, offset = $offset:expr, line = $line:expr) => {{
+        use nom::types::CompleteByteSlice;
+
         Span {
             offset: $offset,
             line: $line,
             fragment: CompleteByteSlice($content),
         }
-    };
-    ($content:expr, offset = $offset:expr) => {
+    }};
+    ($content:expr, offset = $offset:expr) => {{
+        use nom::types::CompleteByteSlice;
+
         Span {
             offset: $offset,
             line: 1,
             fragment: CompleteByteSlice($content),
         }
-    };
-    ($content:expr) => {
+    }};
+    ($content:expr) => {{
+        use nom::types::CompleteByteSlice;
+
         Span::new(CompleteByteSlice($content))
-    };
+    }};
 }
 
 #[cfg(test)]
 #[macro_export]
 macro_rules! empty_span {
-    (offset = $offset:expr, line = $line:expr) => {
+    (offset = $offset:expr, line = $line:expr) => {{
+        use nom::types::CompleteByteSlice;
+
         Span {
             offset: $offset,
             line: $line,
             fragment: CompleteByteSlice(b""),
         }
-    };
+    }};
 
-    (offset = $offset:expr) => {
+    (offset = $offset:expr) => {{
+        use nom::types::CompleteByteSlice;
+
         Span {
             offset: $offset,
             line: 1,
             fragment: CompleteByteSlice(b""),
         }
-    };
-    () => {
+    }};
+    () => {{
+        use nom::types::CompleteByteSlice;
+
         Span::new(CompleteByteSlice(b""))
-    };
+    }};
 }

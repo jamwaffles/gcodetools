@@ -1,6 +1,5 @@
 use crate::parsers::code_number;
 use crate::Span;
-use nom::types::CompleteByteSlice;
 use nom::*;
 use nom_locate::position;
 

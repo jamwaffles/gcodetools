@@ -1,7 +1,6 @@
 use crate::line::line;
 use crate::line::Line;
 use crate::Span;
-use nom::types::CompleteByteSlice;
 use nom::*;
 
 #[derive(Debug, PartialEq)]
