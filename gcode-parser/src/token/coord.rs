@@ -32,8 +32,21 @@ impl Default for Coord {
     }
 }
 
+// TODO: Test this in benchmarks
+// static EMPTY_COORD: Coord = Coord {
+//     x: None,
+//     y: None,
+//     z: None,
+//     a: None,
+//     b: None,
+//     c: None,
+//     u: None,
+//     v: None,
+//     w: None,
+// };
+
 named!(pub coord<Span, Coord>,
-    map!(
+    map_res!(
         sep!(
             space0,
             permutation!(
@@ -49,7 +62,15 @@ named!(pub coord<Span, Coord>,
             )
         ),
         |(x, y, z, a, b, c, u, v, w)| {
-            Coord { x, y, z, a, b, c, u, v, w }
+            let coord = Coord { x, y, z, a, b, c, u, v, w };
+            // TODO: Benchmark this against static `EMPTY_COORD`
+            let empty = Coord::default();
+
+            if coord == empty {
+                Err(())
+            } else {
+                Ok(coord)
+            }
         }
     )
 );
