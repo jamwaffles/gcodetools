@@ -62,9 +62,9 @@ mod tests {
     #[test]
     fn parse_xyz() {
         assert_parse!(
-            coord,
-            Span::new(CompleteByteSlice(b"X0.0 Y1.0 Z2.0")),
-            Coord {
+            parser = coord,
+            input = span!(b"X0.0 Y1.0 Z2.0"),
+            expected = Coord {
                 x: Some(0.0),
                 y: Some(1.0),
                 z: Some(2.0),
@@ -75,21 +75,16 @@ mod tests {
                 v: None,
                 w: None,
             },
-            // Remaining
-            Span {
-                offset: 14,
-                line: 1,
-                fragment: CompleteByteSlice(b"")
-            }
+            remaining = empty_span!(offset = 14)
         );
     }
 
     #[test]
     fn parse_lowercase() {
         assert_parse!(
-            coord,
-            Span::new(CompleteByteSlice(b"x0.0 y1.0 z2.0")),
-            Coord {
+            parser = coord,
+            input = span!(b"x0.0 y1.0 z2.0"),
+            expected = Coord {
                 x: Some(0.0),
                 y: Some(1.0),
                 z: Some(2.0),
@@ -100,12 +95,7 @@ mod tests {
                 v: None,
                 w: None,
             },
-            // Remaining
-            Span {
-                offset: 14,
-                line: 1,
-                fragment: CompleteByteSlice(b"")
-            }
+            remaining = empty_span!(offset = 14)
         );
     }
 }

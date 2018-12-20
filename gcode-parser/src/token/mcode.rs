@@ -21,35 +21,25 @@ mod tests {
 
     #[test]
     fn parse_single_integer_mcode() {
-        let raw = Span::new(CompleteByteSlice(b"M99"));
+        let raw = span!(b"M99");
 
         assert_parse!(
-            mcode,
-            raw,
-            MCode { code: 99.0 },
-            // Remaining
-            Span {
-                offset: 3,
-                line: 1,
-                fragment: CompleteByteSlice(b"")
-            }
+            parser = mcode,
+            input = raw,
+            expected = MCode { code: 99.0 },
+            remaining = empty_span!(offset = 3)
         );
     }
 
     #[test]
     fn parse_single_decimal_mcode() {
-        let raw = Span::new(CompleteByteSlice(b"M100.1"));
+        let raw = span!(b"M100.1");
 
         assert_parse!(
-            mcode,
-            raw,
-            MCode { code: 100.1 },
-            // Remaining
-            Span {
-                offset: 6,
-                line: 1,
-                fragment: CompleteByteSlice(b"")
-            }
+            parser = mcode,
+            input = raw,
+            expected = MCode { code: 100.1 },
+            remaining = empty_span!(offset = 6)
         );
     }
 

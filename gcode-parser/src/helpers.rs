@@ -18,7 +18,7 @@ macro_rules! print_code {
 #[cfg(test)]
 #[macro_export]
 macro_rules! assert_parse {
-    ($parser:expr, $input:expr, $compare:expr) => {
+    (parser = $parser:expr, input = $input:expr, expected = $compare:expr) => {
         use crate::Span;
 
         match $parser($input) {
@@ -28,7 +28,7 @@ macro_rules! assert_parse {
         }
     };
 
-    ($parser:expr, $input:expr, $compare:expr, $remaining:expr) => {
+    (parser = $parser:expr, input = $input:expr, expected = $compare:expr, remaining = $remaining:expr) => {
         match $parser($input) {
             Ok(result) => assert_eq!(result, ($remaining, $compare)),
             Err(Err::Error(Context::Code(remaining, e))) => print_code!(remaining, e, $input),

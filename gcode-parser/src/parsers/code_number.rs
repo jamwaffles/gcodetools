@@ -25,30 +25,20 @@ mod tests {
     #[test]
     fn parse_decimal() {
         assert_parse!(
-            code_number,
-            Span::new(CompleteByteSlice(b"59.1")),
-            59.1f32,
-            // Remaining
-            Span {
-                offset: 4,
-                line: 1,
-                fragment: CompleteByteSlice(b"")
-            }
+            parser = code_number,
+            input = span!(b"59.1"),
+            expected = 59.1f32,
+            remaining = empty_span!(offset = 4)
         );
     }
 
     #[test]
     fn parse_int() {
         assert_parse!(
-            code_number,
-            Span::new(CompleteByteSlice(b"54")),
-            54.0f32,
-            // Remaining
-            Span {
-                offset: 2,
-                line: 1,
-                fragment: CompleteByteSlice(b"")
-            }
+            parser = code_number,
+            input = span!(b"54"),
+            expected = 54.0f32,
+            remaining = empty_span!(offset = 2)
         );
     }
 }

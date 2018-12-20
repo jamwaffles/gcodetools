@@ -21,45 +21,34 @@ named!(pub gcode<Span, GCode>,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom_locate::LocatedSpan;
 
     #[test]
     fn parse_single_integer_gcode() {
-        let raw = Span::new(CompleteByteSlice(b"G54"));
+        let raw = span!(b"G54");
 
         assert_parse!(
-            gcode,
-            raw,
-            GCode {
-                span: Span::new(CompleteByteSlice(b"")),
+            parser = gcode,
+            input = raw,
+            expected = GCode {
+                span: empty_span!(),
                 code: 54.0
             },
-            // Remaining
-            LocatedSpan {
-                offset: 3,
-                line: 1,
-                fragment: CompleteByteSlice(b"")
-            }
+            remaining = empty_span!(offset = 3)
         );
     }
 
     #[test]
     fn parse_single_decimal_gcode() {
-        let raw = Span::new(CompleteByteSlice(b"G59.1"));
+        let raw = span!(b"G59.1");
 
         assert_parse!(
-            gcode,
-            raw,
-            GCode {
-                span: Span::new(CompleteByteSlice(b"")),
+            parser = gcode,
+            input = raw,
+            expected = GCode {
+                span: empty_span!(),
                 code: 59.1
             },
-            // Remaining
-            LocatedSpan {
-                offset: 5,
-                line: 1,
-                fragment: CompleteByteSlice(b"")
-            }
+            remaining = empty_span!(offset = 5)
         );
     }
 }

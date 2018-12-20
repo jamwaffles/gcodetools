@@ -73,9 +73,9 @@ G1 X1 Y1 Z1
 %"#;
 
         assert_parse!(
-            program,
-            span!(program_text.as_bytes()),
-            Program {
+            parser = program,
+            input = span!(program_text.as_bytes()),
+            expected = Program {
                 lines: vec![
                     Line {
                         span: empty_span!(offset = 2, line = 2),
@@ -112,8 +112,7 @@ G1 X1 Y1 Z1
                 ],
                 marker_type: ProgramMarkerType::Percent
             },
-            // Remaining
-            span!(b"", offset = 27, line = 4)
+            remaining = empty_span!(offset = 27, line = 4)
         );
     }
 
@@ -124,9 +123,9 @@ G1 X1 Y1 Z1
 M2"#;
 
         assert_parse!(
-            program,
-            span!(program_text.as_bytes()),
-            Program {
+            parser = program,
+            input = span!(program_text.as_bytes()),
+            expected = Program {
                 lines: vec![
                     Line {
                         span: empty_span!(),
@@ -163,8 +162,7 @@ M2"#;
                 ],
                 marker_type: ProgramMarkerType::M2
             },
-            // Remaining
-            span!(b"", offset = 26, line = 3)
+            remaining = empty_span!(offset = 26, line = 3)
         );
     }
 }

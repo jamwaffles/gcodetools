@@ -28,27 +28,22 @@ mod tests {
 
     #[test]
     fn consume_line_and_ending() {
-        let raw = Span::new(CompleteByteSlice(b"G54\nG55"));
+        let raw = span!(b"G54\nG55");
 
         assert_parse!(
-            line,
-            raw,
-            Line {
-                span: Span::new(CompleteByteSlice(b"")),
+            parser = line,
+            input = raw,
+            expected = Line {
+                span: empty_span!(),
                 tokens: vec![Token {
-                    span: Span::new(CompleteByteSlice(b"")),
+                    span: empty_span!(),
                     token: TokenType::GCode(GCode {
-                        span: Span::new(CompleteByteSlice(b"")),
+                        span: empty_span!(),
                         code: 54.0
                     })
                 }]
             },
-            // Remaining
-            Span {
-                offset: 4,
-                line: 2,
-                fragment: CompleteByteSlice(b"G55")
-            }
+            remaining = span!(b"G55", offset = 4, line = 2)
         );
     }
 }
