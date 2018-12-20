@@ -1,5 +1,6 @@
 use crate::line::line;
 use crate::line::Line;
+use crate::Span;
 use nom::types::CompleteByteSlice;
 use nom::*;
 
@@ -10,13 +11,13 @@ pub enum ProgramMarkerType {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Program {
-    lines: Vec<Line>,
+pub struct Program<'a> {
+    lines: Vec<Line<'a>>,
     marker_type: ProgramMarkerType,
 }
 
 // TODO: Replace char!() macro with "line containing X" macro
-named!(percent_delimited_program<CompleteByteSlice, Program>,
+named!(percent_delimited_program<Span, Program>,
     map!(
         ws!(
             delimited!(
@@ -35,7 +36,7 @@ named!(percent_delimited_program<CompleteByteSlice, Program>,
 );
 
 // TODO: Replace alt!(tag!() | tag!()) with tag_no_case!()
-named!(m2_terminated_program<CompleteByteSlice, Program>,
+named!(m2_terminated_program<Span, Program>,
     map!(
         ws!(
             terminated!(
@@ -52,7 +53,7 @@ named!(m2_terminated_program<CompleteByteSlice, Program>,
     )
 );
 
-named!(pub program<CompleteByteSlice, Program>,
+named!(pub program<Span, Program>,
     alt_complete!(
         percent_delimited_program |
         m2_terminated_program
@@ -62,7 +63,7 @@ named!(pub program<CompleteByteSlice, Program>,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::token::{Coord, GCode, Token};
+    use crate::token::{Coord, GCode, Token, TokenType};
 
     #[test]
     fn parse_percent_delimited_program() {
@@ -73,24 +74,46 @@ G1 X1 Y1 Z1
 
         assert_parse!(
             program,
-            CompleteByteSlice(program_text.as_bytes()),
+            span!(program_text.as_bytes()),
             Program {
                 lines: vec![
                     Line {
+                        span: empty_span!(offset = 2, line = 2),
                         tokens: vec![
-                            Token::GCode(GCode { code: 0.0 }),
-                            Token::Coord(coord!(0.0, 0.0, 0.0))
+                            Token {
+                                span: empty_span!(offset = 2, line = 2),
+                                token: TokenType::GCode(GCode {
+                                    span: empty_span!(offset = 2, line = 2),
+                                    code: 0.0
+                                })
+                            },
+                            Token {
+                                span: empty_span!(offset = 5, line = 2),
+                                token: TokenType::Coord(coord!(0.0, 0.0, 0.0))
+                            }
                         ]
                     },
                     Line {
+                        span: empty_span!(offset = 14, line = 3),
                         tokens: vec![
-                            Token::GCode(GCode { code: 1.0 }),
-                            Token::Coord(coord!(1.0, 1.0, 1.0))
+                            Token {
+                                span: empty_span!(offset = 14, line = 3),
+                                token: TokenType::GCode(GCode {
+                                    span: empty_span!(offset = 14, line = 3),
+                                    code: 1.0
+                                })
+                            },
+                            Token {
+                                span: empty_span!(offset = 17, line = 3),
+                                token: TokenType::Coord(coord!(1.0, 1.0, 1.0))
+                            }
                         ]
                     }
                 ],
                 marker_type: ProgramMarkerType::Percent
-            }
+            },
+            // Remaining
+            span!(b"", offset = 27, line = 4)
         );
     }
 
@@ -102,24 +125,46 @@ M2"#;
 
         assert_parse!(
             program,
-            CompleteByteSlice(program_text.as_bytes()),
+            span!(program_text.as_bytes()),
             Program {
                 lines: vec![
                     Line {
+                        span: empty_span!(),
                         tokens: vec![
-                            Token::GCode(GCode { code: 0.0 }),
-                            Token::Coord(coord!(0.0, 0.0, 0.0))
+                            Token {
+                                span: empty_span!(),
+                                token: TokenType::GCode(GCode {
+                                    span: empty_span!(),
+                                    code: 0.0
+                                })
+                            },
+                            Token {
+                                span: empty_span!(offset = 3),
+                                token: TokenType::Coord(coord!(0.0, 0.0, 0.0))
+                            }
                         ]
                     },
                     Line {
+                        span: empty_span!(offset = 12, line = 2),
                         tokens: vec![
-                            Token::GCode(GCode { code: 1.0 }),
-                            Token::Coord(coord!(1.0, 1.0, 1.0))
+                            Token {
+                                span: empty_span!(offset = 12, line = 2),
+                                token: TokenType::GCode(GCode {
+                                    span: empty_span!(offset = 12, line = 2),
+                                    code: 1.0
+                                })
+                            },
+                            Token {
+                                span: empty_span!(offset = 15, line = 2),
+                                token: TokenType::Coord(coord!(1.0, 1.0, 1.0))
+                            }
                         ]
                     }
                 ],
                 marker_type: ProgramMarkerType::M2
-            }
+            },
+            // Remaining
+            span!(b"", offset = 26, line = 3)
         );
     }
 }

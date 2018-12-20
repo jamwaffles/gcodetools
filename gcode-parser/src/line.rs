@@ -1,40 +1,54 @@
 use crate::token::{token, Token};
+use crate::Span;
 use nom::types::CompleteByteSlice;
 use nom::*;
+use nom_locate::position;
 
 #[derive(Debug, PartialEq)]
-pub struct Line {
-    pub(crate) tokens: Vec<Token>,
+pub struct Line<'a> {
+    pub(crate) span: Span<'a>,
+    pub(crate) tokens: Vec<Token<'a>>,
 }
 
-named!(pub line<CompleteByteSlice, Line>,
-    map!(
-        terminated!(
+named!(pub line<Span, Line>,
+    do_parse!(
+        span: position!() >>
+        tokens: terminated!(
             sep!(space0, many0!(token)),
             line_ending
-        ),
-        |tokens| {
-            Line { tokens }
-        }
+        ) >>
+        (Line { tokens, span })
     )
 );
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::token::GCode;
+    use crate::token::{GCode, TokenType};
 
     #[test]
     fn consume_line_and_ending() {
-        let raw = CompleteByteSlice(b"G54\nG55");
+        let raw = Span::new(CompleteByteSlice(b"G54\nG55"));
 
         assert_parse!(
             line,
             raw,
             Line {
-                tokens: vec![Token::GCode(GCode { code: 54.0 })]
+                span: Span::new(CompleteByteSlice(b"")),
+                tokens: vec![Token {
+                    span: Span::new(CompleteByteSlice(b"")),
+                    token: TokenType::GCode(GCode {
+                        span: Span::new(CompleteByteSlice(b"")),
+                        code: 54.0
+                    })
+                }]
             },
-            CompleteByteSlice(b"G55")
+            // Remaining
+            Span {
+                offset: 4,
+                line: 2,
+                fragment: CompleteByteSlice(b"G55")
+            }
         );
     }
 }

@@ -1,5 +1,6 @@
 //! Parse coordinates into a vector
 
+use crate::Span;
 use nom::types::CompleteByteSlice;
 use nom::*;
 
@@ -32,7 +33,7 @@ impl Default for Coord {
     }
 }
 
-named!(pub coord<CompleteByteSlice, Coord>,
+named!(pub coord<Span, Coord>,
     map!(
         sep!(
             space0,
@@ -62,7 +63,7 @@ mod tests {
     fn parse_xyz() {
         assert_parse!(
             coord,
-            CompleteByteSlice(b"X0.0 Y1.0 Z2.0"),
+            Span::new(CompleteByteSlice(b"X0.0 Y1.0 Z2.0")),
             Coord {
                 x: Some(0.0),
                 y: Some(1.0),
@@ -73,6 +74,12 @@ mod tests {
                 u: None,
                 v: None,
                 w: None,
+            },
+            // Remaining
+            Span {
+                offset: 14,
+                line: 1,
+                fragment: CompleteByteSlice(b"")
             }
         );
     }
@@ -81,7 +88,7 @@ mod tests {
     fn parse_lowercase() {
         assert_parse!(
             coord,
-            CompleteByteSlice(b"x0.0 y1.0 z2.0"),
+            Span::new(CompleteByteSlice(b"x0.0 y1.0 z2.0")),
             Coord {
                 x: Some(0.0),
                 y: Some(1.0),
@@ -92,6 +99,12 @@ mod tests {
                 u: None,
                 v: None,
                 w: None,
+            },
+            // Remaining
+            Span {
+                offset: 14,
+                line: 1,
+                fragment: CompleteByteSlice(b"")
             }
         );
     }
