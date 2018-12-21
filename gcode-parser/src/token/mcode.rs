@@ -4,16 +4,56 @@ use nom::*;
 use nom_locate::position;
 
 #[derive(Debug, PartialEq)]
-pub struct MCode<'a> {
+pub enum MCode<'a> {
+    RawMCode(RawMCode<'a>),
+    SpindleForward(SpindleForward<'a>),
+}
+
+#[derive(Debug, PartialEq)]
+pub struct RawMCode<'a> {
     pub(crate) span: Span<'a>,
     pub(crate) code: f32,
 }
 
-named!(pub mcode<Span, MCode>,
+#[derive(Debug, PartialEq)]
+pub struct SpindleForward<'a> {
+    pub(crate) span: Span<'a>,
+    pub(crate) rpm: u32,
+}
+
+named!(pub raw_mcode<Span, RawMCode>,
     do_parse!(
         span: position!() >>
         code: preceded!(one_of!("Mm"), code_number) >>
-        (MCode { span, code })
+        (RawMCode { span, code })
+    )
+);
+
+named!(pub spindle_forward<Span, SpindleForward>,
+    map!(
+        tuple!(
+            position!(),
+            sep!(
+                space0,
+                preceded!(
+                    tag_no_case!("M3"),
+                    flat_map!(
+                        preceded!(tag_no_case!("S"), digit),
+                        parse_to!(u32)
+                    )
+                )
+            )
+        ),
+        |(span, rpm)| {
+            SpindleForward { span, rpm }
+        }
+    )
+);
+
+named!(pub mcode<Span, MCode>,
+    alt_complete!(
+        map!(spindle_forward, MCode::SpindleForward) |
+        map!(raw_mcode, MCode::RawMCode)
     )
 );
 
@@ -28,10 +68,10 @@ mod tests {
         assert_parse!(
             parser = mcode,
             input = raw,
-            expected = MCode {
+            expected = MCode::RawMCode(RawMCode {
                 code: 99.0,
                 span: empty_span!()
-            },
+            }),
             remaining = empty_span!(offset = 3)
         );
     }
@@ -43,12 +83,26 @@ mod tests {
         assert_parse!(
             parser = mcode,
             input = raw,
-            expected = MCode {
+            expected = MCode::RawMCode(RawMCode {
                 code: 100.1,
                 span: empty_span!()
-            },
+            }),
             remaining = empty_span!(offset = 6)
         );
     }
 
+    #[test]
+    fn parse_spindle_forward() {
+        let raw = span!(b"M3 S1000");
+
+        assert_parse!(
+            parser = mcode,
+            input = raw,
+            expected = MCode::SpindleForward(SpindleForward {
+                rpm: 1000u32,
+                span: empty_span!()
+            }),
+            remaining = empty_span!(offset = 8)
+        );
+    }
 }
