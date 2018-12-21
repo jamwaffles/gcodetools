@@ -1,16 +1,19 @@
 use crate::parsers::code_number;
 use crate::Span;
 use nom::*;
+use nom_locate::position;
 
 #[derive(Debug, PartialEq)]
-pub struct MCode {
-    code: f32,
+pub struct MCode<'a> {
+    pub(crate) span: Span<'a>,
+    pub(crate) code: f32,
 }
 
 named!(pub mcode<Span, MCode>,
-    map!(
-       preceded!(one_of!("Mm"), code_number),
-       |code| MCode { code }
+    do_parse!(
+        span: position!() >>
+        code: preceded!(one_of!("Mm"), code_number) >>
+        (MCode { span, code })
     )
 );
 
@@ -25,7 +28,10 @@ mod tests {
         assert_parse!(
             parser = mcode,
             input = raw,
-            expected = MCode { code: 99.0 },
+            expected = MCode {
+                code: 99.0,
+                span: empty_span!()
+            },
             remaining = empty_span!(offset = 3)
         );
     }
@@ -37,7 +43,10 @@ mod tests {
         assert_parse!(
             parser = mcode,
             input = raw,
-            expected = MCode { code: 100.1 },
+            expected = MCode {
+                code: 100.1,
+                span: empty_span!()
+            },
             remaining = empty_span!(offset = 6)
         );
     }
