@@ -17,7 +17,7 @@ use nom_locate::position;
 pub enum TokenType<'a> {
     GCode(GCode<'a>),
     MCode(MCode<'a>),
-    Coord(Coord),
+    Coord(Coord<'a>),
 }
 
 #[derive(Debug, PartialEq)]

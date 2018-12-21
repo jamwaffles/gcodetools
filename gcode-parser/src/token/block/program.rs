@@ -107,7 +107,12 @@ G1 X1 Y1 Z1
                             },
                             Token {
                                 span: empty_span!(offset = 5, line = 2),
-                                token: TokenType::Coord(coord!(0.0, 0.0, 0.0))
+                                token: TokenType::Coord(coord!(
+                                    empty_span!(offset = 5, line = 2),
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ))
                             }
                         ]
                     },
@@ -123,7 +128,12 @@ G1 X1 Y1 Z1
                             },
                             Token {
                                 span: empty_span!(offset = 17, line = 3),
-                                token: TokenType::Coord(coord!(1.0, 1.0, 1.0))
+                                token: TokenType::Coord(coord!(
+                                    empty_span!(offset = 17, line = 3),
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ))
                             }
                         ]
                     }
@@ -157,7 +167,12 @@ M2"#;
                             },
                             Token {
                                 span: empty_span!(offset = 3),
-                                token: TokenType::Coord(coord!(0.0, 0.0, 0.0))
+                                token: TokenType::Coord(coord!(
+                                    empty_span!(offset = 3),
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ))
                             }
                         ]
                     },
@@ -173,7 +188,12 @@ M2"#;
                             },
                             Token {
                                 span: empty_span!(offset = 15, line = 2),
-                                token: TokenType::Coord(coord!(1.0, 1.0, 1.0))
+                                token: TokenType::Coord(coord!(
+                                    empty_span!(offset = 15, line = 2),
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ))
                             }
                         ]
                     }
@@ -207,7 +227,12 @@ M30"#;
                             },
                             Token {
                                 span: empty_span!(offset = 3),
-                                token: TokenType::Coord(coord!(0.0, 0.0, 0.0))
+                                token: TokenType::Coord(coord!(
+                                    empty_span!(offset = 3),
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ))
                             }
                         ]
                     },
@@ -223,7 +248,12 @@ M30"#;
                             },
                             Token {
                                 span: empty_span!(offset = 15, line = 2),
-                                token: TokenType::Coord(coord!(1.0, 1.0, 1.0))
+                                token: TokenType::Coord(coord!(
+                                    empty_span!(offset = 15, line = 2),
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ))
                             }
                         ]
                     }

@@ -10,6 +10,7 @@ pub struct GCode<'a> {
 }
 
 named!(pub gcode<Span, GCode>,
+    // TODO: Benchmark do_parse! vs tuple!
     do_parse!(
         span: position!() >>
         code: preceded!(one_of!("Gg"), code_number) >>
