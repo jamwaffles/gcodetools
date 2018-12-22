@@ -1,7 +1,6 @@
-#[macro_use]
 extern crate criterion;
 
-use criterion::Criterion;
+use criterion::*;
 use gcode_parser::from_str;
 
 fn bench_10_xyz_rapids(c: &mut Criterion) {
@@ -18,7 +17,11 @@ X8.7654321 Y12.3456789 Z3.456789
 X9.7654321 Y15.3456789 Z9.456789
 m2"#;
 
-    c.bench_function("10 XYZ rapids", move |b| b.iter(|| from_str(program)));
+    c.bench(
+        "program",
+        Benchmark::new("10 XYZ rapids", move |b| b.iter(|| from_str(program)))
+            .throughput(Throughput::Bytes(program.len() as u32)),
+    );
 }
 
 criterion_group!(benches, bench_10_xyz_rapids);
