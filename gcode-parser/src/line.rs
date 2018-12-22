@@ -24,7 +24,6 @@ named!(pub line<Span, Line>,
 mod tests {
     use super::*;
     use crate::token::{GCode, TokenType};
-    use nom::types::CompleteByteSlice;
 
     #[test]
     fn consume_line_and_ending() {
