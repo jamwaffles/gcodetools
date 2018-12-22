@@ -1,4 +1,3 @@
-mod block;
 mod coord;
 mod gcode;
 mod mcode;

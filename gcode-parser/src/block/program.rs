@@ -1,5 +1,4 @@
-use crate::line::line;
-use crate::line::Line;
+use crate::line::{line, Line};
 use crate::Span;
 use nom::*;
 

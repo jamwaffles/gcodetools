@@ -6,7 +6,6 @@ use nom_locate::position;
 #[derive(Debug, PartialEq)]
 pub enum MCode<'a> {
     Raw(RawMCode<'a>),
-    SpindleForward(SpindleForward<'a>),
 }
 
 #[derive(Debug, PartialEq)]
@@ -29,24 +28,8 @@ named!(pub raw_mcode<Span, RawMCode>,
     )
 );
 
-named!(pub spindle_forward<Span, SpindleForward>,
-    positioned!(
-        code!(
-            "M3",
-            flat_map!(
-                preceded!(tag_no_case!("S"), digit),
-                parse_to!(u32)
-            )
-        ),
-        |(span, rpm)| {
-            SpindleForward { span, rpm }
-        }
-    )
-);
-
 named!(pub mcode<Span, MCode>,
     alt_complete!(
-        map!(spindle_forward, MCode::SpindleForward) |
         map!(raw_mcode, MCode::Raw)
     )
 );
@@ -87,16 +70,16 @@ mod tests {
 
     #[test]
     fn parse_spindle_forward() {
-        let raw = span!(b"M3 S1000");
+        let raw = span!(b"M3");
 
         assert_parse!(
             parser = mcode,
             input = raw,
-            expected = MCode::SpindleForward(SpindleForward {
-                rpm: 1000u32,
+            expected = MCode::Raw(RawMCode {
+                code: 3.0,
                 span: empty_span!()
             }),
-            remaining = empty_span!(offset = 8)
+            remaining = empty_span!(offset = 2)
         );
     }
 }

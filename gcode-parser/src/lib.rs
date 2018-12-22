@@ -22,6 +22,7 @@ use nom_locate::LocatedSpan;
 
 #[macro_use]
 mod macros;
+mod block;
 mod line;
 mod parsers;
 mod token;
