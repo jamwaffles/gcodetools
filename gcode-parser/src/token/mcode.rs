@@ -5,7 +5,7 @@ use nom_locate::position;
 
 #[derive(Debug, PartialEq)]
 pub enum MCode<'a> {
-    RawMCode(RawMCode<'a>),
+    Raw(RawMCode<'a>),
     SpindleForward(SpindleForward<'a>),
 }
 
@@ -47,7 +47,7 @@ named!(pub spindle_forward<Span, SpindleForward>,
 named!(pub mcode<Span, MCode>,
     alt_complete!(
         map!(spindle_forward, MCode::SpindleForward) |
-        map!(raw_mcode, MCode::RawMCode)
+        map!(raw_mcode, MCode::Raw)
     )
 );
 
@@ -62,7 +62,7 @@ mod tests {
         assert_parse!(
             parser = mcode,
             input = raw,
-            expected = MCode::RawMCode(RawMCode {
+            expected = MCode::Raw(RawMCode {
                 code: 99.0,
                 span: empty_span!()
             }),
@@ -77,7 +77,7 @@ mod tests {
         assert_parse!(
             parser = mcode,
             input = raw,
-            expected = MCode::RawMCode(RawMCode {
+            expected = MCode::Raw(RawMCode {
                 code: 100.1,
                 span: empty_span!()
             }),
