@@ -24,24 +24,18 @@ pub struct SpindleForward<'a> {
 named!(pub raw_mcode<Span, RawMCode>,
     do_parse!(
         span: position!() >>
-        code: preceded!(one_of!("Mm"), code_number) >>
+        code:  preceded!(tag_no_case!("M"), code_number) >>
         (RawMCode { span, code })
     )
 );
 
 named!(pub spindle_forward<Span, SpindleForward>,
-    map!(
-        tuple!(
-            position!(),
-            sep!(
-                space0,
-                preceded!(
-                    tag_no_case!("M3"),
-                    flat_map!(
-                        preceded!(tag_no_case!("S"), digit),
-                        parse_to!(u32)
-                    )
-                )
+    positioned!(
+        code!(
+            "M3",
+            flat_map!(
+                preceded!(tag_no_case!("S"), digit),
+                parse_to!(u32)
             )
         ),
         |(span, rpm)| {
