@@ -3,7 +3,13 @@ name = "gcode-parser"
 version = "0.1.0"
 authors = ["James Waples <james@wapl.es>"]
 edition = "2018"
+[[bench]]
+name = "programs"
+harness = false
 
 [dependencies]
 nom = "4.1.1"
 nom_locate = "0.3.1"
+
+[dev-dependencies]
+criterion = "0.2.5"
