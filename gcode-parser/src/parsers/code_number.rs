@@ -3,6 +3,7 @@ use nom::*;
 
 pub type CodeNumber = f32;
 
+// TODO: Rename to something more generally useful around parsing only valid GCode numbers
 named!(pub code_number<Span, CodeNumber>,
     flat_map!(
         recognize!(
