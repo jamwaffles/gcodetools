@@ -21,6 +21,7 @@ before_install:
 
 script:
   - cargo test --release
+  - cargo bench -- --test
 
 after_success:
   - linkchecker target/doc/gcode_parser
