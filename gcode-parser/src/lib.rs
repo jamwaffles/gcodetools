@@ -17,12 +17,6 @@
     unused_qualifications
 )]
 
-use crate::block::{program, Block, Program as ProgramBlock};
-use nom::types::CompleteByteSlice;
-use nom::*;
-use nom_locate::LocatedSpan;
-use std::{fs, io};
-
 #[macro_use]
 mod macros;
 mod block;
@@ -31,6 +25,12 @@ mod parsers;
 mod token;
 
 use crate::block::block;
+use crate::block::{Block, Program as ProgramBlock};
+pub use crate::token::Token;
+use nom::types::CompleteByteSlice;
+use nom::*;
+use nom_locate::LocatedSpan;
+use std::io;
 
 named!(parse_program_tree<Span, ProgramBlock>,
     map_res!(

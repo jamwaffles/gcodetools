@@ -23,6 +23,7 @@ pub enum TokenType<'a> {
     OtherCode(OtherCode<'a>),
 }
 
+/// Parsed GCode token
 #[derive(Debug, PartialEq)]
 pub struct Token<'a> {
     pub(crate) span: Span<'a>,
