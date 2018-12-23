@@ -1,7 +1,7 @@
 extern crate criterion;
 
 use criterion::*;
-use gcode_parser::from_str;
+use gcode_parser::Program;
 
 fn bench_10_xyz_rapids(c: &mut Criterion) {
     let program = r#"G0 x0 y0 z0
@@ -19,8 +19,10 @@ m2"#;
 
     c.bench(
         "program",
-        Benchmark::new("10 XYZ rapids", move |b| b.iter(|| from_str(program)))
-            .throughput(Throughput::Bytes(program.len() as u32)),
+        Benchmark::new("10 XYZ rapids", move |b| {
+            b.iter(|| Program::from_str(program))
+        })
+        .throughput(Throughput::Bytes(program.len() as u32)),
     );
 }
 

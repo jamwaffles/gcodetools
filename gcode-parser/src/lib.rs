@@ -17,10 +17,11 @@
     unused_qualifications
 )]
 
-use crate::block::Block;
+use crate::block::{program, Block, Program as ProgramBlock};
 use nom::types::CompleteByteSlice;
 use nom::*;
 use nom_locate::LocatedSpan;
+use std::{fs, io};
 
 #[macro_use]
 mod macros;
@@ -31,26 +32,33 @@ mod token;
 
 use crate::block::block;
 
-named!(parse_program_tree<Span, Block>,
+named!(parse_program_tree<Span, ProgramBlock>,
     map_res!(
         block,
         |result| {
             match result {
-                Block::Program(p) => Ok(Block::Program(p)),
+                Block::Program(p) => Ok(p),
                 _ => Err(())
             }
         }
     )
 );
 
-/// Take an input span and parse it into a tree of tokens
-pub fn from_str(input: &str) -> Result<Block, String> {
-    let input = Span::new(CompleteByteSlice(input.as_bytes()));
+/// Container for a complete GCode program, including sub-programs
+#[derive(Debug)]
+pub struct Program<'a> {
+    token_tree: ProgramBlock<'a>,
+}
 
-    // TODO: Better handling of `remaining` errors
-    parse_program_tree(input)
-        .map_err(|e| format!("Failed to parse program: {}", e))
-        .map(|(_remaining, program)| program)
+impl<'a> Program<'a> {
+    /// Parse a GCode program from a given string
+    pub fn from_str(content: &'a str) -> Result<Self, io::Error> {
+        let (_remaining, token_tree) =
+            parse_program_tree(Span::new(CompleteByteSlice(content.as_bytes())))
+                .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
+
+        Ok(Self { token_tree })
+    }
 }
 
 #[doc(hidden)]

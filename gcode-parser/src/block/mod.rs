@@ -1,6 +1,6 @@
 mod program;
 
-use self::program::{program, Program};
+pub use self::program::{program, Program};
 use crate::Span;
 use nom::*;
 
