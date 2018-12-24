@@ -1,6 +1,8 @@
 use crate::line::{line, Line};
 use crate::Span;
+use nom::types::CompleteByteSlice;
 use nom::*;
+use std::io;
 
 #[derive(Debug, PartialEq)]
 pub enum ProgramMarkerType {
@@ -9,10 +11,40 @@ pub enum ProgramMarkerType {
     M30,
 }
 
+/// A complete GCode program
+///
+/// This can either be a top level program, or a sub-program included by file
 #[derive(Debug, PartialEq)]
 pub struct Program<'a> {
     lines: Vec<Line<'a>>,
     marker_type: ProgramMarkerType,
+}
+
+impl<'a> Program<'a> {
+    /// Parse a GCode program from a given string
+    pub fn from_str(content: &'a str) -> Result<Self, io::Error> {
+        let (remaining, program) = program(Span::new(CompleteByteSlice(content.as_bytes())))
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
+
+        // TODO: Return a better error type
+        if remaining.input_len() > 0 {
+            let line = remaining.line;
+            let column = remaining.get_column();
+
+            Err(io::Error::new(
+                io::ErrorKind::Other,
+                format!(
+                    "Could not parse complete program, failed at line {} col {} (byte {} of {})",
+                    line,
+                    column,
+                    remaining.input_len(),
+                    content.len()
+                ),
+            ))
+        } else {
+            Ok(program)
+        }
+    }
 }
 
 // TODO: Replace char!() macro with "line containing X" macro
@@ -22,7 +54,7 @@ named!(percent_delimited_program<Span, Program>,
             delimited!(
                 char!('%'),
                 many0!(line),
-                char!('%')
+                terminated!(char!('%'), eof!())
             )
         ),
         |lines| {
@@ -39,7 +71,7 @@ named!(m2_terminated_program<Span, Program>,
         ws!(
             terminated!(
                 many0!(line),
-                tag_no_case!("M2")
+                terminated!(tag_no_case!("M2"), eof!())
             )
         ),
         |lines| {
@@ -57,7 +89,7 @@ named!(m30_terminated_program<Span, Program>,
         ws!(
             terminated!(
                 many0!(line),
-                tag_no_case!("M30")
+                terminated!(tag_no_case!("M30"), eof!())
             )
         ),
         |lines| {

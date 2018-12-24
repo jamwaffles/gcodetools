@@ -2,7 +2,6 @@ mod coord;
 mod gcode;
 mod mcode;
 mod othercode;
-mod program;
 
 use self::coord::coord;
 pub use self::coord::Coord;
@@ -12,8 +11,6 @@ use self::mcode::mcode;
 pub use self::mcode::MCode;
 use self::othercode::othercode;
 pub use self::othercode::OtherCode;
-use self::program::program;
-pub use self::program::Program;
 use crate::Span;
 use nom::*;
 use nom_locate::position;
@@ -29,11 +26,6 @@ pub enum TokenType<'a> {
 
     /// A coordinate consisting of at least one XYZUVWABC component
     Coord(Coord<'a>),
-
-    /// A complete program listing
-    ///
-    /// This may be at the top level, or hold a sub-program referred to by an O-code
-    Program(Program<'a>),
 
     /// An F-, S- or T-code
     OtherCode(OtherCode<'a>),
@@ -51,8 +43,7 @@ named!(token_type<Span, TokenType>,
         map!(gcode, TokenType::GCode) |
         map!(coord, TokenType::Coord) |
         map!(mcode, TokenType::MCode) |
-        map!(othercode, TokenType::OtherCode) |
-        map!(program, TokenType::Program)
+        map!(othercode, TokenType::OtherCode)
     )
 );
 
