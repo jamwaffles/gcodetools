@@ -1,78 +1,26 @@
-use gcode_parser::{Program, Token};
-use nalgebra::U9;
+use gcode_parser::{Coord, Program, TokenType};
+use nalgebra::{VectorN, U9};
 use std::fs;
 use std::path::Path as FilePath;
-use trajectories::Path;
+use trajectories::{Path, Trajectory};
 
-// Test method that collects ONLY coordinates from a program and creates a path. It ignores things
-// like velocity, rapid/feed move, feed rate, etc. It _only_ creates a path from straight waypoints
-// fn convert_tokens_to_path(program: &Program) -> Path<U9> {
-//     let waypoints: Vec<VectorN<U9>> = program
-//         .tokens()
-//         .iter()
-//         .filter(|token| match token {
-//             Token::Coord(_) => true,
-//             _ => false,
-//         })
-//         .scan(Coord9::zeros(), |prev, token| match token {
-//             Token::Coord(coord) => {
-//                 let mut new_coord = Coord9::zeros();
-//                 new_coord[0] = if let Some(curr) = &coord.x {
-//                     curr.as_f64().unwrap()
-//                 } else {
-//                     prev[0]
-//                 };
-//                 new_coord[1] = if let Some(curr) = &coord.y {
-//                     curr.as_f64().unwrap()
-//                 } else {
-//                     prev[1]
-//                 };
-//                 new_coord[2] = if let Some(curr) = &coord.z {
-//                     curr.as_f64().unwrap()
-//                 } else {
-//                     prev[2]
-//                 };
-//                 new_coord[3] = if let Some(curr) = &coord.a {
-//                     curr.as_f64().unwrap()
-//                 } else {
-//                     prev[3]
-//                 };
-//                 new_coord[4] = if let Some(curr) = &coord.b {
-//                     curr.as_f64().unwrap()
-//                 } else {
-//                     prev[4]
-//                 };
-//                 new_coord[5] = if let Some(curr) = &coord.c {
-//                     curr.as_f64().unwrap()
-//                 } else {
-//                     prev[5]
-//                 };
-//                 new_coord[6] = if let Some(curr) = &coord.u {
-//                     curr.as_f64().unwrap()
-//                 } else {
-//                     prev[6]
-//                 };
-//                 new_coord[7] = if let Some(curr) = &coord.v {
-//                     curr.as_f64().unwrap()
-//                 } else {
-//                     prev[7]
-//                 };
-//                 new_coord[8] = if let Some(curr) = &coord.w {
-//                     curr.as_f64().unwrap()
-//                 } else {
-//                     prev[8]
-//                 };
-//                 *prev = new_coord.clone();
-//                 Some(new_coord)
-//             }
-//             _ => panic!("Not a coord"),
-//         })
-//         .collect();
+type Vector9 = VectorN<f64, U9>;
 
-//     println!("WAYPOINTS {:#?}", waypoints);
+fn merge_vector9_and_coord(current: &Vector9, coord: &Coord) -> Vector9 {
+    let mut new = current.clone();
 
-//     Path::from_waypoints(&waypoints, 0.001)
-// }
+    new[0] = coord.x.map(|c| c as f64).unwrap_or_else(|| current[0]);
+    new[1] = coord.y.map(|c| c as f64).unwrap_or_else(|| current[1]);
+    new[2] = coord.z.map(|c| c as f64).unwrap_or_else(|| current[2]);
+    new[3] = coord.u.map(|c| c as f64).unwrap_or_else(|| current[3]);
+    new[4] = coord.v.map(|c| c as f64).unwrap_or_else(|| current[4]);
+    new[5] = coord.w.map(|c| c as f64).unwrap_or_else(|| current[5]);
+    new[6] = coord.a.map(|c| c as f64).unwrap_or_else(|| current[6]);
+    new[7] = coord.b.map(|c| c as f64).unwrap_or_else(|| current[7]);
+    new[8] = coord.c.map(|c| c as f64).unwrap_or_else(|| current[8]);
+
+    new
+}
 
 #[cfg(test)]
 mod tests {
@@ -84,14 +32,41 @@ mod tests {
 
         let parsed = Program::from_str(&program).unwrap();
 
-        // let path = convert_tokens_to_path(&parsed);
+        let coords: Vec<Coord> = parsed
+            .iter_flat()
+            .cloned()
+            .filter_map(|token| match token.token {
+                TokenType::Coord(c) => Some(c),
+                _ => None,
+            })
+            .collect();
 
-        // let _trajectory = Trajectory::new(
-        //     path,
-        //     Coord9::repeat(1.0),
-        //     Coord9::repeat(1.0),
-        //     0.000001,
-        //     0.001,
-        // );
+        // Simulate the current state/position of the machine
+        let current_position = Vector9::repeat(9.99);
+
+        let waypoints: Vec<Vector9> = coords
+            .iter()
+            .scan(current_position, |current, coord| {
+                let new = merge_vector9_and_coord(current, &coord);
+
+                *current = new;
+
+                Some(new)
+            })
+            .collect();
+
+        println!("{:#?}", waypoints);
+
+        let path = Path::from_waypoints(&waypoints, 0.001);
+
+        let trajectory = Trajectory::new(
+            path,
+            Vector9::repeat(1.0),
+            Vector9::repeat(1.0),
+            0.000001,
+            0.001,
+        );
+
+        assert!(trajectory.is_ok());
     }
 }
