@@ -3,8 +3,10 @@ use crate::Span;
 use nom::*;
 use nom_locate::position;
 
+/// An M-code
 #[derive(Debug, PartialEq, Clone)]
 pub enum MCode<'a> {
+    /// A raw M-code that has no other arguments like M8 or M2
     Raw(RawMCode<'a>),
 }
 

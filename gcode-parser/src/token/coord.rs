@@ -5,6 +5,10 @@ use nom::types::CompleteByteSlice;
 use nom::*;
 use nom_locate::position;
 
+/// A 9 dimensional `XYZABCUVW` coordinate
+///
+/// Any or all of the components of this coordinate can be `None`, however the parser requires at
+/// least _one_ populated field to parse successfully.
 #[derive(Debug, PartialEq, Clone)]
 pub struct Coord<'a> {
     pub(crate) span: Span<'a>,

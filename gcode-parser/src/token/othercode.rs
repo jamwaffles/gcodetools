@@ -25,10 +25,21 @@ pub struct ToolNumber<'a> {
     pub(crate) tool_number: u16,
 }
 
+/// A valid code that is not an M-, G- or O-code
+///
+/// Note that arguments to other codes like the `Z` and `I` codes in `G33.1 Z-0.750 K0.05` are
+/// parsed as part of the `G33.1` call, so are kept in [GCode], not here.
+///
+/// [GCode]: ./enum.GCode.html
 #[derive(Debug, PartialEq, Clone)]
 pub enum OtherCode<'a> {
+    /// Feedrate
     Feedrate(Feedrate<'a>),
+
+    /// Spindle speed
     SpindleSpeed(SpindleSpeed<'a>),
+
+    /// Tool number
     ToolNumber(ToolNumber<'a>),
 }
 

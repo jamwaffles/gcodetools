@@ -25,7 +25,7 @@ mod program;
 mod token;
 
 pub use crate::program::Program;
-pub use crate::token::{Token, TokenType};
+pub use crate::token::{Coord, GCode, MCode, OtherCode, Token, TokenType};
 use nom::types::CompleteByteSlice;
 use nom_locate::LocatedSpan;
 

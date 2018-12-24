@@ -3,18 +3,32 @@ use crate::Span;
 use nom::*;
 use nom_locate::position;
 
+/// A G-code
 #[derive(Debug, PartialEq, Clone)]
-pub struct GCode<'a> {
+pub enum GCode<'a> {
+    /// A raw G-code with no arguments
+    Raw(RawGCode<'a>),
+}
+
+/// A raw G-code
+#[derive(Debug, PartialEq, Clone)]
+pub struct RawGCode<'a> {
     pub(crate) span: Span<'a>,
     pub(crate) code: f32,
 }
 
-named!(pub gcode<Span, GCode>,
+named!(pub raw_gcode<Span, RawGCode>,
     // TODO: Benchmark do_parse! vs tuple!
     do_parse!(
         span: position!() >>
         code: preceded!(one_of!("Gg"), code_number) >>
-        (GCode { span, code })
+        (RawGCode { span, code })
+    )
+);
+
+named!(pub gcode<Span, GCode>,
+    alt_complete!(
+        map!(raw_gcode, GCode::Raw)
     )
 );
 
@@ -29,10 +43,10 @@ mod tests {
         assert_parse!(
             parser = gcode,
             input = raw,
-            expected = GCode {
+            expected = GCode::Raw(RawGCode {
                 span: empty_span!(),
                 code: 54.0
-            },
+            }),
             remaining = empty_span!(offset = 3)
         );
     }
@@ -44,10 +58,10 @@ mod tests {
         assert_parse!(
             parser = gcode,
             input = raw,
-            expected = GCode {
+            expected = GCode::Raw(RawGCode {
                 span: empty_span!(),
                 code: 59.1
-            },
+            }),
             remaining = empty_span!(offset = 5)
         );
     }
