@@ -26,6 +26,50 @@ mod tests {
     use crate::token::{GCode, TokenType};
 
     #[test]
+    fn parse_multiple_spaced_tokens() {
+        let raw = span!(b"G54 G55  G56\tG57");
+
+        assert_parse!(
+            parser = line,
+            input = raw,
+            expected = Line {
+                span: empty_span!(),
+                tokens: vec![
+                    Token {
+                        span: empty_span!(),
+                        token: TokenType::GCode(GCode {
+                            span: empty_span!(),
+                            code: 54.0
+                        })
+                    },
+                    Token {
+                        span: empty_span!(offset = 4),
+                        token: TokenType::GCode(GCode {
+                            span: empty_span!(offset = 4),
+                            code: 55.0
+                        })
+                    },
+                    Token {
+                        span: empty_span!(offset = 9),
+                        token: TokenType::GCode(GCode {
+                            span: empty_span!(offset = 9),
+                            code: 56.0
+                        })
+                    },
+                    Token {
+                        span: empty_span!(offset = 13),
+                        token: TokenType::GCode(GCode {
+                            span: empty_span!(offset = 13),
+                            code: 57.0
+                        })
+                    }
+                ]
+            },
+            remaining = empty_span!(offset = 16)
+        );
+    }
+
+    #[test]
     fn consume_line_and_ending() {
         let raw = span!(b"G54\nG55");
 
