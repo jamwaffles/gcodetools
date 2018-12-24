@@ -16,7 +16,7 @@ use nom::*;
 use nom_locate::position;
 
 /// Any possible token type recgonised by this parser
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum TokenType<'a> {
     /// Any G-code
     GCode(GCode<'a>),
@@ -32,7 +32,7 @@ pub enum TokenType<'a> {
 }
 
 /// Parsed GCode token
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Token<'a> {
     pub(crate) span: Span<'a>,
     pub(crate) token: TokenType<'a>,

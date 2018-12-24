@@ -5,7 +5,7 @@ use nom::types::CompleteByteSlice;
 use nom::*;
 use nom_locate::position;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Coord<'a> {
     pub(crate) span: Span<'a>,
     pub(crate) x: Option<f32>,

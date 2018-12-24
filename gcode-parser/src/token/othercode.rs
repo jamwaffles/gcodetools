@@ -3,13 +3,13 @@ use crate::Span;
 use nom::*;
 use nom_locate::position;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Feedrate<'a> {
     pub(crate) span: Span<'a>,
     pub(crate) feedrate: f32,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct SpindleSpeed<'a> {
     pub(crate) span: Span<'a>,
 
@@ -19,13 +19,13 @@ pub struct SpindleSpeed<'a> {
     pub(crate) rpm: u32,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ToolNumber<'a> {
     pub(crate) span: Span<'a>,
     pub(crate) tool_number: u16,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum OtherCode<'a> {
     Feedrate(Feedrate<'a>),
     SpindleSpeed(SpindleSpeed<'a>),

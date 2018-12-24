@@ -3,7 +3,7 @@ use crate::Span;
 use nom::*;
 use nom_locate::position;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct GCode<'a> {
     pub(crate) span: Span<'a>,
     pub(crate) code: f32,
