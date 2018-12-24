@@ -11,16 +11,26 @@ use nom_locate::position;
 /// least _one_ populated field to parse successfully.
 #[derive(Debug, PartialEq, Clone)]
 pub struct Coord<'a> {
-    pub(crate) span: Span<'a>,
-    pub(crate) x: Option<f32>,
-    pub(crate) y: Option<f32>,
-    pub(crate) z: Option<f32>,
-    pub(crate) a: Option<f32>,
-    pub(crate) b: Option<f32>,
-    pub(crate) c: Option<f32>,
-    pub(crate) u: Option<f32>,
-    pub(crate) v: Option<f32>,
-    pub(crate) w: Option<f32>,
+    /// The location in the source string where this coordinate occurs
+    pub span: Span<'a>,
+    /// The optional X component of the coord
+    pub x: Option<f32>,
+    /// The optional Y component of the coord
+    pub y: Option<f32>,
+    /// The optional Z component of the coord
+    pub z: Option<f32>,
+    /// The optional A component of the coord
+    pub a: Option<f32>,
+    /// The optional B component of the coord
+    pub b: Option<f32>,
+    /// The optional C component of the coord
+    pub c: Option<f32>,
+    /// The optional U component of the coord
+    pub u: Option<f32>,
+    /// The optional V component of the coord
+    pub v: Option<f32>,
+    /// The optional W component of the coord
+    pub w: Option<f32>,
 }
 
 impl<'a> Default for Coord<'a> {
