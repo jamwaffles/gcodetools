@@ -14,7 +14,7 @@ named!(pub line<Span, Line>,
         span: position!() >>
         tokens: terminated!(
             sep!(space0, many0!(token)),
-            line_ending
+            alt!(line_ending | eof!())
         ) >>
         (Line { tokens, span })
     )
