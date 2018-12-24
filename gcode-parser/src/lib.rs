@@ -19,43 +19,27 @@
 
 #[macro_use]
 mod macros;
-mod block;
 mod line;
 mod parsers;
 mod token;
 
-use crate::block::block;
-use crate::block::{Block, Program as ProgramBlock};
-pub use crate::token::Token;
+use crate::token::token;
+pub use crate::token::{Token, TokenType};
 use nom::types::CompleteByteSlice;
-use nom::*;
 use nom_locate::LocatedSpan;
 use std::io;
-
-named!(parse_program_tree<Span, ProgramBlock>,
-    map_res!(
-        block,
-        |result| {
-            match result {
-                Block::Program(p) => Ok(p),
-                _ => Err(())
-            }
-        }
-    )
-);
 
 /// Container for a complete GCode program, including sub-programs
 #[derive(Debug)]
 pub struct Program<'a> {
-    token_tree: ProgramBlock<'a>,
+    token_tree: Token<'a>,
 }
 
 impl<'a> Program<'a> {
     /// Parse a GCode program from a given string
     pub fn from_str(content: &'a str) -> Result<Self, io::Error> {
-        let (_remaining, token_tree) =
-            parse_program_tree(Span::new(CompleteByteSlice(content.as_bytes())))
-                .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
+        let (_remaining, token_tree) = token(Span::new(CompleteByteSlice(content.as_bytes())))
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
 
         Ok(Self { token_tree })
     }
