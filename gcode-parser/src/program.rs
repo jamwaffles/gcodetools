@@ -1,4 +1,5 @@
 use crate::line::{line, Line};
+use crate::token::Token;
 use crate::Span;
 use nom::types::CompleteByteSlice;
 use nom::*;
@@ -44,6 +45,11 @@ impl<'a> Program<'a> {
         } else {
             Ok(program)
         }
+    }
+
+    /// Get a flat iterator over every token in this program
+    pub fn iter_flat(&'a self) -> impl Iterator<Item = &'a Token<'a>> {
+        self.lines.iter().flat_map(|line| line.iter())
     }
 }
 

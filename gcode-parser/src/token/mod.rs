@@ -34,8 +34,11 @@ pub enum TokenType<'a> {
 /// Parsed GCode token
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token<'a> {
-    pub(crate) span: Span<'a>,
-    pub(crate) token: TokenType<'a>,
+    /// Position in the source file at which this token occurs
+    pub span: Span<'a>,
+
+    /// The type and value of this token
+    pub token: TokenType<'a>,
 }
 
 named!(token_type<Span, TokenType>,

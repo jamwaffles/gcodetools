@@ -9,6 +9,12 @@ pub struct Line<'a> {
     pub(crate) tokens: Vec<Token<'a>>,
 }
 
+impl<'a> Line<'a> {
+    pub fn iter(&'a self) -> impl Iterator<Item = &'a Token<'a>> {
+        self.tokens.iter()
+    }
+}
+
 named!(pub line<Span, Line>,
     do_parse!(
         span: position!() >>
