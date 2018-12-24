@@ -6,7 +6,7 @@ mod othercode;
 use self::coord::coord;
 pub use self::coord::Coord;
 use self::gcode::gcode;
-pub use self::gcode::GCode;
+pub use self::gcode::{GCode, RawGCode};
 use self::mcode::mcode;
 pub use self::mcode::MCode;
 use self::othercode::othercode;

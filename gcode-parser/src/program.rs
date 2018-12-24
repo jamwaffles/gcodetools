@@ -118,7 +118,7 @@ named!(pub program<Span, Program>,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::token::{Coord, GCode, Token, TokenType};
+    use crate::token::{Coord, GCode, RawGCode, Token, TokenType};
 
     #[test]
     fn parse_percent_delimited_program() {
@@ -137,10 +137,10 @@ G1 X1 Y1 Z1
                         tokens: vec![
                             Token {
                                 span: empty_span!(offset = 2, line = 2),
-                                token: TokenType::GCode(GCode {
+                                token: TokenType::GCode(GCode::Raw(RawGCode {
                                     span: empty_span!(offset = 2, line = 2),
                                     code: 0.0
-                                })
+                                }))
                             },
                             Token {
                                 span: empty_span!(offset = 5, line = 2),
@@ -158,10 +158,10 @@ G1 X1 Y1 Z1
                         tokens: vec![
                             Token {
                                 span: empty_span!(offset = 14, line = 3),
-                                token: TokenType::GCode(GCode {
+                                token: TokenType::GCode(GCode::Raw(RawGCode {
                                     span: empty_span!(offset = 14, line = 3),
                                     code: 1.0
-                                })
+                                }))
                             },
                             Token {
                                 span: empty_span!(offset = 17, line = 3),
@@ -197,10 +197,10 @@ M2"#;
                         tokens: vec![
                             Token {
                                 span: empty_span!(),
-                                token: TokenType::GCode(GCode {
+                                token: TokenType::GCode(GCode::Raw(RawGCode {
                                     span: empty_span!(),
                                     code: 0.0
-                                })
+                                }))
                             },
                             Token {
                                 span: empty_span!(offset = 3),
@@ -218,10 +218,10 @@ M2"#;
                         tokens: vec![
                             Token {
                                 span: empty_span!(offset = 12, line = 2),
-                                token: TokenType::GCode(GCode {
+                                token: TokenType::GCode(GCode::Raw(RawGCode {
                                     span: empty_span!(offset = 12, line = 2),
                                     code: 1.0
-                                })
+                                }))
                             },
                             Token {
                                 span: empty_span!(offset = 15, line = 2),
@@ -257,10 +257,10 @@ M30"#;
                         tokens: vec![
                             Token {
                                 span: empty_span!(),
-                                token: TokenType::GCode(GCode {
+                                token: TokenType::GCode(GCode::Raw(RawGCode {
                                     span: empty_span!(),
                                     code: 0.0
-                                })
+                                }))
                             },
                             Token {
                                 span: empty_span!(offset = 3),
@@ -278,10 +278,10 @@ M30"#;
                         tokens: vec![
                             Token {
                                 span: empty_span!(offset = 12, line = 2),
-                                token: TokenType::GCode(GCode {
+                                token: TokenType::GCode(GCode::Raw(RawGCode {
                                     span: empty_span!(offset = 12, line = 2),
                                     code: 1.0
-                                })
+                                }))
                             },
                             Token {
                                 span: empty_span!(offset = 15, line = 2),

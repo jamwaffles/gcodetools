@@ -25,7 +25,8 @@ mod program;
 mod token;
 
 pub use crate::program::Program;
-pub use crate::token::{Coord, GCode, MCode, OtherCode, Token, TokenType};
+// TODO: Think about how to group MCode, GCode, RawGCode, etc exports
+pub use crate::token::{Coord, GCode, MCode, OtherCode, RawGCode, Token, TokenType};
 use nom::types::CompleteByteSlice;
 use nom_locate::LocatedSpan;
 
