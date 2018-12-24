@@ -119,4 +119,36 @@ mod tests {
             remaining = empty_span!(offset = 14)
         );
     }
+
+    #[test]
+    fn parse_lowercase_integers() {
+        assert_parse!(
+            parser = coord,
+            input = span!(b"x12 y34 z56"),
+            expected = Coord {
+                span: empty_span!(),
+                x: Some(12.0),
+                y: Some(34.0),
+                z: Some(56.0),
+                ..Coord::default()
+            },
+            remaining = empty_span!(offset = 11)
+        );
+    }
+
+    #[test]
+    fn parse_no_whitespace() {
+        assert_parse!(
+            parser = coord,
+            input = span!(b"x12y34z56"),
+            expected = Coord {
+                span: empty_span!(),
+                x: Some(12.0),
+                y: Some(34.0),
+                z: Some(56.0),
+                ..Coord::default()
+            },
+            remaining = empty_span!(offset = 9)
+        );
+    }
 }
