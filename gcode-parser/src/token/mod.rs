@@ -1,10 +1,13 @@
-//! G-code tokens
+//! Tokens
 
+mod comment;
 mod coord;
 mod gcode;
 mod mcode;
 mod othercode;
 
+use self::comment::comment;
+pub use self::comment::Comment;
 use self::coord::coord;
 pub use self::coord::Coord;
 use self::gcode::gcode;
@@ -38,6 +41,9 @@ pub enum TokenType {
 
     /// Tool number
     ToolNumber(ToolNumber),
+
+    /// A comment
+    Comment(Comment),
 
     /// A code that this parser doesn't understand
     Unknown(Unknown),
@@ -79,7 +85,8 @@ named!(token_type<Span, TokenType>,
         map!(mcode, TokenType::MCode) |
         map!(feedrate, TokenType::Feedrate) |
         map!(spindle_speed, TokenType::SpindleSpeed) |
-        map!(tool_number, TokenType::ToolNumber)
+        map!(tool_number, TokenType::ToolNumber) |
+        map!(comment, TokenType::Comment)
     )
 );
 

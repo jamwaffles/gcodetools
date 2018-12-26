@@ -19,3 +19,15 @@ I shouldn't be here"#;
 
     let _parsed = Program::from_str(program).unwrap();
 }
+
+#[test]
+fn comments() {
+    let program = r#"( test parens comment )
+(test parens comment)
+; line comment
+;line comment
+G1 X1 Y1 Z1
+M2"#;
+
+    let _parsed = Program::from_str(program).unwrap();
+}
