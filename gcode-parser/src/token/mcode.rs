@@ -24,7 +24,7 @@ pub struct SpindleForward<'a> {
 
 named!(pub raw_mcode<Span, RawMCode>,
     positioned!(
-        preceded!(one_of!("Mm"), code_number),
+        preceded!(char_no_case!('M'), code_number),
         |(span, code)| RawMCode { span, code }
     )
 );

@@ -68,15 +68,15 @@ named!(pub coord<Span, Coord>,
         sep!(
             space0,
             permutation!(
-                opt!(preceded!(one_of!("Xx"), float)),
-                opt!(preceded!(one_of!("Yy"), float)),
-                opt!(preceded!(one_of!("Zz"), float)),
-                opt!(preceded!(one_of!("Aa"), float)),
-                opt!(preceded!(one_of!("Bb"), float)),
-                opt!(preceded!(one_of!("Cc"), float)),
-                opt!(preceded!(one_of!("Uu"), float)),
-                opt!(preceded!(one_of!("Vv"), float)),
-                opt!(preceded!(one_of!("Ww"), float))
+                opt!(preceded!(char_no_case!('X'), float)),
+                opt!(preceded!(char_no_case!('Y'), float)),
+                opt!(preceded!(char_no_case!('Z'), float)),
+                opt!(preceded!(char_no_case!('A'), float)),
+                opt!(preceded!(char_no_case!('B'), float)),
+                opt!(preceded!(char_no_case!('C'), float)),
+                opt!(preceded!(char_no_case!('U'), float)),
+                opt!(preceded!(char_no_case!('V'), float)),
+                opt!(preceded!(char_no_case!('W'), float))
             )
         ),
         |(span, parts)| {

@@ -27,7 +27,7 @@ pub struct ToolNumber<'a> {
 
 named!(pub feedrate<Span, Feedrate>,
     positioned!(
-        preceded!(tag_no_case!("F"), code_number),
+        preceded!(char_no_case!('F'), code_number),
         |(span, feedrate)| Feedrate { span, feedrate }
     )
 );
@@ -35,7 +35,7 @@ named!(pub feedrate<Span, Feedrate>,
 named!(pub spindle_speed<Span, SpindleSpeed>,
     positioned!(
         preceded!(
-            tag_no_case!("S"),
+            char_no_case!('S'),
             flat_map!(
                 digit1,
                 parse_to!(u32)
@@ -48,7 +48,7 @@ named!(pub spindle_speed<Span, SpindleSpeed>,
 named!(pub tool_number<Span, ToolNumber>,
     positioned!(
         preceded!(
-            tag_no_case!("T"),
+            char_no_case!('T'),
             flat_map!(
                 digit1,
                 parse_to!(u16)

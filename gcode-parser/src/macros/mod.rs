@@ -52,3 +52,28 @@ macro_rules! positioned_res(
         positioned_res!($i, call!($code, $following));
     );
 );
+
+#[macro_export]
+macro_rules! char_no_case (
+    ($i:expr, $c: expr) => ({
+        use nom::Slice;
+        use nom::AsChar;
+        use nom::InputIter;
+        use nom::Err;
+        use nom::ErrorKind;
+        use nom::Context;
+        use nom::need_more;
+
+        match ($i).iter_elements().next().map(|c| {
+            c.as_char().eq_ignore_ascii_case(&$c)
+        }) {
+            None        => need_more($i, Needed::Size(1)),
+            Some(false) => {
+                let e: ErrorKind<u32> = nom::ErrorKind::Char;
+
+                Err(Err::Error(Context::Code($i, e)))
+            },
+            Some(true)  => Ok(( $i.slice($c.len()..), $i.iter_elements().next().unwrap().as_char() ))
+        }
+    });
+);

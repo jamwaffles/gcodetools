@@ -19,7 +19,7 @@ pub struct RawGCode<'a> {
 
 named!(pub raw_gcode<Span, RawGCode>,
     positioned!(
-        preceded!(one_of!("Gg"), code_number),
+        preceded!(char_no_case!('G'), code_number),
         |(span, code)| RawGCode { span, code }
     )
 );
