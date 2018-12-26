@@ -9,8 +9,8 @@ use self::gcode::gcode;
 pub use self::gcode::{GCode, RawGCode};
 use self::mcode::mcode;
 pub use self::mcode::MCode;
-use self::othercode::othercode;
-pub use self::othercode::OtherCode;
+use self::othercode::{feedrate, spindle_speed, tool_number};
+pub use self::othercode::{Feedrate, SpindleSpeed, ToolNumber};
 use crate::Span;
 use nom::*;
 use nom_locate::position;
@@ -27,8 +27,14 @@ pub enum TokenType<'a> {
     /// A coordinate consisting of at least one XYZUVWABC component
     Coord(Coord<'a>),
 
-    /// An F-, S- or T-code
-    OtherCode(OtherCode<'a>),
+    /// Feedrate
+    Feedrate(Feedrate<'a>),
+
+    /// Spindle speed
+    SpindleSpeed(SpindleSpeed<'a>),
+
+    /// Tool number
+    ToolNumber(ToolNumber<'a>),
 }
 
 /// Parsed GCode token
@@ -46,7 +52,9 @@ named!(token_type<Span, TokenType>,
         map!(gcode, TokenType::GCode) |
         map!(coord, TokenType::Coord) |
         map!(mcode, TokenType::MCode) |
-        map!(othercode, TokenType::OtherCode)
+        map!(feedrate, TokenType::Feedrate) |
+        map!(spindle_speed, TokenType::SpindleSpeed) |
+        map!(tool_number, TokenType::ToolNumber)
     )
 );
 

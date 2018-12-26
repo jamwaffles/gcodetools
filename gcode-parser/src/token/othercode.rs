@@ -5,42 +5,24 @@ use nom_locate::position;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Feedrate<'a> {
-    pub(crate) span: Span<'a>,
-    pub(crate) feedrate: f32,
+    pub span: Span<'a>,
+    pub feedrate: f32,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct SpindleSpeed<'a> {
-    pub(crate) span: Span<'a>,
+    pub span: Span<'a>,
 
     // Spindle speed value in revolutions per minute (RPM)
     //
     // This value cannot be negative. Reverse rotation is achieved by issuing an `M4 Sxxxx` command
-    pub(crate) rpm: u32,
+    pub rpm: u32,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ToolNumber<'a> {
-    pub(crate) span: Span<'a>,
-    pub(crate) tool_number: u16,
-}
-
-/// A valid code that is not an M-, G- or O-code
-///
-/// Note that arguments to other codes like the `Z` and `I` codes in `G33.1 Z-0.750 K0.05` are
-/// parsed as part of the `G33.1` call, so are kept in [GCode], not here.
-///
-/// [GCode]: ./enum.GCode.html
-#[derive(Debug, PartialEq, Clone)]
-pub enum OtherCode<'a> {
-    /// Feedrate
-    Feedrate(Feedrate<'a>),
-
-    /// Spindle speed
-    SpindleSpeed(SpindleSpeed<'a>),
-
-    /// Tool number
-    ToolNumber(ToolNumber<'a>),
+    pub span: Span<'a>,
+    pub tool_number: u16,
 }
 
 named!(pub feedrate<Span, Feedrate>,
@@ -79,14 +61,6 @@ named!(pub tool_number<Span, ToolNumber>,
     )
 );
 
-named!(pub othercode<Span, OtherCode>,
-    alt_complete!(
-        map!(feedrate, OtherCode::Feedrate) |
-        map!(spindle_speed, OtherCode::SpindleSpeed) |
-        map!(tool_number, OtherCode::ToolNumber)
-    )
-);
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -94,12 +68,12 @@ mod tests {
     #[test]
     fn parse_feedrate() {
         assert_parse!(
-            parser = othercode,
+            parser = feedrate,
             input = span!(b"F500.3"),
-            expected = OtherCode::Feedrate(Feedrate {
+            expected = Feedrate {
                 feedrate: 500.3,
                 span: empty_span!()
-            }),
+            },
             remaining = empty_span!(offset = 6)
         );
     }
@@ -107,12 +81,12 @@ mod tests {
     #[test]
     fn parse_spindle_rpm() {
         assert_parse!(
-            parser = othercode,
+            parser = spindle_speed,
             input = span!(b"S1000"),
-            expected = OtherCode::SpindleSpeed(SpindleSpeed {
+            expected = SpindleSpeed {
                 rpm: 1000u32,
                 span: empty_span!()
-            }),
+            },
             remaining = empty_span!(offset = 5)
         );
     }
@@ -120,12 +94,12 @@ mod tests {
     #[test]
     fn parse_tool_number() {
         assert_parse!(
-            parser = othercode,
+            parser = tool_number,
             input = span!(b"T32"),
-            expected = OtherCode::ToolNumber(ToolNumber {
+            expected = ToolNumber {
                 tool_number: 32u16,
                 span: empty_span!()
-            }),
+            },
             remaining = empty_span!(offset = 3)
         );
     }
