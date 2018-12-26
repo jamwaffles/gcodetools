@@ -59,10 +59,6 @@ fn write_test(
     suite_name: &String,
     (source_data_path, data_file_name): (PathBuf, String),
 ) {
-    // let directory = directory.path().canonicalize().unwrap();
-    // let path = directory.display();
-    // let test_name = format!("{}", directory.file_name().unwrap().to_string_lossy());
-
     let test_name = format!("{}_{}", suite_name, data_file_name);
 
     write!(
