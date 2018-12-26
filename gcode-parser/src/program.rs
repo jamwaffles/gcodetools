@@ -69,7 +69,7 @@ named!(percent_delimited_program<Span, Program>,
     map!(
         ws!(
             delimited!(
-                char!('%'),
+                opt!(char!('%')),
                 many0!(line),
                 terminated!(char!('%'), eof!())
             )
@@ -183,6 +183,14 @@ G1 X1 Y1 Z1
                 marker_type: ProgramMarkerType::Percent
             },
             remaining = empty_span!(offset = 27, line = 4)
+        );
+    }
+
+    #[test]
+    fn parse_percent_terminated_program() {
+        assert_parse_ok!(
+            parser = program,
+            input = span!(b"G0 X0 Y0 Z0\nG1 X1 Y1 Z1\n%")
         );
     }
 
