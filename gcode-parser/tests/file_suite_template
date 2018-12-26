@@ -1,0 +1,9 @@
+#[test]
+fn {name}() {{
+    let input = include_str!("{source_data_path}");
+
+    match Program::from_str(input) {{
+    	Ok(_) => (),
+    	Err(e) => panic!("{{}}", e)
+    }}
+}}
