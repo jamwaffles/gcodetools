@@ -23,7 +23,7 @@ macro_rules! code(
 macro_rules! positioned(
     ($i:expr, $submac:ident!( $($args:tt)* ), $map:expr) => ({
         map!(
-        	$i,
+            $i,
             tuple!(
                 position!(),
                 $submac!($($args)*)
@@ -32,6 +32,23 @@ macro_rules! positioned(
         )
     });
     ($i:expr, $submac:expr) => (
-        code!($i, call!($code, $following));
+        positioned!($i, call!($code, $following));
+    );
+);
+
+#[macro_export]
+macro_rules! positioned_res(
+    ($i:expr, $submac:ident!( $($args:tt)* ), $map:expr) => ({
+        map_res!(
+            $i,
+            tuple!(
+                position!(),
+                $submac!($($args)*)
+            ),
+            $map
+        )
+    });
+    ($i:expr, $submac:expr) => (
+        positioned_res!($i, call!($code, $following));
     );
 );

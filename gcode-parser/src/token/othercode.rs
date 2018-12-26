@@ -26,38 +26,35 @@ pub struct ToolNumber<'a> {
 }
 
 named!(pub feedrate<Span, Feedrate>,
-    do_parse!(
-        span: position!() >>
-        feedrate: preceded!(tag_no_case!("F"), code_number) >>
-        (Feedrate { span, feedrate })
+    positioned!(
+        preceded!(tag_no_case!("F"), code_number),
+        |(span, feedrate)| Feedrate { span, feedrate }
     )
 );
 
 named!(pub spindle_speed<Span, SpindleSpeed>,
-    do_parse!(
-        span: position!() >>
-        rpm: preceded!(
+    positioned!(
+        preceded!(
             tag_no_case!("S"),
             flat_map!(
                 digit1,
                 parse_to!(u32)
             )
-        ) >>
-        (SpindleSpeed { span, rpm })
+        ),
+        |(span, rpm)| SpindleSpeed { span, rpm }
     )
 );
 
 named!(pub tool_number<Span, ToolNumber>,
-    do_parse!(
-        span: position!() >>
-        tool_number: preceded!(
+    positioned!(
+        preceded!(
             tag_no_case!("T"),
             flat_map!(
                 digit1,
                 parse_to!(u16)
             )
-        ) >>
-        (ToolNumber { span, tool_number })
+        ),
+        |(span, tool_number)| ToolNumber { span, tool_number }
     )
 );
 

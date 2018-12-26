@@ -64,22 +64,19 @@ impl<'a> Default for Coord<'a> {
 // };
 
 named!(pub coord<Span, Coord>,
-    map_res!(
-        tuple!(
-            position!(),
-            sep!(
-                space0,
-                permutation!(
-                    opt!(preceded!(one_of!("Xx"), float)),
-                    opt!(preceded!(one_of!("Yy"), float)),
-                    opt!(preceded!(one_of!("Zz"), float)),
-                    opt!(preceded!(one_of!("Aa"), float)),
-                    opt!(preceded!(one_of!("Bb"), float)),
-                    opt!(preceded!(one_of!("Cc"), float)),
-                    opt!(preceded!(one_of!("Uu"), float)),
-                    opt!(preceded!(one_of!("Vv"), float)),
-                    opt!(preceded!(one_of!("Ww"), float))
-                )
+    positioned_res!(
+        sep!(
+            space0,
+            permutation!(
+                opt!(preceded!(one_of!("Xx"), float)),
+                opt!(preceded!(one_of!("Yy"), float)),
+                opt!(preceded!(one_of!("Zz"), float)),
+                opt!(preceded!(one_of!("Aa"), float)),
+                opt!(preceded!(one_of!("Bb"), float)),
+                opt!(preceded!(one_of!("Cc"), float)),
+                opt!(preceded!(one_of!("Uu"), float)),
+                opt!(preceded!(one_of!("Vv"), float)),
+                opt!(preceded!(one_of!("Ww"), float))
             )
         ),
         |(span, parts)| {
@@ -95,7 +92,8 @@ named!(pub coord<Span, Coord>,
             } else {
                 Ok(coord)
             }
-        })
+        }
+    )
 );
 
 #[cfg(test)]
