@@ -17,11 +17,17 @@ macro_rules! code(
     ($i:expr, $code:expr, $following:expr) => (
         code!($i, call!($code, $following));
     );
+    ($i:expr, $code:expr) => ({
+        tag_no_case!($i, $code);
+    });
 );
 
 #[macro_export]
 macro_rules! positioned(
     ($i:expr, $submac:ident!( $($args:tt)* ), $map:expr) => ({
+        use nom_locate::position;
+        use nom::{map, tuple};
+
         map!(
             $i,
             tuple!(
@@ -31,8 +37,8 @@ macro_rules! positioned(
             $map
         )
     });
-    ($i:expr, $submac:expr) => (
-        positioned!($i, call!($code, $following));
+    ($i:expr, $f:expr) => (
+        opt!($i, call!($f));
     );
 );
 

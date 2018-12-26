@@ -22,11 +22,9 @@ mod macros;
 mod line;
 mod parsers;
 mod program;
-mod token;
+pub mod token;
 
 pub use crate::program::Program;
-// TODO: Think about how to group MCode, GCode, RawGCode, etc exports
-pub use crate::token::{Coord, GCode, MCode, RawGCode, Token, TokenType};
 use nom::types::CompleteByteSlice;
 use nom_locate::LocatedSpan;
 

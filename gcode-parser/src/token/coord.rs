@@ -11,7 +11,7 @@ use nom_locate::position;
 /// least _one_ populated field to parse successfully.
 #[derive(Debug, PartialEq, Clone)]
 pub struct Coord<'a> {
-    /// The location in the source string where this coordinate occurs
+    /// Position in source input
     pub span: Span<'a>,
     /// The optional X component of the coord
     pub x: Option<f32>,

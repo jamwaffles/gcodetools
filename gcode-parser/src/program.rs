@@ -118,7 +118,7 @@ named!(pub program<Span, Program>,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::token::{Coord, GCode, RawGCode, Token, TokenType};
+    use crate::token::{Coord, Feed, GCode, Rapid, Token, TokenType};
 
     #[test]
     fn parse_percent_delimited_program() {
@@ -137,9 +137,8 @@ G1 X1 Y1 Z1
                         tokens: vec![
                             Token {
                                 span: empty_span!(offset = 2, line = 2),
-                                token: TokenType::GCode(GCode::Raw(RawGCode {
+                                token: TokenType::GCode(GCode::Rapid(Rapid {
                                     span: empty_span!(offset = 2, line = 2),
-                                    code: 0.0
                                 }))
                             },
                             Token {
@@ -158,9 +157,8 @@ G1 X1 Y1 Z1
                         tokens: vec![
                             Token {
                                 span: empty_span!(offset = 14, line = 3),
-                                token: TokenType::GCode(GCode::Raw(RawGCode {
+                                token: TokenType::GCode(GCode::Feed(Feed {
                                     span: empty_span!(offset = 14, line = 3),
-                                    code: 1.0
                                 }))
                             },
                             Token {
@@ -197,9 +195,8 @@ M2"#;
                         tokens: vec![
                             Token {
                                 span: empty_span!(),
-                                token: TokenType::GCode(GCode::Raw(RawGCode {
+                                token: TokenType::GCode(GCode::Rapid(Rapid {
                                     span: empty_span!(),
-                                    code: 0.0
                                 }))
                             },
                             Token {
@@ -218,9 +215,8 @@ M2"#;
                         tokens: vec![
                             Token {
                                 span: empty_span!(offset = 12, line = 2),
-                                token: TokenType::GCode(GCode::Raw(RawGCode {
+                                token: TokenType::GCode(GCode::Feed(Feed {
                                     span: empty_span!(offset = 12, line = 2),
-                                    code: 1.0
                                 }))
                             },
                             Token {
@@ -257,9 +253,8 @@ M30"#;
                         tokens: vec![
                             Token {
                                 span: empty_span!(),
-                                token: TokenType::GCode(GCode::Raw(RawGCode {
+                                token: TokenType::GCode(GCode::Rapid(Rapid {
                                     span: empty_span!(),
-                                    code: 0.0
                                 }))
                             },
                             Token {
@@ -278,9 +273,8 @@ M30"#;
                         tokens: vec![
                             Token {
                                 span: empty_span!(offset = 12, line = 2),
-                                token: TokenType::GCode(GCode::Raw(RawGCode {
+                                token: TokenType::GCode(GCode::Feed(Feed {
                                     span: empty_span!(offset = 12, line = 2),
-                                    code: 1.0
                                 }))
                             },
                             Token {

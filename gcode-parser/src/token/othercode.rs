@@ -3,36 +3,46 @@ use crate::Span;
 use nom::*;
 use nom_locate::position;
 
+/// Define a feed rate in machine units per minute
 #[derive(Debug, PartialEq, Clone)]
 pub struct Feedrate<'a> {
+    /// Position in source input
     pub span: Span<'a>,
+
+    /// Feed rate in machine units per minute
     pub feedrate: f32,
 }
 
+/// Spindle speed value
 #[derive(Debug, PartialEq, Clone)]
 pub struct SpindleSpeed<'a> {
+    /// Position in source input
     pub span: Span<'a>,
 
-    // Spindle speed value in revolutions per minute (RPM)
-    //
-    // This value cannot be negative. Reverse rotation is achieved by issuing an `M4 Sxxxx` command
+    /// Spindle speed value in revolutions per minute (RPM)
+    ///
+    /// This value cannot be negative. Reverse rotation is achieved by issuing an `M4 Sxxxx` command
     pub rpm: u32,
 }
 
+/// Tool number `Tn`
 #[derive(Debug, PartialEq, Clone)]
 pub struct ToolNumber<'a> {
+    /// Position in source input
     pub span: Span<'a>,
+
+    /// Positive integer tool number
     pub tool_number: u16,
 }
 
-named!(pub feedrate<Span, Feedrate>,
+named!(pub(crate) feedrate<Span, Feedrate>,
     positioned!(
         preceded!(char_no_case!('F'), code_number),
         |(span, feedrate)| Feedrate { span, feedrate }
     )
 );
 
-named!(pub spindle_speed<Span, SpindleSpeed>,
+named!(pub(crate) spindle_speed<Span, SpindleSpeed>,
     positioned!(
         preceded!(
             char_no_case!('S'),

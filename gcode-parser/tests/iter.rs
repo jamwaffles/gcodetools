@@ -1,4 +1,4 @@
-use gcode_parser::{Program, Token};
+use gcode_parser::{token::Token, Program};
 
 #[test]
 fn flat_iterator() {

@@ -29,7 +29,7 @@ named!(pub line<Span, Line>,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::token::{GCode, RawGCode, TokenType};
+    use crate::token::{GCode, TokenType, WorkOffset, WorkOffsetValue};
 
     #[test]
     fn parse_multiple_spaced_tokens() {
@@ -43,30 +43,30 @@ mod tests {
                 tokens: vec![
                     Token {
                         span: empty_span!(),
-                        token: TokenType::GCode(GCode::Raw(RawGCode {
+                        token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
                             span: empty_span!(),
-                            code: 54.0
+                            offset: WorkOffsetValue::G54,
                         }))
                     },
                     Token {
                         span: empty_span!(offset = 4),
-                        token: TokenType::GCode(GCode::Raw(RawGCode {
+                        token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
                             span: empty_span!(offset = 4),
-                            code: 55.0
+                            offset: WorkOffsetValue::G55,
                         }))
                     },
                     Token {
                         span: empty_span!(offset = 9),
-                        token: TokenType::GCode(GCode::Raw(RawGCode {
+                        token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
                             span: empty_span!(offset = 9),
-                            code: 56.0
+                            offset: WorkOffsetValue::G56,
                         }))
                     },
                     Token {
                         span: empty_span!(offset = 13),
-                        token: TokenType::GCode(GCode::Raw(RawGCode {
+                        token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
                             span: empty_span!(offset = 13),
-                            code: 57.0
+                            offset: WorkOffsetValue::G57,
                         }))
                     }
                 ]
@@ -86,9 +86,9 @@ mod tests {
                 span: empty_span!(),
                 tokens: vec![Token {
                     span: empty_span!(),
-                    token: TokenType::GCode(GCode::Raw(RawGCode {
+                    token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
                         span: empty_span!(),
-                        code: 54.0
+                        offset: WorkOffsetValue::G54,
                     }))
                 }]
             },

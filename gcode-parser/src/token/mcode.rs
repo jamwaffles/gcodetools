@@ -1,4 +1,3 @@
-use crate::parsers::code_number;
 use crate::Span;
 use nom::*;
 use nom_locate::position;
@@ -6,32 +5,54 @@ use nom_locate::position;
 /// An M-code
 #[derive(Debug, PartialEq, Clone)]
 pub enum MCode<'a> {
-    /// A raw M-code that has no other arguments like M8 or M2
-    Raw(RawMCode<'a>),
+    /// Turn the spindle clockwise
+    SpindleForward(SpindleForward<'a>),
+
+    /// Turn the spindle counter-clockwise
+    SpindleReverse(SpindleReverse<'a>),
+
+    /// Stop the spindle
+    SpindleStop(SpindleStop<'a>),
+
+    /// Change tool
+    ToolChange(ToolChange<'a>),
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub struct RawMCode<'a> {
-    pub(crate) span: Span<'a>,
-    pub(crate) code: f32,
-}
-
+/// Start the spindle spinning in a clockwise direction
 #[derive(Debug, PartialEq, Clone)]
 pub struct SpindleForward<'a> {
-    pub(crate) span: Span<'a>,
-    pub(crate) rpm: u32,
+    /// Position in source input
+    pub span: Span<'a>,
 }
 
-named!(pub raw_mcode<Span, RawMCode>,
-    positioned!(
-        preceded!(char_no_case!('M'), code_number),
-        |(span, code)| RawMCode { span, code }
-    )
-);
+/// Start the spindle spinning in a clockwise direction
+#[derive(Debug, PartialEq, Clone)]
+pub struct SpindleReverse<'a> {
+    /// Position in source input
+    pub span: Span<'a>,
+}
+
+/// Start the spindle spinning in a clockwise direction
+#[derive(Debug, PartialEq, Clone)]
+pub struct SpindleStop<'a> {
+    /// Position in source input
+    pub span: Span<'a>,
+}
+
+/// Start the spindle spinning in a clockwise direction
+#[derive(Debug, PartialEq, Clone)]
+pub struct ToolChange<'a> {
+    /// Position in source input
+    pub span: Span<'a>,
+}
 
 named!(pub mcode<Span, MCode>,
+    // TODO: Handle leading zeros like `M06`, etc
     alt_complete!(
-        map!(raw_mcode, MCode::Raw)
+        positioned!(tag_no_case!("M3"), |(span, _)| MCode::SpindleForward(SpindleForward { span })) |
+        positioned!(tag_no_case!("M4"), |(span, _)| MCode::SpindleReverse(SpindleReverse { span })) |
+        positioned!(tag_no_case!("M5"), |(span, _)| MCode::SpindleStop(SpindleStop { span })) |
+        positioned!(tag_no_case!("M6"), |(span, _)| MCode::ToolChange(ToolChange { span }))
     )
 );
 
@@ -40,44 +61,29 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_single_integer_mcode() {
-        let raw = span!(b"M99");
-
+    fn parse_spindle_commands() {
         assert_parse!(
             parser = mcode,
-            input = raw,
-            expected = MCode::Raw(RawMCode {
-                code: 99.0,
+            input = span!(b"M3"),
+            expected = MCode::SpindleForward(SpindleForward {
                 span: empty_span!()
             }),
-            remaining = empty_span!(offset = 3)
+            remaining = empty_span!(offset = 2)
         );
-    }
-
-    #[test]
-    fn parse_single_decimal_mcode() {
-        let raw = span!(b"M100.1");
 
         assert_parse!(
             parser = mcode,
-            input = raw,
-            expected = MCode::Raw(RawMCode {
-                code: 100.1,
+            input = span!(b"M4"),
+            expected = MCode::SpindleReverse(SpindleReverse {
                 span: empty_span!()
             }),
-            remaining = empty_span!(offset = 6)
+            remaining = empty_span!(offset = 2)
         );
-    }
-
-    #[test]
-    fn parse_spindle_forward() {
-        let raw = span!(b"M3");
 
         assert_parse!(
             parser = mcode,
-            input = raw,
-            expected = MCode::Raw(RawMCode {
-                code: 3.0,
+            input = span!(b"M5"),
+            expected = MCode::SpindleStop(SpindleStop {
                 span: empty_span!()
             }),
             remaining = empty_span!(offset = 2)
