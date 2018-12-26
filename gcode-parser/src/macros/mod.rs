@@ -2,6 +2,25 @@
 #[macro_use]
 mod test_helpers;
 
+macro_rules! lines {
+    ($input:expr, $n:expr) => {{
+        let lines = $input.lines();
+        let num_lines = $input.lines().count();
+
+        let chunk = lines.take($n).collect::<Vec<&str>>().join("\n");
+
+        if num_lines > $n {
+            format!("{}\n... (snip)", chunk)
+        } else {
+            chunk
+        }
+    }};
+
+    ($input:expr) => {
+        lines!($input, 5)
+    };
+}
+
 #[macro_export]
 macro_rules! format_parse_error {
     ($remaining:expr, $e:expr, $input:expr) => {{
@@ -9,12 +28,12 @@ macro_rules! format_parse_error {
         let input = String::from_utf8($input.fragment.to_vec()).unwrap();
 
         format!(
-            "Parser execution failed\n-- Test input starts (len {})\n{}\n\n-- Error type\n{:?}\n\n-- Remaining input starts (len {})\n{}\n",
+            "Parser execution failed\n-- Test input (len {})\n{}\n\n-- Error type\n{:?}\n\n-- Remaining input (len {})\n{}\n",
             input.len(),
-            &input[..32],
+            lines!(input),
             $e,
             remaining.len(),
-            &remaining[..32]
+            lines!(remaining)
         )
     }}
 }
