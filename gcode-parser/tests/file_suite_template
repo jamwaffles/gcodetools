@@ -1,4 +1,5 @@
 #[test]
+#[ignore]
 #[allow(non_snake_case)]
 fn {name}() {{
     let input = include_str!("{source_data_path}");
