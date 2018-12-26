@@ -18,10 +18,8 @@ impl<'a> Line<'a> {
 named!(pub line<Span, Line>,
     do_parse!(
         span: position!() >>
-        tokens: terminated!(
-            sep!(space0, many0!(token)),
-            alt!(line_ending | eof!())
-        ) >>
+        tokens: sep!(space0, many0!(token)) >>
+        line_ending >>
         (Line { tokens, span })
     )
 );
@@ -33,7 +31,7 @@ mod tests {
 
     #[test]
     fn parse_multiple_spaced_tokens() {
-        let raw = span!(b"G54 G55  G56\tG57");
+        let raw = span!(b"G54 G55  G56\tG57\n");
 
         assert_parse!(
             parser = line,
@@ -67,7 +65,7 @@ mod tests {
                     }
                 ]
             },
-            remaining = empty_span!(offset = 16)
+            remaining = empty_span!(offset = 17, line = 2)
         );
     }
 

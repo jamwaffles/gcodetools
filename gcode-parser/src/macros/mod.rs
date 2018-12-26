@@ -125,3 +125,17 @@ macro_rules! char_no_case (
         }
     });
 );
+
+#[macro_export]
+macro_rules! line_with (
+    ($i:expr, $submac:ident!( $($args:tt)* )) => ({
+        terminated!(
+            $i,
+            $submac!($($args)*),
+            alt_complete!(line_ending | eof!())
+        )
+    });
+    ($i:expr, $submac:expr) => (
+        line_with!($i, call!($submac));
+    );
+);

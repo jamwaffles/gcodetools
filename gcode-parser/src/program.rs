@@ -65,17 +65,15 @@ impl<'a> Program<'a> {
 }
 
 named!(pub program<Span, Program>,
-    ws!(
-        do_parse!(
-            opt!(char!('%')) >>
-            lines: many0!(line) >>
-            marker_type: alt_complete!(
-                map!(terminated!(char!('%'), eof!()), |_| ProgramMarkerType::Percent) |
-                map!(terminated!(tag_no_case!("M30"), eof!()), |_| ProgramMarkerType::M30) |
-                map!(terminated!(tag_no_case!("M2"), eof!()), |_| ProgramMarkerType::M2)
-            ) >>
-            (Program { lines, marker_type })
-        )
+    do_parse!(
+        opt!(line_with!(char!('%'))) >>
+        lines: many0!(line) >>
+        marker_type: alt_complete!(
+            map!(line_with!(char!('%')), |_| ProgramMarkerType::Percent) |
+            map!(line_with!(tag_no_case!("M30")), |_| ProgramMarkerType::M30) |
+            map!(line_with!(tag_no_case!("M2")), |_| ProgramMarkerType::M2)
+        ) >>
+        (Program { lines, marker_type })
     )
 );
 

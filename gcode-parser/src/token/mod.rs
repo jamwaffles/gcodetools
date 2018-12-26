@@ -86,8 +86,8 @@ named!(token_type<Span, TokenType>,
         map!(feedrate, TokenType::Feedrate) |
         map!(spindle_speed, TokenType::SpindleSpeed) |
         map!(tool_number, TokenType::ToolNumber) |
-        map!(comment, TokenType::Comment) /*|
-        map!(unknown, TokenType::Unknown)*/
+        map!(comment, TokenType::Comment) |
+        map!(unknown, TokenType::Unknown)
     )
 );
 
