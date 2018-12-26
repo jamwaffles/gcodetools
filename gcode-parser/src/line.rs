@@ -44,28 +44,24 @@ mod tests {
                     Token {
                         span: empty_span!(),
                         token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-                            span: empty_span!(),
                             offset: WorkOffsetValue::G54,
                         }))
                     },
                     Token {
                         span: empty_span!(offset = 4),
                         token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-                            span: empty_span!(offset = 4),
                             offset: WorkOffsetValue::G55,
                         }))
                     },
                     Token {
                         span: empty_span!(offset = 9),
                         token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-                            span: empty_span!(offset = 9),
                             offset: WorkOffsetValue::G56,
                         }))
                     },
                     Token {
                         span: empty_span!(offset = 13),
                         token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-                            span: empty_span!(offset = 13),
                             offset: WorkOffsetValue::G57,
                         }))
                     }
@@ -87,7 +83,6 @@ mod tests {
                 tokens: vec![Token {
                     span: empty_span!(),
                     token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-                        span: empty_span!(),
                         offset: WorkOffsetValue::G54,
                     }))
                 }]

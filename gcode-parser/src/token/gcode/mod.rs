@@ -7,37 +7,23 @@ use nom::*;
 
 /// A G-code
 #[derive(Debug, PartialEq, Clone)]
-pub enum GCode<'a> {
+pub enum GCode {
     /// Rapid move
-    Rapid(Rapid<'a>),
+    Rapid,
 
     /// Move at a defined feedrate
-    Feed(Feed<'a>),
+    Feed,
 
     /// Work offset (`G54`, `G55`, etc)
-    WorkOffset(WorkOffset<'a>),
-}
-
-/// Rapid move
-#[derive(Debug, PartialEq, Clone)]
-pub struct Rapid<'a> {
-    /// Position in source input
-    pub span: Span<'a>,
-}
-
-/// Move at a defined feedrate
-#[derive(Debug, PartialEq, Clone)]
-pub struct Feed<'a> {
-    /// Position in source input
-    pub span: Span<'a>,
+    WorkOffset(WorkOffset),
 }
 
 named!(pub gcode<Span, GCode>,
     alt_complete!(
         // TODO: Handle `G00`
-        positioned!(tag_no_case!("G0"), |(span, _)| GCode::Rapid(Rapid { span })) |
+        map!(tag_no_case!("G0"), |_| GCode::Rapid) |
         // TODO: Handle `G01`
-        positioned!(tag_no_case!("G1"), |(span, _)| GCode::Feed(Feed { span })) |
+        map!(tag_no_case!("G1"), |_| GCode::Feed) |
         map!(work_offset, GCode::WorkOffset)
     )
 );

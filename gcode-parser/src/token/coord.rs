@@ -1,18 +1,14 @@
 //! Parse coordinates into a vector
 
 use crate::Span;
-use nom::types::CompleteByteSlice;
 use nom::*;
-use nom_locate::position;
 
 /// A 9 dimensional `XYZABCUVW` coordinate
 ///
 /// Any or all of the components of this coordinate can be `None`, however the parser requires at
 /// least _one_ populated field to parse successfully.
 #[derive(Debug, PartialEq, Clone)]
-pub struct Coord<'a> {
-    /// Position in source input
-    pub span: Span<'a>,
+pub struct Coord {
     /// The optional X component of the coord
     pub x: Option<f32>,
     /// The optional Y component of the coord
@@ -33,10 +29,9 @@ pub struct Coord<'a> {
     pub w: Option<f32>,
 }
 
-impl<'a> Default for Coord<'a> {
+impl Default for Coord {
     fn default() -> Self {
         Self {
-            span: Span::new(CompleteByteSlice(b"")),
             x: None,
             y: None,
             z: None,
@@ -64,7 +59,7 @@ impl<'a> Default for Coord<'a> {
 // };
 
 named!(pub coord<Span, Coord>,
-    positioned_res!(
+    map_res!(
         sep!(
             space0,
             permutation!(
@@ -79,10 +74,8 @@ named!(pub coord<Span, Coord>,
                 opt!(preceded!(char_no_case!('W'), float))
             )
         ),
-        |(span, parts)| {
-            let (x, y, z, a, b, c, u, v, w) = parts;
-
-            let coord = Coord { span, x, y, z, a, b, c, u, v, w };
+        |(x, y, z, a, b, c, u, v, w)| {
+            let coord = Coord { x, y, z, a, b, c, u, v, w };
 
             // TODO: Benchmark this against static `EMPTY_COORD`
             let empty = Coord::default();
@@ -106,7 +99,6 @@ mod tests {
             parser = coord,
             input = span!(b"X0.0 Y1.0 Z2.0"),
             expected = Coord {
-                span: empty_span!(),
                 x: Some(0.0),
                 y: Some(1.0),
                 z: Some(2.0),
@@ -122,7 +114,6 @@ mod tests {
             parser = coord,
             input = span!(b"x0.0 y1.0 z2.0"),
             expected = Coord {
-                span: empty_span!(),
                 x: Some(0.0),
                 y: Some(1.0),
                 z: Some(2.0),
@@ -138,7 +129,6 @@ mod tests {
             parser = coord,
             input = span!(b"x12 y34 z56"),
             expected = Coord {
-                span: empty_span!(),
                 x: Some(12.0),
                 y: Some(34.0),
                 z: Some(56.0),
@@ -154,7 +144,6 @@ mod tests {
             parser = coord,
             input = span!(b"x12y34z56"),
             expected = Coord {
-                span: empty_span!(),
                 x: Some(12.0),
                 y: Some(34.0),
                 z: Some(56.0),

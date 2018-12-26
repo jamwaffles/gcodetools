@@ -8,7 +8,7 @@ mod othercode;
 use self::coord::coord;
 pub use self::coord::Coord;
 use self::gcode::gcode;
-pub use self::gcode::{Feed, GCode, Rapid, WorkOffset, WorkOffsetValue};
+pub use self::gcode::{GCode, WorkOffset, WorkOffsetValue};
 use self::mcode::mcode;
 pub use self::mcode::MCode;
 use self::othercode::{feedrate, spindle_speed, tool_number};
@@ -20,35 +20,32 @@ use nom_locate::position;
 
 /// Any possible token type recgonised by this parser
 #[derive(Debug, PartialEq, Clone)]
-pub enum TokenType<'a> {
+pub enum TokenType {
     /// Any G-code
-    GCode(GCode<'a>),
+    GCode(GCode),
 
     /// Any M-code
-    MCode(MCode<'a>),
+    MCode(MCode),
 
     /// A coordinate consisting of at least one XYZUVWABC component
-    Coord(Coord<'a>),
+    Coord(Coord),
 
     /// Feedrate
-    Feedrate(Feedrate<'a>),
+    Feedrate(Feedrate),
 
     /// Spindle speed
-    SpindleSpeed(SpindleSpeed<'a>),
+    SpindleSpeed(SpindleSpeed),
 
     /// Tool number
-    ToolNumber(ToolNumber<'a>),
+    ToolNumber(ToolNumber),
 
     /// A code that this parser doesn't understand
-    Unknown(Unknown<'a>),
+    Unknown(Unknown),
 }
 
 /// An unknown token
 #[derive(Debug, PartialEq, Clone)]
-pub struct Unknown<'a> {
-    /// Position in source input
-    pub span: Span<'a>,
-
+pub struct Unknown {
     /// Code letter (`'G'`, `'M'`, etc)
     pub code_letter: char,
 
@@ -65,13 +62,13 @@ pub struct Token<'a> {
     pub span: Span<'a>,
 
     /// The type and value of this token
-    pub token: TokenType<'a>,
+    pub token: TokenType,
 }
 
 named!(pub(crate) unknown<Span, Unknown>,
-    positioned!(
+    map!(
         tuple!(one_of!("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), code_number),
-        |(span, (code_letter, code_number))| Unknown { span, code_letter, code_number }
+        |(code_letter, code_number)| Unknown { code_letter, code_number }
     )
 );
 

@@ -40,7 +40,6 @@ macro_rules! assert_parse {
 macro_rules! coord {
     ($span:expr, $x:expr, $y:expr, $z:expr) => {
         Coord {
-            span: $span,
             x: Some($x),
             y: Some($y),
             z: Some($z),

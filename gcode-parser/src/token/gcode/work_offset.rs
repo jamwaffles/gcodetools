@@ -1,6 +1,5 @@
 use crate::Span;
 use nom::*;
-use nom_locate::position;
 
 // TODO: Better name than WorkOffsetValue
 /// Which work offset to use
@@ -28,16 +27,13 @@ pub enum WorkOffsetValue {
 
 /// Work offset
 #[derive(Debug, PartialEq, Clone)]
-pub struct WorkOffset<'a> {
-    /// Position in source input
-    pub span: Span<'a>,
-
+pub struct WorkOffset {
     /// The type of work offset (`G54`, `G59.1`, etc)
     pub offset: WorkOffsetValue,
 }
 
 named!(pub work_offset<Span, WorkOffset>,
-    positioned!(
+    map!(
         alt_complete!(
             map!(tag_no_case!("G59.1"), |_| WorkOffsetValue::G59_1) |
             map!(tag_no_case!("G59.2"), |_| WorkOffsetValue::G59_2) |
@@ -50,7 +46,7 @@ named!(pub work_offset<Span, WorkOffset>,
             map!(tag_no_case!("G59"), |_| WorkOffsetValue::G59)
 
         ),
-        |(span, offset)| WorkOffset { span, offset }
+        |offset| WorkOffset { offset }
     )
 );
 
@@ -66,7 +62,6 @@ mod tests {
             parser = work_offset,
             input = raw,
             expected = WorkOffset {
-                span: empty_span!(),
                 offset: WorkOffsetValue::G54
             },
             remaining = empty_span!(offset = 3)
@@ -81,7 +76,6 @@ mod tests {
             parser = work_offset,
             input = raw,
             expected = WorkOffset {
-                span: empty_span!(),
                 offset: WorkOffsetValue::G59_1
             },
             remaining = empty_span!(offset = 5)
