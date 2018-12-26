@@ -25,6 +25,13 @@ pub struct ToolNumber {
     pub tool_number: u16,
 }
 
+/// Line number `Nn`
+#[derive(Debug, PartialEq, Clone)]
+pub struct LineNumber {
+    /// Positive integer line number
+    pub line_number: u32,
+}
+
 named!(pub(crate) feedrate<Span, Feedrate>,
     map!(
         preceded!(char_no_case!('F'), code_number),
@@ -55,6 +62,19 @@ named!(pub tool_number<Span, ToolNumber>,
             )
         ),
         |tool_number| ToolNumber { tool_number }
+    )
+);
+
+named!(pub line_number<Span, LineNumber>,
+    map!(
+        preceded!(
+            char_no_case!('N'),
+            flat_map!(
+                digit1,
+                parse_to!(u32)
+            )
+        ),
+        |line_number| LineNumber { line_number }
     )
 );
 
@@ -89,6 +109,18 @@ mod tests {
             input = span!(b"T32"),
             expected = ToolNumber { tool_number: 32u16 },
             remaining = empty_span!(offset = 3)
+        );
+    }
+
+    #[test]
+    fn parse_line_number() {
+        assert_parse!(
+            parser = line_number,
+            input = span!(b"N1234"),
+            expected = LineNumber {
+                line_number: 1234u32
+            },
+            remaining = empty_span!(offset = 5)
         );
     }
 }

@@ -14,8 +14,8 @@ use self::gcode::gcode;
 pub use self::gcode::{GCode, WorkOffset, WorkOffsetValue};
 use self::mcode::mcode;
 pub use self::mcode::MCode;
-use self::othercode::{feedrate, spindle_speed, tool_number};
-pub use self::othercode::{Feedrate, SpindleSpeed, ToolNumber};
+use self::othercode::{feedrate, line_number, spindle_speed, tool_number};
+pub use self::othercode::{Feedrate, LineNumber, SpindleSpeed, ToolNumber};
 use crate::parsers::code_number;
 use crate::Span;
 use nom::*;
@@ -44,6 +44,9 @@ pub enum TokenType {
 
     /// A comment
     Comment(Comment),
+
+    /// A line number
+    LineNumber(LineNumber),
 
     /// A code that this parser doesn't understand
     Unknown(Unknown),
@@ -87,6 +90,7 @@ named!(token_type<Span, TokenType>,
         map!(spindle_speed, TokenType::SpindleSpeed) |
         map!(tool_number, TokenType::ToolNumber) |
         map!(comment, TokenType::Comment) |
+        map!(line_number, TokenType::LineNumber) |
         map!(unknown, TokenType::Unknown)
     )
 );
