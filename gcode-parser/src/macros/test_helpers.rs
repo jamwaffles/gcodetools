@@ -1,19 +1,3 @@
-macro_rules! print_code {
-    ($remaining:expr, $e:expr, $input:expr) => {{
-        let remaining = String::from_utf8($remaining.fragment.to_vec()).unwrap();
-        let input = String::from_utf8($input.fragment.to_vec()).unwrap();
-
-        panic!(
-            "Parser execution failed\n-- Test input is (len {})\n{}\n\n-- Error type\n{:?}\n\n-- Remaining input is (len {})\n{}\n",
-            input.len(),
-            input,
-            $e,
-            remaining.len(),
-            remaining
-        );
-    }}
-}
-
 #[macro_export]
 macro_rules! assert_parse {
     (parser = $parser:expr, input = $input:expr, expected = $compare:expr) => {
@@ -22,7 +6,9 @@ macro_rules! assert_parse {
 
         match $parser($input) {
             Ok(result) => assert_eq!(result, (Span::new(CompleteByteSlice(b"")), $compare)),
-            Err(Err::Error(Context::Code(remaining, e))) => print_code!(remaining, e, $input),
+            Err(Err::Error(Context::Code(remaining, e))) => {
+                panic!(format_parse_error!(remaining, e, $input))
+            }
             Err(e) => panic!("Parse execution failed: {:?}", e),
         }
     };
@@ -30,7 +16,9 @@ macro_rules! assert_parse {
     (parser = $parser:expr, input = $input:expr, expected = $compare:expr, remaining = $remaining:expr) => {
         match $parser($input) {
             Ok(result) => assert_eq!(result, ($remaining, $compare)),
-            Err(Err::Error(Context::Code(remaining, e))) => print_code!(remaining, e, $input),
+            Err(Err::Error(Context::Code(remaining, e))) => {
+                panic!(format_parse_error!(remaining, e, $input))
+            }
             Err(e) => panic!("Parse execution failed: {:?}", e),
         }
     };

@@ -3,6 +3,23 @@
 mod test_helpers;
 
 #[macro_export]
+macro_rules! format_parse_error {
+    ($remaining:expr, $e:expr, $input:expr) => {{
+        let remaining = String::from_utf8($remaining.fragment.to_vec()).unwrap();
+        let input = String::from_utf8($input.fragment.to_vec()).unwrap();
+
+        format!(
+            "Parser execution failed\n-- Test input starts (len {})\n{}\n\n-- Error type\n{:?}\n\n-- Remaining input starts (len {})\n{}\n",
+            input.len(),
+            &input[..32],
+            $e,
+            remaining.len(),
+            &remaining[..32]
+        )
+    }}
+}
+
+#[macro_export]
 macro_rules! code(
     ($i:expr, $code:expr, $following:ident!( $($args:tt)* )) => ({
         sep!(

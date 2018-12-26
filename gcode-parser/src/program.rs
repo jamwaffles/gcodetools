@@ -25,7 +25,18 @@ impl<'a> Program<'a> {
     /// Parse a GCode program from a given string
     pub fn from_str(content: &'a str) -> Result<Self, io::Error> {
         let (remaining, program) = program(Span::new(CompleteByteSlice(content.as_bytes())))
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
+            .map_err(|e| {
+                let message = match e {
+                    Err::Error(Context::Code(remaining, e)) => format_parse_error!(
+                        remaining,
+                        e,
+                        Span::new(CompleteByteSlice(content.as_bytes()))
+                    ),
+                    _ => format!("Parse execution failed: {:?}", e.into_error_kind()),
+                };
+
+                io::Error::new(io::ErrorKind::Other, message)
+            })?;
 
         // TODO: Return a better error type
         if remaining.input_len() > 0 {
