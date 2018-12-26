@@ -18,7 +18,6 @@ pub struct RawGCode<'a> {
 }
 
 named!(pub raw_gcode<Span, RawGCode>,
-    // TODO: Benchmark do_parse! vs tuple!
     positioned!(
         preceded!(one_of!("Gg"), code_number),
         |(span, code)| RawGCode { span, code }
