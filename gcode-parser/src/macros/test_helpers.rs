@@ -25,6 +25,13 @@ macro_rules! assert_parse {
 }
 
 #[macro_export]
+macro_rules! assert_parse_ok {
+    (parser = $parser:expr, input = $input:expr) => {
+        assert!($parser($input).is_ok());
+    };
+}
+
+#[macro_export]
 macro_rules! coord {
     ($span:expr, $x:expr, $y:expr, $z:expr) => {
         Coord {
