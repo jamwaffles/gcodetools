@@ -1,4 +1,7 @@
-use gcode_parser::{Coord, Program, TokenType};
+use gcode_parser::{
+    token::{Coord, TokenType},
+    Program,
+};
 use nalgebra::{VectorN, U9};
 use std::fs;
 use std::path::Path as FilePath;
