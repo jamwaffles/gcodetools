@@ -64,65 +64,18 @@ impl<'a> Program<'a> {
     }
 }
 
-// TODO: Replace char!() macro with "line containing X" macro
-named!(percent_delimited_program<Span, Program>,
-    map!(
-        ws!(
-            delimited!(
-                opt!(char!('%')),
-                many0!(line),
-                terminated!(char!('%'), eof!())
-            )
-        ),
-        |lines| {
-            Program {
-                lines,
-                marker_type: ProgramMarkerType::Percent
-            }
-        }
-    )
-);
-
-named!(m2_terminated_program<Span, Program>,
-    map!(
-        ws!(
-            terminated!(
-                many0!(line),
-                terminated!(tag_no_case!("M2"), eof!())
-            )
-        ),
-        |lines| {
-            Program {
-                lines,
-                marker_type: ProgramMarkerType::M2
-            }
-        }
-    )
-);
-
-// TODO: Dedupe M2 and M30
-named!(m30_terminated_program<Span, Program>,
-    map!(
-        ws!(
-            terminated!(
-                many0!(line),
-                terminated!(tag_no_case!("M30"), eof!())
-            )
-        ),
-        |lines| {
-            Program {
-                lines,
-                marker_type: ProgramMarkerType::M30
-            }
-        }
-    )
-);
-
 named!(pub program<Span, Program>,
-    alt_complete!(
-        percent_delimited_program |
-        m2_terminated_program |
-        m30_terminated_program
+    ws!(
+        do_parse!(
+            opt!(char!('%')) >>
+            lines: many0!(line) >>
+            marker_type: alt_complete!(
+                map!(terminated!(char!('%'), eof!()), |_| ProgramMarkerType::Percent) |
+                map!(terminated!(tag_no_case!("M30"), eof!()), |_| ProgramMarkerType::M30) |
+                map!(terminated!(tag_no_case!("M2"), eof!()), |_| ProgramMarkerType::M2)
+            ) >>
+            (Program { lines, marker_type })
+        )
     )
 );
 
