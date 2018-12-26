@@ -86,14 +86,9 @@ mod tests {
 
     #[test]
     fn parse_percent_delimited_program() {
-        let program_text = r#"%
-G0 X0 Y0 Z0
-G1 X1 Y1 Z1
-%"#;
-
         assert_parse!(
             parser = program,
-            input = span!(program_text.as_bytes()),
+            input = span!(b"%\nG0 X0 Y0 Z0\nG1 X1 Y1 Z1\n%"),
             expected = Program {
                 lines: vec![
                     Line {
@@ -149,13 +144,9 @@ G1 X1 Y1 Z1
 
     #[test]
     fn parse_m2_end_program() {
-        let program_text = r#"G0 X0 Y0 Z0
-G1 X1 Y1 Z1
-M2"#;
-
         assert_parse!(
             parser = program,
-            input = span!(program_text.as_bytes()),
+            input = span!(b"G0 X0 Y0 Z0\nG1 X1 Y1 Z1\nM2"),
             expected = Program {
                 lines: vec![
                     Line {
@@ -203,13 +194,9 @@ M2"#;
 
     #[test]
     fn parse_m30_end_program() {
-        let program_text = r#"G0 X0 Y0 Z0
-G1 X1 Y1 Z1
-M30"#;
-
         assert_parse!(
             parser = program,
-            input = span!(program_text.as_bytes()),
+            input = span!(b"G0 X0 Y0 Z0\nG1 X1 Y1 Z1\nM30"),
             expected = Program {
                 lines: vec![
                     Line {
