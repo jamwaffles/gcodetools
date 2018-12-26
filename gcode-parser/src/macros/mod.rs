@@ -2,22 +2,28 @@
 #[macro_use]
 mod test_helpers;
 
-macro_rules! lines {
+macro_rules! snip {
     ($input:expr, $n:expr) => {{
         let lines = $input.lines();
         let num_lines = $input.lines().count();
 
-        let chunk = lines.take($n).collect::<Vec<&str>>().join("\n");
-
         if num_lines > $n {
-            format!("{}\n... (snip)", chunk)
+            // TODO: Fix clone
+            let start = lines.clone().take($n / 2).collect::<Vec<&str>>().join("\n");
+            let mut end = lines.rev().take($n / 2).collect::<Vec<&str>>();
+
+            end.reverse();
+
+            let end = end.join("\n");
+
+            format!("{}\n...\n{}", start, end)
         } else {
-            chunk
+            lines.take($n).collect::<Vec<&str>>().join("\n")
         }
     }};
 
     ($input:expr) => {
-        lines!($input, 5)
+        snip!($input, 10)
     };
 }
 
@@ -30,10 +36,10 @@ macro_rules! format_parse_error {
         format!(
             "Parser execution failed\n-- Test input (len {})\n{}\n\n-- Error type\n{:?}\n\n-- Remaining input (len {})\n{}\n",
             input.len(),
-            lines!(input),
+            snip!(input),
             $e,
             remaining.len(),
-            lines!(remaining)
+            snip!(remaining)
         )
     }}
 }
