@@ -10,6 +10,7 @@ pub enum ProgramMarkerType {
     Percent,
     M2,
     M30,
+    None,
 }
 
 /// A complete GCode program
@@ -71,7 +72,8 @@ named!(pub program<Span, Program>,
         marker_type: alt_complete!(
             map!(line_with!(char!('%')), |_| ProgramMarkerType::Percent) |
             map!(line_with!(tag_no_case!("M30")), |_| ProgramMarkerType::M30) |
-            map!(line_with!(tag_no_case!("M2")), |_| ProgramMarkerType::M2)
+            map!(line_with!(tag_no_case!("M2")), |_| ProgramMarkerType::M2) |
+            map!(eof!(), |_| ProgramMarkerType::None)
         ) >>
         (Program { lines, marker_type })
     )
