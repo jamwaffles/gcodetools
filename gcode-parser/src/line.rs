@@ -29,7 +29,7 @@ named!(pub line<Span, Line>,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::token::{GCode, TokenType, WorkOffset, WorkOffsetValue};
+    use crate::token::{Comment, GCode, TokenType, WorkOffset, WorkOffsetValue};
 
     #[test]
     fn parse_multiple_spaced_tokens() {
@@ -88,6 +88,24 @@ mod tests {
                 }]
             },
             remaining = span!(b"G55", offset = 4, line = 2)
+        );
+    }
+
+    #[test]
+    fn line_comment() {
+        assert_parse!(
+            parser = line,
+            input = span!(b"; Line comment\nG55"),
+            expected = Line {
+                span: empty_span!(),
+                tokens: vec![Token {
+                    span: empty_span!(),
+                    token: TokenType::Comment(Comment {
+                        text: "Line comment".to_string()
+                    })
+                }]
+            },
+            remaining = span!(b"G55", offset = 15, line = 2)
         );
     }
 }
