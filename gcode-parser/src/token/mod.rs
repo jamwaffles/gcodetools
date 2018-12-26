@@ -71,7 +71,7 @@ pub struct Token<'a> {
     pub token: TokenType,
 }
 
-named!(pub(crate) unknown<Span, Unknown>,
+named!(unknown<Span, Unknown>,
     map!(
         tuple!(one_of!("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), code_number),
         |(code_letter, code_number)| Unknown { code_letter, code_number }
@@ -86,7 +86,8 @@ named!(token_type<Span, TokenType>,
         map!(feedrate, TokenType::Feedrate) |
         map!(spindle_speed, TokenType::SpindleSpeed) |
         map!(tool_number, TokenType::ToolNumber) |
-        map!(comment, TokenType::Comment)
+        map!(comment, TokenType::Comment) /*|
+        map!(unknown, TokenType::Unknown)*/
     )
 );
 
