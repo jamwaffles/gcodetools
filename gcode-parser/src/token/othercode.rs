@@ -15,7 +15,7 @@ pub struct SpindleSpeed {
     /// Spindle speed value in revolutions per minute (RPM)
     ///
     /// This value cannot be negative. Reverse rotation is achieved by issuing an `M4 Sxxxx` command
-    pub rpm: u32,
+    pub rpm: f32,
 }
 
 /// Tool number `Tn`
@@ -43,10 +43,7 @@ named!(pub(crate) spindle_speed<Span, SpindleSpeed>,
     map!(
         preceded!(
             char_no_case!('S'),
-            flat_map!(
-                digit1,
-                parse_to!(u32)
-            )
+            float
         ),
         |rpm| SpindleSpeed { rpm }
     )
@@ -97,8 +94,15 @@ mod tests {
         assert_parse!(
             parser = spindle_speed,
             input = span!(b"S1000"),
-            expected = SpindleSpeed { rpm: 1000u32 },
+            expected = SpindleSpeed { rpm: 1000.0f32 },
             remaining = empty_span!(offset = 5)
+        );
+
+        assert_parse!(
+            parser = spindle_speed,
+            input = span!(b"S1234.5678"),
+            expected = SpindleSpeed { rpm: 1234.5678f32 },
+            remaining = empty_span!(offset = 10)
         );
     }
 
