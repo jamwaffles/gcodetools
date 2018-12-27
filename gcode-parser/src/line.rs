@@ -16,12 +16,13 @@ impl<'a> Line<'a> {
 }
 
 named!(pub line<Span, Line>,
-    do_parse!(
+    sep!(space0,
+        do_parse!(
         span: position!() >>
-        tokens: sep!(space0, many0!(token)) >>
+        tokens: many0!(token) >>
         line_ending >>
         (Line { tokens, span })
-    )
+    ))
 );
 
 #[cfg(test)]
@@ -86,6 +87,26 @@ mod tests {
                 }]
             },
             remaining = span!(b"G55", offset = 4, line = 2)
+        );
+    }
+
+    #[test]
+    fn ignore_surrounding_whitespace() {
+        let raw = span!(b" G54 \nG55");
+
+        assert_parse!(
+            parser = line,
+            input = raw,
+            expected = Line {
+                span: empty_span!(offset = 1),
+                tokens: vec![Token {
+                    span: empty_span!(offset = 1),
+                    token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
+                        offset: WorkOffsetValue::G54,
+                    }))
+                }]
+            },
+            remaining = span!(b"G55", offset = 6, line = 2)
         );
     }
 
