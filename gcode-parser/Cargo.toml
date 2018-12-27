@@ -18,6 +18,9 @@ harness = false
 [[bench]]
 name = "tokens"
 harness = false
+[[bench]]
+name = "huge"
+harness = false
 
 [dependencies]
 nom = "4.1.1"
