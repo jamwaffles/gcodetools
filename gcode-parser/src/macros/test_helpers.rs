@@ -1,11 +1,11 @@
 #[macro_export]
 macro_rules! assert_parse {
     (parser = $parser:expr, input = $input:expr, expected = $compare:expr) => {
-        use crate::Span;
-        use nom::types::CompleteByteSlice;
-
         match $parser($input) {
-            Ok(result) => assert_eq!(result, (Span::new(CompleteByteSlice(b"")), $compare)),
+            Ok(result) => assert_eq!(
+                result,
+                (empty_span!(offset = $input.fragment.len()), $compare)
+            ),
             Err(Err::Error(Context::Code(remaining, e))) => {
                 panic!(format_parse_error!(remaining, e, $input))
             }

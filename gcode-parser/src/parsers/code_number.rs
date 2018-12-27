@@ -25,8 +25,7 @@ mod tests {
         assert_parse!(
             parser = code_number,
             input = span!(b"59.1"),
-            expected = 59.1f32,
-            remaining = empty_span!(offset = 4)
+            expected = 59.1f32
         );
     }
 
@@ -35,8 +34,7 @@ mod tests {
         assert_parse!(
             parser = code_number,
             input = span!(b"54"),
-            expected = 54.0f32,
-            remaining = empty_span!(offset = 2)
+            expected = 54.0f32
         );
     }
 }

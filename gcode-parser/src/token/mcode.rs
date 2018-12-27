@@ -36,22 +36,19 @@ mod tests {
         assert_parse!(
             parser = mcode,
             input = span!(b"M3"),
-            expected = MCode::SpindleForward,
-            remaining = empty_span!(offset = 2)
+            expected = MCode::SpindleForward
         );
 
         assert_parse!(
             parser = mcode,
             input = span!(b"M4"),
-            expected = MCode::SpindleReverse,
-            remaining = empty_span!(offset = 2)
+            expected = MCode::SpindleReverse
         );
 
         assert_parse!(
             parser = mcode,
             input = span!(b"M5"),
-            expected = MCode::SpindleStop,
-            remaining = empty_span!(offset = 2)
+            expected = MCode::SpindleStop
         );
     }
 }

@@ -50,8 +50,7 @@ mod tests {
             input = raw,
             expected = PlaneSelect {
                 plane: PlaneSelectValue::XY
-            },
-            remaining = empty_span!(offset = 3)
+            }
         );
     }
 
@@ -64,8 +63,7 @@ mod tests {
             input = raw,
             expected = PlaneSelect {
                 plane: PlaneSelectValue::UV
-            },
-            remaining = empty_span!(offset = 5)
+            }
         );
     }
 }

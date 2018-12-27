@@ -41,8 +41,7 @@ mod tests {
             input = span!(b"( some comment text )"),
             expected = Comment {
                 text: "some comment text".into()
-            },
-            remaining = empty_span!(offset = 21)
+            }
         );
 
         // TODO: Macro to take a list of inputs and expected outputs
@@ -51,8 +50,7 @@ mod tests {
             input = span!(b"(some comment text)"),
             expected = Comment {
                 text: "some comment text".into()
-            },
-            remaining = empty_span!(offset = 19)
+            }
         );
     }
 

@@ -59,8 +59,7 @@ mod tests {
             input = raw,
             expected = WorkOffset {
                 offset: WorkOffsetValue::G54
-            },
-            remaining = empty_span!(offset = 3)
+            }
         );
     }
 
@@ -73,8 +72,7 @@ mod tests {
             input = raw,
             expected = WorkOffset {
                 offset: WorkOffsetValue::G59_1
-            },
-            remaining = empty_span!(offset = 5)
+            }
         );
     }
 }

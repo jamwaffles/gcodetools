@@ -28,8 +28,7 @@ mod tests {
         assert_parse!(
             parser = dwell,
             input = span!(b"G4 P0.01"),
-            expected = Dwell { time: 0.01 },
-            remaining = empty_span!(offset = 8)
+            expected = Dwell { time: 0.01 }
         );
     }
 
@@ -38,8 +37,7 @@ mod tests {
         assert_parse!(
             parser = dwell,
             input = span!(b"G4 P3"),
-            expected = Dwell { time: 3.0 },
-            remaining = empty_span!(offset = 5)
+            expected = Dwell { time: 3.0 }
         );
     }
 

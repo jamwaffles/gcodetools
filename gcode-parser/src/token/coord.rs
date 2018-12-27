@@ -103,8 +103,7 @@ mod tests {
                 y: Some(1.0),
                 z: Some(2.0),
                 ..Coord::default()
-            },
-            remaining = empty_span!(offset = 14)
+            }
         );
     }
 
@@ -118,8 +117,7 @@ mod tests {
                 y: Some(1.0),
                 z: Some(2.0),
                 ..Coord::default()
-            },
-            remaining = empty_span!(offset = 14)
+            }
         );
     }
 
@@ -133,8 +131,7 @@ mod tests {
                 y: Some(34.0),
                 z: Some(56.0),
                 ..Coord::default()
-            },
-            remaining = empty_span!(offset = 11)
+            }
         );
     }
 
@@ -148,8 +145,7 @@ mod tests {
                 y: Some(34.0),
                 z: Some(56.0),
                 ..Coord::default()
-            },
-            remaining = empty_span!(offset = 9)
+            }
         );
     }
 }

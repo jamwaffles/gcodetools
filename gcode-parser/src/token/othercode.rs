@@ -84,8 +84,7 @@ mod tests {
         assert_parse!(
             parser = feedrate,
             input = span!(b"F500.3"),
-            expected = Feedrate { feedrate: 500.3 },
-            remaining = empty_span!(offset = 6)
+            expected = Feedrate { feedrate: 500.3 }
         );
     }
 
@@ -94,15 +93,13 @@ mod tests {
         assert_parse!(
             parser = spindle_speed,
             input = span!(b"S1000"),
-            expected = SpindleSpeed { rpm: 1000.0f32 },
-            remaining = empty_span!(offset = 5)
+            expected = SpindleSpeed { rpm: 1000.0f32 }
         );
 
         assert_parse!(
             parser = spindle_speed,
             input = span!(b"S1234.5678"),
-            expected = SpindleSpeed { rpm: 1234.5678f32 },
-            remaining = empty_span!(offset = 10)
+            expected = SpindleSpeed { rpm: 1234.5678f32 }
         );
     }
 
@@ -111,8 +108,7 @@ mod tests {
         assert_parse!(
             parser = tool_number,
             input = span!(b"T32"),
-            expected = ToolNumber { tool_number: 32u16 },
-            remaining = empty_span!(offset = 3)
+            expected = ToolNumber { tool_number: 32u16 }
         );
     }
 
@@ -123,8 +119,7 @@ mod tests {
             input = span!(b"N1234"),
             expected = LineNumber {
                 line_number: 1234u32
-            },
-            remaining = empty_span!(offset = 5)
+            }
         );
     }
 }
