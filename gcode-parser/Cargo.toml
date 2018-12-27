@@ -6,6 +6,9 @@ edition = "2018"
 [[bench]]
 name = "programs"
 harness = false
+[[bench]]
+name = "linuxcnc"
+harness = false
 
 [dependencies]
 nom = "4.1.1"
