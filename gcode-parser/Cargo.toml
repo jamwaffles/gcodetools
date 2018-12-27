@@ -9,6 +9,9 @@ harness = false
 [[bench]]
 name = "linuxcnc"
 harness = false
+[[bench]]
+name = "tinyg"
+harness = false
 
 [dependencies]
 nom = "4.1.1"
