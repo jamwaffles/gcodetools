@@ -1,10 +1,10 @@
 //! Tokens
 
-mod comment;
-mod coord;
-mod gcode;
-mod mcode;
-mod othercode;
+pub(crate) mod comment;
+pub(crate) mod coord;
+pub(crate) mod gcode;
+pub(crate) mod mcode;
+pub(crate) mod othercode;
 
 use self::comment::comment;
 pub use self::comment::Comment;

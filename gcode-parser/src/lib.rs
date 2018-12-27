@@ -31,6 +31,11 @@ use nom_locate::LocatedSpan;
 #[doc(hidden)]
 pub type Span<'a> = LocatedSpan<CompleteByteSlice<'a>>;
 
+#[doc(hidden)]
+pub mod dev {
+    pub use crate::token::coord::coord;
+}
+
 #[cfg(test)]
 mod tests {
     #[test]

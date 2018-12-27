@@ -58,7 +58,7 @@ impl Default for Coord {
 //     w: None,
 // };
 
-named!(pub coord<Span, Coord>,
+named_attr!(#[doc = "Parse a coordinate"], pub coord<Span, Coord>,
     map_res!(
         sep!(
             space0,
