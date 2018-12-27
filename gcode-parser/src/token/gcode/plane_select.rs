@@ -1,4 +1,4 @@
-use crate::Span;
+use crate::{map_code, Span};
 use nom::*;
 
 // TODO: Better name than PlaneSelectValue
@@ -27,17 +27,13 @@ pub struct PlaneSelect {
 }
 
 named!(pub plane_select<Span, PlaneSelect>,
-    map!(
-        alt_complete!(
-            map!(tag_no_case!("G17.1"), |_| PlaneSelectValue::UV) |
-            map!(tag_no_case!("G18.1"), |_| PlaneSelectValue::WU) |
-            map!(tag_no_case!("G19.1"), |_| PlaneSelectValue::VW) |
-            map!(tag_no_case!("G17"), |_| PlaneSelectValue::XY) |
-            map!(tag_no_case!("G18"), |_| PlaneSelectValue::ZX) |
-            map!(tag_no_case!("G19"), |_| PlaneSelectValue::YZ)
-
-        ),
-        |plane| PlaneSelect { plane }
+    alt_complete!(
+        map_code!("G17", |_| PlaneSelect { plane: PlaneSelectValue::XY }) |
+        map_code!("G18", |_| PlaneSelect { plane: PlaneSelectValue::ZX }) |
+        map_code!("G19", |_| PlaneSelect { plane: PlaneSelectValue::YZ }) |
+        map_code!("G17.1", |_| PlaneSelect { plane: PlaneSelectValue::UV }) |
+        map_code!("G18.1", |_| PlaneSelect { plane: PlaneSelectValue::WU }) |
+        map_code!("G19.1", |_| PlaneSelect { plane: PlaneSelectValue::VW })
     )
 );
 

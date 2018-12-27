@@ -30,6 +30,19 @@ macro_rules! code(
     });
 );
 
+#[macro_export]
+macro_rules! map_code(
+    ($i:expr, $code:expr, $map:expr) => ({
+        use $crate::code;
+
+        map!(
+            $i,
+            code!($code),
+            $map
+        )
+    });
+);
+
 #[cfg(test)]
 mod tests {
     #[test]
