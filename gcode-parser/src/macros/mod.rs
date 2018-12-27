@@ -44,26 +44,7 @@ macro_rules! format_parse_error {
     }}
 }
 
-#[macro_export]
-macro_rules! code(
-    ($i:expr, $code:expr, $following:ident!( $($args:tt)* )) => ({
-        sep!(
-            $i,
-            space0,
-            preceded!(
-                tag_no_case!($code),
-                $following!($($args)*)
-            )
-        )
-    });
-    ($i:expr, $code:expr, $following:expr) => (
-        code!($i, call!($code, $following));
-    );
-    ($i:expr, $code:expr) => ({
-        tag_no_case!($i, $code);
-    });
-);
-
+// TODO: Move to parsers/
 #[macro_export]
 macro_rules! positioned(
     ($i:expr, $submac:ident!( $($args:tt)* ), $map:expr) => ({
@@ -84,6 +65,7 @@ macro_rules! positioned(
     );
 );
 
+// TODO: Move to parsers/
 #[macro_export]
 macro_rules! positioned_res(
     ($i:expr, $submac:ident!( $($args:tt)* ), $map:expr) => ({
@@ -101,6 +83,7 @@ macro_rules! positioned_res(
     );
 );
 
+// TODO: Move to parsers/
 #[macro_export]
 macro_rules! char_no_case (
     ($i:expr, $c: expr) => ({
@@ -126,6 +109,7 @@ macro_rules! char_no_case (
     });
 );
 
+// TODO: Move to parsers/
 #[macro_export]
 macro_rules! line_with (
     ($i:expr, $submac:ident!( $($args:tt)* )) => ({

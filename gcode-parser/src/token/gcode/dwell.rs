@@ -1,4 +1,4 @@
-use crate::Span;
+use crate::{code, Span};
 use nom::*;
 
 /// Dwell

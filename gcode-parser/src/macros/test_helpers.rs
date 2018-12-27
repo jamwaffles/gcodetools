@@ -47,6 +47,7 @@ macro_rules! coord {
 macro_rules! span {
     ($content:expr, offset = $offset:expr, line = $line:expr) => {{
         use nom::types::CompleteByteSlice;
+        use $crate::Span;
 
         Span {
             offset: $offset,
@@ -56,6 +57,7 @@ macro_rules! span {
     }};
     ($content:expr, offset = $offset:expr) => {{
         use nom::types::CompleteByteSlice;
+        use $crate::Span;
 
         Span {
             offset: $offset,
@@ -65,6 +67,7 @@ macro_rules! span {
     }};
     ($content:expr) => {{
         use nom::types::CompleteByteSlice;
+        use $crate::Span;
 
         Span::new(CompleteByteSlice($content))
     }};
@@ -74,6 +77,7 @@ macro_rules! span {
 macro_rules! empty_span {
     (offset = $offset:expr, line = $line:expr) => {{
         use nom::types::CompleteByteSlice;
+        use $crate::Span;
 
         Span {
             offset: $offset,
@@ -84,6 +88,7 @@ macro_rules! empty_span {
 
     (offset = $offset:expr) => {{
         use nom::types::CompleteByteSlice;
+        use $crate::Span;
 
         Span {
             offset: $offset,
