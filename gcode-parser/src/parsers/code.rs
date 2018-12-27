@@ -21,11 +21,18 @@ macro_rules! code(
         preceded!(
             $i,
             tag_no_case!(letter),
-            delimited!(
-                opt!(char!('0')),
-                tag!(number),
-                not!(one_of!(".1234567890"))
+            alt_complete!(
+                delimited!(
+                    char!('0'),
+                    tag!(number),
+                    not!(one_of!(".1234567890"))
+                ) |
+                terminated!(
+                    tag!(number),
+                    not!(one_of!(".1234567890"))
+                )
             )
+
         )
     });
 );
@@ -41,6 +48,16 @@ macro_rules! map_code(
             $map
         )
     });
+
+    ($i:expr, $code:expr, $following:ident!( $($args:tt)* ), $map:expr) => ({
+        use $crate::code;
+
+        map!(
+            $i,
+            code!($code, $following!($($args)*)),
+            $map
+        )
+    });
 );
 
 #[cfg(test)]
@@ -50,6 +67,13 @@ mod tests {
         let out = code!(span!(b"G54"), "G54");
 
         assert_eq!(out, Ok((empty_span!(offset = 3), span!(b"54", offset = 1))));
+    }
+
+    #[test]
+    fn parse_single_integer_code() {
+        let out = code!(span!(b"G0"), "G0");
+
+        assert_eq!(out, Ok((empty_span!(offset = 2), span!(b"0", offset = 1))));
     }
 
     #[test]
