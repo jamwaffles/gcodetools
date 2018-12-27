@@ -8,7 +8,7 @@ use self::plane_select::plane_select;
 pub use self::plane_select::PlaneSelect;
 use self::work_offset::work_offset;
 pub use self::work_offset::{WorkOffset, WorkOffsetValue};
-use crate::Span;
+use crate::{map_code, Span};
 use nom::*;
 
 /// A G-code
@@ -38,12 +38,10 @@ pub enum GCode {
 
 named!(pub gcode<Span, GCode>,
     alt_complete!(
-        // TODO: Handle `G00`
-        map!(tag_no_case!("G0"), |_| GCode::Rapid) |
-        // TODO: Handle `G01`
-        map!(tag_no_case!("G1"), |_| GCode::Feed) |
-        map!(tag_no_case!("G21"), |_| GCode::UnitsMM) |
-        map!(tag_no_case!("G20"), |_| GCode::UnitsInch) |
+        map_code!("G0", |_| GCode::Rapid) |
+        map_code!("G1", |_| GCode::Feed) |
+        map_code!("G21", |_| GCode::UnitsMM) |
+        map_code!("G20", |_| GCode::UnitsInch) |
         map!(work_offset, GCode::WorkOffset) |
         map!(plane_select, GCode::PlaneSelect) |
         map!(dwell, GCode::Dwell)

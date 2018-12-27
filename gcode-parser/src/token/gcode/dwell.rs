@@ -1,4 +1,4 @@
-use crate::{code, Span};
+use crate::{map_code, Span};
 use nom::*;
 
 /// Dwell
@@ -9,13 +9,11 @@ pub struct Dwell {
 }
 
 named!(pub dwell<Span, Dwell>,
-    map!(
-        code!(
-            "G4",
-            preceded!(
-                char_no_case!('P'),
-                float
-            )
+    map_code!(
+        "G4",
+        preceded!(
+            char_no_case!('P'),
+            float
         ),
         |time| Dwell { time }
     )

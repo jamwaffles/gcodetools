@@ -1,4 +1,4 @@
-use crate::Span;
+use crate::{map_code, Span};
 use nom::*;
 
 /// An M-code
@@ -20,10 +20,10 @@ pub enum MCode {
 named!(pub mcode<Span, MCode>,
     // TODO: Handle leading zeros like `M06`, etc
     alt_complete!(
-        map!(tag_no_case!("M3"), |_| MCode::SpindleForward) |
-        map!(tag_no_case!("M4"), |_| MCode::SpindleReverse) |
-        map!(tag_no_case!("M5"), |_| MCode::SpindleStop) |
-        map!(tag_no_case!("M6"), |_| MCode::ToolChange)
+        map_code!("M3", |_| MCode::SpindleForward) |
+        map_code!("M4", |_| MCode::SpindleReverse) |
+        map_code!("M5", |_| MCode::SpindleStop) |
+        map_code!("M6", |_| MCode::ToolChange)
     )
 );
 

@@ -1,4 +1,4 @@
-use crate::Span;
+use crate::{map_code, Span};
 use nom::*;
 
 // TODO: Better name than WorkOffsetValue
@@ -33,20 +33,16 @@ pub struct WorkOffset {
 }
 
 named!(pub work_offset<Span, WorkOffset>,
-    map!(
-        alt_complete!(
-            map!(tag_no_case!("G59.1"), |_| WorkOffsetValue::G59_1) |
-            map!(tag_no_case!("G59.2"), |_| WorkOffsetValue::G59_2) |
-            map!(tag_no_case!("G59.3"), |_| WorkOffsetValue::G59_3) |
-            map!(tag_no_case!("G54"), |_| WorkOffsetValue::G54) |
-            map!(tag_no_case!("G55"), |_| WorkOffsetValue::G55) |
-            map!(tag_no_case!("G56"), |_| WorkOffsetValue::G56) |
-            map!(tag_no_case!("G57"), |_| WorkOffsetValue::G57) |
-            map!(tag_no_case!("G58"), |_| WorkOffsetValue::G58) |
-            map!(tag_no_case!("G59"), |_| WorkOffsetValue::G59)
-
-        ),
-        |offset| WorkOffset { offset }
+    alt_complete!(
+        map_code!("G59.1", |_| WorkOffset { offset: WorkOffsetValue::G59_1 }) |
+        map_code!("G59.2", |_| WorkOffset { offset: WorkOffsetValue::G59_2 }) |
+        map_code!("G59.3", |_| WorkOffset { offset: WorkOffsetValue::G59_3 }) |
+        map_code!("G54", |_| WorkOffset { offset: WorkOffsetValue::G54 }) |
+        map_code!("G55", |_| WorkOffset { offset: WorkOffsetValue::G55 }) |
+        map_code!("G56", |_| WorkOffset { offset: WorkOffsetValue::G56 }) |
+        map_code!("G57", |_| WorkOffset { offset: WorkOffsetValue::G57 }) |
+        map_code!("G58", |_| WorkOffset { offset: WorkOffsetValue::G58 }) |
+        map_code!("G59", |_| WorkOffset { offset: WorkOffsetValue::G59 })
     )
 );
 
