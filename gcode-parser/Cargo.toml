@@ -12,6 +12,9 @@ harness = false
 [[bench]]
 name = "tinyg"
 harness = false
+[[bench]]
+name = "universal_gcode_sender"
+harness = false
 
 [dependencies]
 nom = "4.1.1"
