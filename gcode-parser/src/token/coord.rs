@@ -62,15 +62,15 @@ named_attr!(#[doc = "Parse a coordinate"], pub coord<Span, Coord>,
         sep!(
             space0,
             permutation!(
-                opt!(preceded!(char_no_case!('X'), float)),
-                opt!(preceded!(char_no_case!('Y'), float)),
-                opt!(preceded!(char_no_case!('Z'), float)),
-                opt!(preceded!(char_no_case!('A'), float)),
-                opt!(preceded!(char_no_case!('B'), float)),
-                opt!(preceded!(char_no_case!('C'), float)),
-                opt!(preceded!(char_no_case!('U'), float)),
-                opt!(preceded!(char_no_case!('V'), float)),
-                opt!(preceded!(char_no_case!('W'), float))
+                opt!(sep!(space0, preceded!(char_no_case!('X'), float))),
+                opt!(sep!(space0, preceded!(char_no_case!('Y'), float))),
+                opt!(sep!(space0, preceded!(char_no_case!('Z'), float))),
+                opt!(sep!(space0, preceded!(char_no_case!('A'), float))),
+                opt!(sep!(space0, preceded!(char_no_case!('B'), float))),
+                opt!(sep!(space0, preceded!(char_no_case!('C'), float))),
+                opt!(sep!(space0, preceded!(char_no_case!('U'), float))),
+                opt!(sep!(space0, preceded!(char_no_case!('V'), float))),
+                opt!(sep!(space0, preceded!(char_no_case!('W'), float)))
             )
         ),
         |(x, y, z, a, b, c, u, v, w)| {
@@ -142,6 +142,15 @@ mod tests {
                 z: Some(56.0),
                 ..Coord::default()
             }
+        );
+    }
+
+    #[test]
+    fn parse_real_world() {
+        assert_parse!(
+            parser = coord,
+            input = span!(b"X0 Y0 z 20"),
+            expected = coord!(0.0, 0.0, 20.0)
         );
     }
 }
