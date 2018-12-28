@@ -42,21 +42,28 @@ macro_rules! map_code(
     ($i:expr, $code:expr, $map:expr) => ({
         use $crate::code;
 
-        map!(
-            $i,
-            code!($code),
-            $map
-        )
+        map!($i, code!($code), $map)
     });
 
     ($i:expr, $code:expr, $following:ident!( $($args:tt)* ), $map:expr) => ({
         use $crate::code;
 
-        map!(
-            $i,
-            code!($code, $following!($($args)*)),
-            $map
-        )
+        map!($i, code!($code, $following!($($args)*)), $map)
+    });
+);
+
+#[macro_export]
+macro_rules! map_code_res(
+    ($i:expr, $code:expr, $map:expr) => ({
+        use $crate::code;
+
+        map_res!($i, code!($code), $map)
+    });
+
+    ($i:expr, $code:expr, $following:ident!( $($args:tt)* ), $map:expr) => ({
+        use $crate::code;
+
+        map_res!($i, code!($code, $following!($($args)*)), $map)
     });
 );
 
