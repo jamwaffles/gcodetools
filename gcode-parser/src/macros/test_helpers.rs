@@ -6,7 +6,7 @@ macro_rules! assert_parse {
                 result,
                 (empty_span!(offset = $input.fragment.len()), $compare)
             ),
-            Err(Err::Error(Context::Code(remaining, e))) => {
+            Err(Err::Error(Context::Code(remaining, _e))) => {
                 panic!(format_parse_error!(remaining, e, $input))
             }
             Err(e) => panic!("Parse execution failed: {:?}", e),
@@ -16,7 +16,7 @@ macro_rules! assert_parse {
     (parser = $parser:expr, input = $input:expr, expected = $compare:expr, remaining = $remaining:expr) => {
         match $parser($input) {
             Ok(result) => assert_eq!(result, ($remaining, $compare)),
-            Err(Err::Error(Context::Code(remaining, e))) => {
+            Err(Err::Error(Context::Code(remaining, _e))) => {
                 panic!(format_parse_error!(remaining, e, $input))
             }
             Err(e) => panic!("Parse execution failed: {:?}", e),

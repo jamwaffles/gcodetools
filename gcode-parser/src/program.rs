@@ -28,7 +28,7 @@ impl<'a> Program<'a> {
         let (remaining, program) = program(Span::new(CompleteByteSlice(content.as_bytes())))
             .map_err(|e| {
                 let message = match e {
-                    Err::Error(Context::Code(remaining, e)) => format_parse_error!(
+                    Err::Error(Context::Code(remaining, _e)) => format_parse_error!(
                         remaining,
                         e,
                         Span::new(CompleteByteSlice(content.as_bytes()))
