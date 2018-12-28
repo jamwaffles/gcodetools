@@ -152,5 +152,14 @@ mod tests {
             input = span!(b"X0 Y0 z 20"),
             expected = coord!(0.0, 0.0, 20.0)
         );
+
+        assert_parse!(
+            parser = coord,
+            input = span!(b"Z5."),
+            expected = Coord {
+                z: Some(5.0),
+                ..Coord::default()
+            }
+        );
     }
 }
