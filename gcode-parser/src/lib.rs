@@ -33,6 +33,7 @@ pub type Span<'a> = LocatedSpan<CompleteByteSlice<'a>>;
 
 #[doc(hidden)]
 pub mod dev {
+    pub use crate::token::arc::center_format_arc;
     pub use crate::token::coord::coord;
 }
 

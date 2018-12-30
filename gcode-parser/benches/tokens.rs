@@ -1,7 +1,10 @@
 extern crate criterion;
 
 use criterion::*;
-use gcode_parser::{dev::coord, Span};
+use gcode_parser::{
+    dev::{center_format_arc, coord},
+    Span,
+};
 use nom::types::CompleteByteSlice;
 
 fn token_coord(c: &mut Criterion) {
@@ -24,5 +27,22 @@ fn token_coord(c: &mut Criterion) {
     );
 }
 
-criterion_group!(tokens, token_coord);
+fn token_center_format_arc(c: &mut Criterion) {
+    c.bench_function_over_inputs(
+        "center format arc",
+        |b, input| {
+            b.iter(|| {
+                center_format_arc(Span::new(CompleteByteSlice(input.as_bytes()))).unwrap();
+            })
+        },
+        vec![
+            "X0 Y1 I2 J3",
+            "X0 Y1 I2 J3 P5",
+            "X0 Y0 z 20 I20 J0",
+            "X-2.4438 Y-0.2048 I-0.0766 J0.2022",
+        ],
+    );
+}
+
+criterion_group!(tokens, token_coord, token_center_format_arc);
 criterion_main!(tokens);

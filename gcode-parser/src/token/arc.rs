@@ -38,7 +38,7 @@ impl Default for CenterFormatArc {
     }
 }
 
-named!(pub center_format_arc<Span, CenterFormatArc>,
+named_attr!(#[doc = "Parse a center format arc"], pub center_format_arc<Span, CenterFormatArc>,
     map_opt!(
         sep!(
             space0,
