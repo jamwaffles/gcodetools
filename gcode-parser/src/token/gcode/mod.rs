@@ -1,10 +1,7 @@
-mod arc;
 mod dwell;
 mod plane_select;
 mod work_offset;
 
-use self::arc::arc;
-pub use self::arc::Arc;
 use self::dwell::dwell;
 pub use self::dwell::Dwell;
 use self::plane_select::plane_select;
@@ -38,15 +35,19 @@ pub enum GCode {
     /// Plane select (XY, UV, etc)
     PlaneSelect(PlaneSelect),
 
-    /// A clockwise or counterclockwise arc
-    Arc(Arc),
+    /// A clockwise arc
+    ClockwiseArc,
+
+    /// A counterclockwise arc
+    CounterclockwiseArc,
 }
 
 named!(pub gcode<Span, GCode>,
     alt_complete!(
         map_code!("G0", |_| GCode::Rapid) |
         map_code!("G1", |_| GCode::Feed) |
-        map!(arc, GCode::Arc) |
+        map_code!("G2", |_| GCode::ClockwiseArc) |
+        map_code!("G3", |_| GCode::CounterclockwiseArc) |
         map_code!("G21", |_| GCode::UnitsMM) |
         map_code!("G20", |_| GCode::UnitsInch) |
         map!(work_offset, GCode::WorkOffset) |
@@ -54,3 +55,49 @@ named!(pub gcode<Span, GCode>,
         map!(dwell, GCode::Dwell)
     )
 );
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_rapid() {
+        assert_parse!(
+            parser = gcode,
+            input = span!(b"G0"),
+            expected = GCode::Rapid
+        );
+
+        assert_parse!(
+            parser = gcode,
+            input = span!(b"G00"),
+            expected = GCode::Rapid
+        );
+    }
+
+    #[test]
+    fn parse_feed() {
+        assert_parse!(parser = gcode, input = span!(b"G1"), expected = GCode::Feed);
+
+        assert_parse!(
+            parser = gcode,
+            input = span!(b"G01"),
+            expected = GCode::Feed
+        );
+    }
+
+    #[test]
+    fn parse_arc() {
+        assert_parse!(
+            parser = gcode,
+            input = span!(b"G2"),
+            expected = GCode::ClockwiseArc
+        );
+
+        assert_parse!(
+            parser = gcode,
+            input = span!(b"G3"),
+            expected = GCode::CounterclockwiseArc
+        );
+    }
+}

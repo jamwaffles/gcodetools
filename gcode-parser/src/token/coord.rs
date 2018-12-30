@@ -58,7 +58,7 @@ static EMPTY_COORD: Coord = Coord {
 };
 
 named_attr!(#[doc = "Parse a coordinate"], pub coord<Span, Coord>,
-    map_res!(
+    map_opt!(
         sep!(
             space0,
             permutation!(
@@ -77,9 +77,9 @@ named_attr!(#[doc = "Parse a coordinate"], pub coord<Span, Coord>,
             let coord = Coord { x, y, z, a, b, c, u, v, w };
 
             if coord == EMPTY_COORD {
-                Err(())
+                None
             } else {
-                Ok(coord)
+                Some(coord)
             }
         }
     )

@@ -1,11 +1,14 @@
 //! Tokens
 
+pub(crate) mod arc;
 pub(crate) mod comment;
 pub(crate) mod coord;
 pub(crate) mod gcode;
 pub(crate) mod mcode;
 pub(crate) mod othercode;
 
+use self::arc::center_format_arc;
+pub use self::arc::CenterFormatArc;
 use self::comment::comment;
 pub use self::comment::Comment;
 use self::coord::coord;
@@ -32,6 +35,10 @@ pub enum TokenType {
 
     /// A coordinate consisting of at least one XYZUVWABC component
     Coord(Coord),
+
+    /// The coordinates and offsets that define a clockwise (G2) or counterclockwise (G3) center
+    /// format arc
+    CenterFormatArc(CenterFormatArc),
 
     /// Feedrate
     Feedrate(Feedrate),
@@ -83,8 +90,9 @@ named!(unknown<Span, Unknown>,
 
 named!(token_type<Span, TokenType>,
     alt_complete!(
-        map!(gcode, TokenType::GCode) |
+        map!(center_format_arc, TokenType::CenterFormatArc) |
         map!(coord, TokenType::Coord) |
+        map!(gcode, TokenType::GCode) |
         map!(mcode, TokenType::MCode) |
         map!(feedrate, TokenType::Feedrate) |
         map!(spindle_speed, TokenType::SpindleSpeed) |

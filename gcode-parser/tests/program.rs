@@ -31,3 +31,13 @@ M2"#;
 
     let _parsed = Program::from_str(program).unwrap();
 }
+
+#[test]
+fn test_counterclockwise_arc() {
+    let program = r#"G3 X-2.4438 Y-0.2048 I-0.0766 J0.2022
+M2"#;
+
+    let _parsed = Program::from_str(program);
+
+    println!("{:#?}", _parsed);
+}

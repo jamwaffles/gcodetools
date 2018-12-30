@@ -16,19 +16,21 @@ impl<'a> Line<'a> {
 }
 
 named!(pub line<Span, Line>,
-    sep!(space0,
+    sep!(
+        space0,
         do_parse!(
-        span: position!() >>
-        tokens: many0!(token) >>
-        line_ending >>
-        (Line { tokens, span })
-    ))
+            span: position!() >>
+            tokens: many0!(token) >>
+            line_ending >>
+            (Line { tokens, span })
+        )
+    )
 );
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::token::{Comment, GCode, TokenType, WorkOffset, WorkOffsetValue};
+    use crate::token::{CenterFormatArc, Comment, GCode, TokenType, WorkOffset, WorkOffsetValue};
 
     #[test]
     fn parse_multiple_spaced_tokens() {
@@ -67,6 +69,34 @@ mod tests {
                 ]
             },
             remaining = empty_span!(offset = 17, line = 2)
+        );
+    }
+
+    #[test]
+    fn arc() {
+        assert_parse!(
+            parser = line,
+            input = span!(b"G3 X-2.4438 Y-0.2048 I-0.0766 J0.2022\n"),
+            expected = Line {
+                span: empty_span!(),
+                tokens: vec![
+                    Token {
+                        span: empty_span!(),
+                        token: TokenType::GCode(GCode::CounterclockwiseArc)
+                    },
+                    Token {
+                        span: empty_span!(offset = 3),
+                        token: TokenType::CenterFormatArc(CenterFormatArc {
+                            x: Some(-2.4438),
+                            y: Some(-0.2048),
+                            i: Some(-0.0766),
+                            j: Some(0.2022),
+                            ..CenterFormatArc::default()
+                        })
+                    }
+                ]
+            },
+            remaining = empty_span!(offset = 38, line = 2)
         );
     }
 
