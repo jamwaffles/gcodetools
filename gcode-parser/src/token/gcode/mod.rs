@@ -63,40 +63,36 @@ mod tests {
     #[test]
     fn parse_rapid() {
         assert_parse!(
-            parser = gcode,
-            input = span!(b"G0"),
+            parser = gcode;
+            input = span!(b"G0");
             expected = GCode::Rapid
         );
 
         assert_parse!(
-            parser = gcode,
-            input = span!(b"G00"),
+            parser = gcode;
+            input = span!(b"G00");
             expected = GCode::Rapid
         );
     }
 
     #[test]
     fn parse_feed() {
-        assert_parse!(parser = gcode, input = span!(b"G1"), expected = GCode::Feed);
+        assert_parse!(parser = gcode; input = span!(b"G1"); expected = GCode::Feed);
 
-        assert_parse!(
-            parser = gcode,
-            input = span!(b"G01"),
-            expected = GCode::Feed
-        );
+        assert_parse!(parser = gcode; input = span!(b"G01"); expected = GCode::Feed);
     }
 
     #[test]
     fn parse_arc() {
         assert_parse!(
-            parser = gcode,
-            input = span!(b"G2"),
+            parser = gcode;
+            input = span!(b"G2");
             expected = GCode::ClockwiseArc
         );
 
         assert_parse!(
-            parser = gcode,
-            input = span!(b"G3"),
+            parser = gcode;
+            input = span!(b"G3");
             expected = GCode::CounterclockwiseArc
         );
     }

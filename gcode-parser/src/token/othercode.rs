@@ -82,8 +82,8 @@ mod tests {
     #[test]
     fn parse_feedrate() {
         assert_parse!(
-            parser = feedrate,
-            input = span!(b"F500.3"),
+            parser = feedrate;
+            input = span!(b"F500.3");
             expected = Feedrate { feedrate: 500.3 }
         );
     }
@@ -91,14 +91,14 @@ mod tests {
     #[test]
     fn parse_spindle_rpm() {
         assert_parse!(
-            parser = spindle_speed,
-            input = span!(b"S1000"),
+            parser = spindle_speed;
+            input = span!(b"S1000");
             expected = SpindleSpeed { rpm: 1000.0f32 }
         );
 
         assert_parse!(
-            parser = spindle_speed,
-            input = span!(b"S1234.5678"),
+            parser = spindle_speed;
+            input = span!(b"S1234.5678");
             expected = SpindleSpeed { rpm: 1234.5678f32 }
         );
     }
@@ -106,8 +106,8 @@ mod tests {
     #[test]
     fn parse_tool_number() {
         assert_parse!(
-            parser = tool_number,
-            input = span!(b"T32"),
+            parser = tool_number;
+            input = span!(b"T32");
             expected = ToolNumber { tool_number: 32u16 }
         );
     }
@@ -115,8 +115,8 @@ mod tests {
     #[test]
     fn parse_line_number() {
         assert_parse!(
-            parser = line_number,
-            input = span!(b"N1234"),
+            parser = line_number;
+            input = span!(b"N1234");
             expected = LineNumber {
                 line_number: 1234u32
             }

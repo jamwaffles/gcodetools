@@ -23,8 +23,8 @@ mod tests {
     #[test]
     fn parse_decimal() {
         assert_parse!(
-            parser = code_number,
-            input = span!(b"59.1"),
+            parser = code_number;
+            input = span!(b"59.1");
             expected = 59.1f32
         );
     }
@@ -32,8 +32,8 @@ mod tests {
     #[test]
     fn parse_int() {
         assert_parse!(
-            parser = code_number,
-            input = span!(b"54"),
+            parser = code_number;
+            input = span!(b"54");
             expected = 54.0f32
         );
     }

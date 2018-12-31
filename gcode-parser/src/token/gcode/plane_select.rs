@@ -46,8 +46,8 @@ mod tests {
         let raw = span!(b"G17");
 
         assert_parse!(
-            parser = plane_select,
-            input = raw,
+            parser = plane_select;
+            input = raw;
             expected = PlaneSelect {
                 plane: PlaneSelectValue::XY
             }
@@ -59,8 +59,8 @@ mod tests {
         let raw = span!(b"G17.1");
 
         assert_parse!(
-            parser = plane_select,
-            input = raw,
+            parser = plane_select;
+            input = raw;
             expected = PlaneSelect {
                 plane: PlaneSelectValue::UV
             }

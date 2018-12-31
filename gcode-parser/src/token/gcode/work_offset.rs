@@ -55,8 +55,8 @@ mod tests {
         let raw = span!(b"G54");
 
         assert_parse!(
-            parser = work_offset,
-            input = raw,
+            parser = work_offset;
+            input = raw;
             expected = WorkOffset {
                 offset: WorkOffsetValue::G54
             }
@@ -68,8 +68,8 @@ mod tests {
         let raw = span!(b"G59.1");
 
         assert_parse!(
-            parser = work_offset,
-            input = raw,
+            parser = work_offset;
+            input = raw;
             expected = WorkOffset {
                 offset: WorkOffsetValue::G59_1
             }

@@ -72,8 +72,8 @@ mod tests {
     #[test]
     fn parse_center_format_arc() {
         assert_parse!(
-            parser = center_format_arc,
-            input = span!(b"X0 Y1 I2 J3"),
+            parser = center_format_arc;
+            input = span!(b"X0 Y1 I2 J3");
             expected = CenterFormatArc {
                 x: Some(0.0),
                 y: Some(1.0),
@@ -87,8 +87,8 @@ mod tests {
     #[test]
     fn center_format_arc_num_turns() {
         assert_parse!(
-            parser = center_format_arc,
-            input = span!(b"X0 Y1 I2 J3 P5"),
+            parser = center_format_arc;
+            input = span!(b"X0 Y1 I2 J3 P5");
             expected = CenterFormatArc {
                 x: Some(0.0),
                 y: Some(1.0),
@@ -103,8 +103,8 @@ mod tests {
     #[test]
     fn arc_real_world() {
         assert_parse!(
-            parser = center_format_arc,
-            input = span!(b"X0 Y0 z 20 I20 J0"),
+            parser = center_format_arc;
+            input = span!(b"X0 Y0 z 20 I20 J0");
             expected = CenterFormatArc {
                 x: Some(0.0),
                 y: Some(0.0),
@@ -116,8 +116,8 @@ mod tests {
         );
 
         assert_parse!(
-            parser = center_format_arc,
-            input = span!(b"X-2.4438 Y-0.2048 I-0.0766 J0.2022"),
+            parser = center_format_arc;
+            input = span!(b"X-2.4438 Y-0.2048 I-0.0766 J0.2022");
             expected = CenterFormatArc {
                 x: Some(-2.4438),
                 y: Some(-0.2048),

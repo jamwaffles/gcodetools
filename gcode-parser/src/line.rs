@@ -34,11 +34,9 @@ mod tests {
 
     #[test]
     fn parse_multiple_spaced_tokens() {
-        let raw = span!(b"G54 G55  G56\tG57\n");
-
         assert_parse!(
-            parser = line,
-            input = raw,
+            parser = line;
+            input = span!(b"G54 G55  G56\tG57\n");
             expected = Line {
                 span: empty_span!(),
                 tokens: vec![
@@ -67,7 +65,7 @@ mod tests {
                         }))
                     }
                 ]
-            },
+            };
             remaining = empty_span!(offset = 17, line = 2)
         );
     }
@@ -75,8 +73,8 @@ mod tests {
     #[test]
     fn arc() {
         assert_parse!(
-            parser = line,
-            input = span!(b"G3 X-2.4438 Y-0.2048 I-0.0766 J0.2022\n"),
+            parser = line;
+            input = span!(b"G3 X-2.4438 Y-0.2048 I-0.0766 J0.2022\n");
             expected = Line {
                 span: empty_span!(),
                 tokens: vec![
@@ -95,18 +93,16 @@ mod tests {
                         })
                     }
                 ]
-            },
+            };
             remaining = empty_span!(offset = 38, line = 2)
         );
     }
 
     #[test]
     fn consume_line_and_ending() {
-        let raw = span!(b"G54\nG55");
-
         assert_parse!(
-            parser = line,
-            input = raw,
+            parser = line;
+            input = span!(b"G54\nG55");
             expected = Line {
                 span: empty_span!(),
                 tokens: vec![Token {
@@ -115,18 +111,16 @@ mod tests {
                         offset: WorkOffsetValue::G54,
                     }))
                 }]
-            },
+            };
             remaining = span!(b"G55", offset = 4, line = 2)
         );
     }
 
     #[test]
     fn ignore_surrounding_whitespace() {
-        let raw = span!(b" G54 \nG55");
-
         assert_parse!(
-            parser = line,
-            input = raw,
+            parser = line;
+            input = span!(b" G54 \nG55");
             expected = Line {
                 span: empty_span!(offset = 1),
                 tokens: vec![Token {
@@ -135,7 +129,7 @@ mod tests {
                         offset: WorkOffsetValue::G54,
                     }))
                 }]
-            },
+            };
             remaining = span!(b"G55", offset = 6, line = 2)
         );
     }
@@ -143,8 +137,8 @@ mod tests {
     #[test]
     fn line_comment() {
         assert_parse!(
-            parser = line,
-            input = span!(b"; Line comment\nG55"),
+            parser = line;
+            input = span!(b"; Line comment\nG55");
             expected = Line {
                 span: empty_span!(),
                 tokens: vec![Token {
@@ -153,7 +147,7 @@ mod tests {
                         text: "Line comment".to_string()
                     })
                 }]
-            },
+            };
             remaining = span!(b"G55", offset = 15, line = 2)
         );
     }

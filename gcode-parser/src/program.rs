@@ -87,8 +87,8 @@ mod tests {
     #[test]
     fn parse_percent_delimited_program() {
         assert_parse!(
-            parser = program,
-            input = span!(b"%\nG0 X0 Y0 Z0\nG1 X1 Y1 Z1\n%"),
+            parser = program;
+            input = span!(b"%\nG0 X0 Y0 Z0\nG1 X1 Y1 Z1\n%");
             expected = Program {
                 lines: vec![
                     Line {
@@ -119,7 +119,7 @@ mod tests {
                     }
                 ],
                 marker_type: ProgramMarkerType::Percent
-            },
+            };
             remaining = empty_span!(offset = 27, line = 4)
         );
     }
@@ -135,8 +135,8 @@ mod tests {
     #[test]
     fn parse_m2_end_program() {
         assert_parse!(
-            parser = program,
-            input = span!(b"G0 X0 Y0 Z0\nG1 X1 Y1 Z1\nM2"),
+            parser = program;
+            input = span!(b"G0 X0 Y0 Z0\nG1 X1 Y1 Z1\nM2");
             expected = Program {
                 lines: vec![
                     Line {
@@ -167,7 +167,7 @@ mod tests {
                     }
                 ],
                 marker_type: ProgramMarkerType::M2
-            },
+            };
             remaining = empty_span!(offset = 26, line = 3)
         );
     }
@@ -175,8 +175,8 @@ mod tests {
     #[test]
     fn parse_m30_end_program() {
         assert_parse!(
-            parser = program,
-            input = span!(b"G0 X0 Y0 Z0\nG1 X1 Y1 Z1\nM30"),
+            parser = program;
+            input = span!(b"G0 X0 Y0 Z0\nG1 X1 Y1 Z1\nM30");
             expected = Program {
                 lines: vec![
                     Line {
@@ -207,7 +207,7 @@ mod tests {
                     }
                 ],
                 marker_type: ProgramMarkerType::M30
-            },
+            };
             remaining = empty_span!(offset = 27, line = 3)
         );
     }

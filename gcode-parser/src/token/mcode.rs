@@ -34,20 +34,20 @@ mod tests {
     #[test]
     fn parse_spindle_commands() {
         assert_parse!(
-            parser = mcode,
-            input = span!(b"M3"),
+            parser = mcode;
+            input = span!(b"M3");
             expected = MCode::SpindleForward
         );
 
         assert_parse!(
-            parser = mcode,
-            input = span!(b"M4"),
+            parser = mcode;
+            input = span!(b"M4");
             expected = MCode::SpindleReverse
         );
 
         assert_parse!(
-            parser = mcode,
-            input = span!(b"M5"),
+            parser = mcode;
+            input = span!(b"M5");
             expected = MCode::SpindleStop
         );
     }

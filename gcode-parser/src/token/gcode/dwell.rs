@@ -26,17 +26,26 @@ mod tests {
     #[test]
     fn dwell_decimal() {
         assert_parse!(
-            parser = dwell,
-            input = span!(b"G4 P0.01"),
+            parser = dwell;
+            input = span!(b"G4 P0.01");
             expected = Dwell { time: 0.01 }
+        );
+    }
+
+    #[test]
+    fn leading_zero() {
+        assert_parse!(
+            parser = dwell;
+            input = span!(b"G04P3");
+            expected = Dwell { time: 3.0 }
         );
     }
 
     #[test]
     fn dwell_integer() {
         assert_parse!(
-            parser = dwell,
-            input = span!(b"G4 P3"),
+            parser = dwell;
+            input = span!(b"G4 P3");
             expected = Dwell { time: 3.0 }
         );
     }

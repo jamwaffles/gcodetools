@@ -37,8 +37,8 @@ mod tests {
     #[test]
     fn parse_parens_comment() {
         assert_parse!(
-            parser = comment,
-            input = span!(b"( some comment text )"),
+            parser = comment;
+            input = span!(b"( some comment text )");
             expected = Comment {
                 text: "some comment text".into()
             }
@@ -46,8 +46,8 @@ mod tests {
 
         // TODO: Macro to take a list of inputs and expected outputs
         assert_parse!(
-            parser = comment,
-            input = span!(b"(some comment text)"),
+            parser = comment;
+            input = span!(b"(some comment text)");
             expected = Comment {
                 text: "some comment text".into()
             }
@@ -57,21 +57,21 @@ mod tests {
     #[test]
     fn parse_line_comment() {
         assert_parse!(
-            parser = comment,
-            input = span!(b"; Some comment text\n"),
+            parser = comment;
+            input = span!(b"; Some comment text\n");
             expected = Comment {
                 text: "Some comment text".into()
-            },
+            };
             remaining = span!(b"\n", offset = 19, line = 1)
         );
 
         // TODO: Macro to take a list of inputs and expected outputs
         assert_parse!(
-            parser = comment,
-            input = span!(b";Some comment text\n"),
+            parser = comment;
+            input = span!(b";Some comment text\n");
             expected = Comment {
                 text: "Some comment text".into()
-            },
+            };
             remaining = span!(b"\n", offset = 18, line = 1)
         );
     }
@@ -79,11 +79,11 @@ mod tests {
     #[test]
     fn parse_windows_line_endings() {
         assert_parse!(
-            parser = comment,
-            input = span!(b"; Some comment text\r\n"),
+            parser = comment;
+            input = span!(b"; Some comment text\r\n");
             expected = Comment {
                 text: "Some comment text".into()
-            },
+            };
             remaining = span!(b"\r\n", offset = 19, line = 1)
         );
     }

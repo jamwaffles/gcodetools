@@ -92,8 +92,8 @@ mod tests {
     #[test]
     fn parse_xyz() {
         assert_parse!(
-            parser = coord,
-            input = span!(b"X0.0 Y1.0 Z2.0"),
+            parser = coord;
+            input = span!(b"X0.0 Y1.0 Z2.0");
             expected = Coord {
                 x: Some(0.0),
                 y: Some(1.0),
@@ -106,8 +106,8 @@ mod tests {
     #[test]
     fn parse_lowercase() {
         assert_parse!(
-            parser = coord,
-            input = span!(b"x0.0 y1.0 z2.0"),
+            parser = coord;
+            input = span!(b"x0.0 y1.0 z2.0");
             expected = Coord {
                 x: Some(0.0),
                 y: Some(1.0),
@@ -120,8 +120,8 @@ mod tests {
     #[test]
     fn parse_lowercase_integers() {
         assert_parse!(
-            parser = coord,
-            input = span!(b"x12 y34 z56"),
+            parser = coord;
+            input = span!(b"x12 y34 z56");
             expected = Coord {
                 x: Some(12.0),
                 y: Some(34.0),
@@ -134,8 +134,8 @@ mod tests {
     #[test]
     fn parse_no_whitespace() {
         assert_parse!(
-            parser = coord,
-            input = span!(b"x12y34z56"),
+            parser = coord;
+            input = span!(b"x12y34z56");
             expected = Coord {
                 x: Some(12.0),
                 y: Some(34.0),
@@ -148,14 +148,14 @@ mod tests {
     #[test]
     fn parse_real_world() {
         assert_parse!(
-            parser = coord,
-            input = span!(b"X0 Y0 z 20"),
+            parser = coord;
+            input = span!(b"X0 Y0 z 20");
             expected = coord!(0.0, 0.0, 20.0)
         );
 
         assert_parse!(
-            parser = coord,
-            input = span!(b"Z5."),
+            parser = coord;
+            input = span!(b"Z5.");
             expected = Coord {
                 z: Some(5.0),
                 ..Coord::default()
