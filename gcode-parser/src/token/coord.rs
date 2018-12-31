@@ -1,5 +1,6 @@
 //! Parse coordinates into a vector
 
+use crate::parsers::ngc_float;
 use crate::Span;
 use nom::*;
 
@@ -62,15 +63,15 @@ named_attr!(#[doc = "Parse a coordinate"], pub coord<Span, Coord>,
         sep!(
             space0,
             permutation!(
-                opt!(sep!(space0, preceded!(char_no_case!('X'), float))),
-                opt!(sep!(space0, preceded!(char_no_case!('Y'), float))),
-                opt!(sep!(space0, preceded!(char_no_case!('Z'), float))),
-                opt!(sep!(space0, preceded!(char_no_case!('A'), float))),
-                opt!(sep!(space0, preceded!(char_no_case!('B'), float))),
-                opt!(sep!(space0, preceded!(char_no_case!('C'), float))),
-                opt!(sep!(space0, preceded!(char_no_case!('U'), float))),
-                opt!(sep!(space0, preceded!(char_no_case!('V'), float))),
-                opt!(sep!(space0, preceded!(char_no_case!('W'), float)))
+                opt!(sep!(space0, preceded!(char_no_case!('X'), ngc_float))),
+                opt!(sep!(space0, preceded!(char_no_case!('Y'), ngc_float))),
+                opt!(sep!(space0, preceded!(char_no_case!('Z'), ngc_float))),
+                opt!(sep!(space0, preceded!(char_no_case!('A'), ngc_float))),
+                opt!(sep!(space0, preceded!(char_no_case!('B'), ngc_float))),
+                opt!(sep!(space0, preceded!(char_no_case!('C'), ngc_float))),
+                opt!(sep!(space0, preceded!(char_no_case!('U'), ngc_float))),
+                opt!(sep!(space0, preceded!(char_no_case!('V'), ngc_float))),
+                opt!(sep!(space0, preceded!(char_no_case!('W'), ngc_float)))
             )
         ),
         |(x, y, z, a, b, c, u, v, w)| {

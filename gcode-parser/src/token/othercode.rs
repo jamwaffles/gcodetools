@@ -1,4 +1,4 @@
-use crate::parsers::code_number;
+use crate::parsers::ngc_float;
 use crate::Span;
 use nom::*;
 
@@ -34,7 +34,7 @@ pub struct LineNumber {
 
 named!(pub(crate) feedrate<Span, Feedrate>,
     map!(
-        preceded!(char_no_case!('F'), code_number),
+        preceded!(char_no_case!('F'), ngc_float),
         |feedrate| Feedrate { feedrate }
     )
 );
@@ -43,7 +43,7 @@ named!(pub(crate) spindle_speed<Span, SpindleSpeed>,
     map!(
         preceded!(
             char_no_case!('S'),
-            float
+            ngc_float
         ),
         |rpm| SpindleSpeed { rpm }
     )
@@ -120,6 +120,15 @@ mod tests {
             expected = LineNumber {
                 line_number: 1234u32
             }
+        );
+    }
+
+    #[test]
+    fn parse_no_trailing_number() {
+        assert_parse!(
+            parser = feedrate;
+            input = span!(b"F5.");
+            expected = Feedrate { feedrate: 5.0 }
         );
     }
 }

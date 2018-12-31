@@ -1,3 +1,4 @@
+use crate::parsers::ngc_float;
 use crate::{map_code, Span};
 use nom::*;
 
@@ -13,7 +14,7 @@ named!(pub dwell<Span, Dwell>,
         "G4",
         preceded!(
             char_no_case!('P'),
-            float
+            ngc_float
         ),
         |time| Dwell { time }
     )

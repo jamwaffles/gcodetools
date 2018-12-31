@@ -1,3 +1,4 @@
+use crate::parsers::ngc_float;
 use crate::Span;
 use nom::*;
 
@@ -43,12 +44,12 @@ named_attr!(#[doc = "Parse a center format arc"], pub center_format_arc<Span, Ce
         sep!(
             space0,
             permutation!(
-                opt!(sep!(space0, preceded!(char_no_case!('X'), float))),
-                opt!(sep!(space0, preceded!(char_no_case!('Y'), float))),
-                opt!(sep!(space0, preceded!(char_no_case!('Z'), float))),
-                opt!(sep!(space0, preceded!(char_no_case!('I'), float))),
-                opt!(sep!(space0, preceded!(char_no_case!('J'), float))),
-                opt!(sep!(space0, preceded!(char_no_case!('K'), float))),
+                opt!(sep!(space0, preceded!(char_no_case!('X'), ngc_float))),
+                opt!(sep!(space0, preceded!(char_no_case!('Y'), ngc_float))),
+                opt!(sep!(space0, preceded!(char_no_case!('Z'), ngc_float))),
+                opt!(sep!(space0, preceded!(char_no_case!('I'), ngc_float))),
+                opt!(sep!(space0, preceded!(char_no_case!('J'), ngc_float))),
+                opt!(sep!(space0, preceded!(char_no_case!('K'), ngc_float))),
                 opt!(sep!(space0, preceded!(char_no_case!('P'), flat_map!(digit1, parse_to!(u32)))))
             )
         ),
