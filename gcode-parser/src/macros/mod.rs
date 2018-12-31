@@ -31,17 +31,20 @@ mod test_helpers;
 macro_rules! format_parse_error {
     ($remaining:expr, $e:expr, $input:expr) => {{
         let remaining = String::from_utf8($remaining.fragment.to_vec()).unwrap();
-        // let input = String::from_utf8($input.fragment.to_vec()).unwrap();
+        let input = String::from_utf8($input.fragment.to_vec()).unwrap();
 
+        let last_good_line = input.lines().last().unwrap();
         let erroring_line = remaining.lines().next().unwrap();
 
         format!(
             r#"Parser execution failed at {}:{}
 
 {}
+{}
 {}╯"#,
             $remaining.line,
             $remaining.get_column(),
+            last_good_line,
             erroring_line,
             (0..$remaining.get_column() - 1)
                 .map(|_| "─")
