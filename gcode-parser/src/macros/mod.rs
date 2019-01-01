@@ -30,25 +30,35 @@ mod test_helpers;
 #[macro_export]
 macro_rules! format_parse_error {
     ($remaining:expr, $e:expr, $input:expr) => {{
-        let remaining = String::from_utf8($remaining.fragment.to_vec()).unwrap();
         let input = String::from_utf8($input.fragment.to_vec()).unwrap();
+        let total_lines = input.lines().count();
+        let line_number_digits = format!("{}", total_lines).len();
 
-        let last_good_line = input.lines().last().unwrap();
-        let erroring_line = remaining.lines().next().unwrap();
+        let upto = input
+            .lines()
+            .into_iter()
+            .enumerate()
+            .skip($remaining.line as usize - 2)
+            .take(3)
+            .map(|(number, line)| {
+                format!(
+                    "{:>width$} | {}",
+                    number + 1,
+                    line,
+                    width = line_number_digits
+                )
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
 
         format!(
             r#"Parser execution failed at {}:{}
 
 {}
-{}
-{}╯"#,
+"#,
             $remaining.line,
             $remaining.get_column(),
-            last_good_line,
-            erroring_line,
-            (0..$remaining.get_column() - 1)
-                .map(|_| "─")
-                .collect::<String>()
+            upto,
         )
     }};
 }
