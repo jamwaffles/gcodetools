@@ -38,7 +38,7 @@ macro_rules! format_parse_error {
             .lines()
             .into_iter()
             .enumerate()
-            .skip($remaining.line as usize - 2)
+            .skip(($remaining.line as i32 - 2).max(0) as usize)
             .take(3)
             .map(|(number, line)| {
                 format!(
