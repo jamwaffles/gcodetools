@@ -30,7 +30,9 @@ named!(pub line<Span, Line>,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::token::{CenterFormatArc, Comment, GCode, TokenType, WorkOffset, WorkOffsetValue};
+    use crate::token::{
+        CenterFormatArc, Comment, CutterCompensation, GCode, TokenType, WorkOffset, WorkOffsetValue,
+    };
 
     #[test]
     fn parse_multiple_spaced_tokens() {
@@ -149,6 +151,27 @@ mod tests {
                 }]
             };
             remaining = span!(b"G55", offset = 15, line = 2)
+        );
+    }
+
+    #[test]
+    fn token_and_comment() {
+        assert_parse!(
+            parser = line;
+            input = span!(b"G40 (disable tool radius compensation)\r\n");
+            expected = Line {
+                span: empty_span!(),
+                tokens: vec![Token {
+                    span: empty_span!(),
+                    token: TokenType::GCode(GCode::CutterCompensation(CutterCompensation::Off))
+                }, Token {
+                    span: empty_span!(offset = 4),
+                    token: TokenType::Comment(Comment {
+                        text: "disable tool radius compensation".into()
+                    })
+                }]
+            };
+            remaining = empty_span!(offset = 40, line = 2)
         );
     }
 }
