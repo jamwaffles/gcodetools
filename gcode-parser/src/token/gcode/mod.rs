@@ -1,7 +1,10 @@
+mod cutter_compensation;
 mod dwell;
 mod plane_select;
 mod work_offset;
 
+use self::cutter_compensation::cutter_compensation;
+pub use self::cutter_compensation::CutterCompensation;
 use self::dwell::dwell;
 pub use self::dwell::Dwell;
 use self::plane_select::plane_select;
@@ -40,6 +43,12 @@ pub enum GCode {
 
     /// A counterclockwise arc
     CounterclockwiseArc,
+
+    /// Disable cutter compensation (G40)
+    DisableCutterCompensation,
+
+    /// Cutter compensation (off, left, right)
+    CutterCompensation(CutterCompensation),
 }
 
 named!(pub gcode<Span, GCode>,
@@ -51,6 +60,7 @@ named!(pub gcode<Span, GCode>,
         map_code!("G21", |_| GCode::UnitsMM) |
         map_code!("G20", |_| GCode::UnitsInch) |
         map!(work_offset, GCode::WorkOffset) |
+        map!(cutter_compensation, GCode::CutterCompensation) |
         map!(plane_select, GCode::PlaneSelect) |
         map!(dwell, GCode::Dwell)
     )
