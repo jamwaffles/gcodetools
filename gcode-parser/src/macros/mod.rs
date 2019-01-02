@@ -42,7 +42,12 @@ macro_rules! format_parse_error {
             .take(3)
             .map(|(number, line)| {
                 format!(
-                    "{:>width$} | {}",
+                    "{}{:>width$} | {}",
+                    if number as u32 + 1 == $remaining.line {
+                        ">>> "
+                    } else {
+                        "    "
+                    },
                     number + 1,
                     line,
                     width = line_number_digits
