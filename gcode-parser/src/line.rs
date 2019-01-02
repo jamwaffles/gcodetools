@@ -21,7 +21,7 @@ named!(pub line<Span, Line>,
         do_parse!(
             span: position!() >>
             tokens: many0!(token) >>
-            line_ending >>
+            alt!(line_ending | eof!()) >>
             (Line { tokens, span })
         )
     )
@@ -151,6 +151,23 @@ mod tests {
                 }]
             };
             remaining = span!(b"G55", offset = 15, line = 2)
+        );
+    }
+
+    #[test]
+    fn or_eof() {
+        assert_parse!(
+            parser = line;
+            input = span!(b"G55");
+            expected = Line {
+                span: empty_span!(),
+                tokens: vec![Token {
+                    span: empty_span!(),
+                    token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
+                        offset: WorkOffsetValue::G55,
+                    }))
+                }]
+            };
         );
     }
 

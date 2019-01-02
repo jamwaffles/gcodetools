@@ -5,21 +5,12 @@ use nom::types::CompleteByteSlice;
 use nom::*;
 use std::io;
 
-#[derive(Debug, PartialEq)]
-pub enum ProgramMarkerType {
-    Percent,
-    M2,
-    M30,
-    None,
-}
-
 /// A complete GCode program
 ///
 /// This can either be a top level program, or a sub-program included by file
 #[derive(Debug, PartialEq)]
 pub struct Program<'a> {
     lines: Vec<Line<'a>>,
-    marker_type: ProgramMarkerType,
 }
 
 impl<'a> Program<'a> {
@@ -66,23 +57,20 @@ impl<'a> Program<'a> {
 }
 
 named!(pub program<Span, Program>,
-    do_parse!(
-        opt!(line_with!(char!('%'))) >>
-        lines: many0!(line) >>
-        marker_type: alt_complete!(
-            map!(line_with!(char!('%')), |_| ProgramMarkerType::Percent) |
-            map!(line_with!(tag_no_case!("M30")), |_| ProgramMarkerType::M30) |
-            map!(line_with!(tag_no_case!("M2")), |_| ProgramMarkerType::M2) |
-            map!(eof!(), |_| ProgramMarkerType::None)
-        ) >>
-        (Program { lines, marker_type })
+    map!(
+        delimited!(
+            opt!(line_with!(char!('%'))),
+            many0!(line),
+            opt!(line_with!(char!('%')))
+        ),
+        |lines| Program { lines }
     )
 );
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::token::{Coord, GCode, Token, TokenType};
+    use crate::token::{Coord, GCode, MCode, Token, TokenType};
 
     #[test]
     fn parse_percent_delimited_program() {
@@ -117,8 +105,7 @@ mod tests {
                             }
                         ]
                     }
-                ],
-                marker_type: ProgramMarkerType::Percent
+                ]
             };
             remaining = empty_span!(offset = 27, line = 4)
         );
@@ -164,9 +151,17 @@ mod tests {
                                 token: TokenType::Coord(coord!(1.0, 1.0, 1.0))
                             }
                         ]
+                    },
+                    Line {
+                        span: empty_span!(offset = 24, line = 3),
+                        tokens: vec![
+                            Token {
+                                span: empty_span!(offset = 24, line = 3),
+                                token: TokenType::MCode(MCode::EndProgram)
+                            }
+                        ]
                     }
-                ],
-                marker_type: ProgramMarkerType::M2
+                ]
             };
             remaining = empty_span!(offset = 26, line = 3)
         );
@@ -204,11 +199,77 @@ mod tests {
                                 token: TokenType::Coord(coord!(1.0, 1.0, 1.0))
                             }
                         ]
+                    },
+                    Line {
+                        span: empty_span!(offset = 24, line = 3),
+                        tokens: vec![
+                            Token {
+                                span: empty_span!(offset = 24, line = 3),
+                                token: TokenType::MCode(MCode::EndProgramSwapPallets)
+                            }
+                        ]
                     }
-                ],
-                marker_type: ProgramMarkerType::M30
+                ]
             };
             remaining = empty_span!(offset = 27, line = 3)
+        );
+    }
+
+    #[test]
+    fn empty_lines() {
+        assert_parse!(
+            parser = program;
+            input = span!(b"\n\n\nM2");
+            expected = Program {
+                lines: vec![
+                    Line { span: empty_span!(), tokens: vec![] },
+                    Line { span: empty_span!(offset = 1, line = 2), tokens: vec![] },
+                    Line { span: empty_span!(offset = 2, line = 3), tokens: vec![] },
+                    Line {
+                        span: empty_span!(offset = 3, line = 4),
+                        tokens: vec![Token {
+                            span: empty_span!(offset = 3, line = 4),
+                            token: TokenType::MCode(MCode::EndProgram)
+                        }]
+                    },
+                ]
+            };
+            remaining = empty_span!(offset = 5, line = 4);
+        );
+    }
+
+    #[test]
+    fn blank_lines() {
+        assert_parse!(
+            parser = program;
+            input = span!(b"G0\n\nG1\nM2");
+            expected = Program {
+                lines: vec![
+                    Line {
+                        span: empty_span!(),
+                        tokens: vec![Token {
+                            span: empty_span!(),
+                            token: TokenType::GCode(GCode::Rapid)
+                        }]
+                    },
+                    Line { span: empty_span!(offset = 3, line = 2), tokens: vec![] },
+                    Line {
+                        span: empty_span!(offset = 4, line = 3),
+                        tokens: vec![Token {
+                            span: empty_span!(offset = 4, line = 3),
+                            token: TokenType::GCode(GCode::Feed)
+                        }]
+                    },
+                    Line {
+                        span: empty_span!(offset = 7, line = 4),
+                        tokens: vec![Token {
+                            span: empty_span!(offset = 7, line = 4),
+                            token: TokenType::MCode(MCode::EndProgram)
+                        }]
+                    }
+                ]
+            };
+            remaining = empty_span!(offset = 9, line = 4);
         );
     }
 }

@@ -15,15 +15,23 @@ pub enum MCode {
 
     /// Change tool
     ToolChange,
+
+    /// End program
+    EndProgram,
+
+    /// Swap pallets and end program (M30)
+    EndProgramSwapPallets,
 }
 
 named!(pub mcode<Span, MCode>,
     // TODO: Handle leading zeros like `M06`, etc
     alt_complete!(
+        map_code!("M2", |_| MCode::EndProgram) |
         map_code!("M3", |_| MCode::SpindleForward) |
         map_code!("M4", |_| MCode::SpindleReverse) |
         map_code!("M5", |_| MCode::SpindleStop) |
-        map_code!("M6", |_| MCode::ToolChange)
+        map_code!("M6", |_| MCode::ToolChange) |
+        map_code!("M30", |_| MCode::EndProgramSwapPallets)
     )
 );
 
