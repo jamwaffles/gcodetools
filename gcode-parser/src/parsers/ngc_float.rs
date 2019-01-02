@@ -45,6 +45,23 @@ mod tests {
     }
 
     #[test]
+    fn leave_trailing_content() {
+        assert_parse!(
+            parser = ngc_float;
+            input = span!(b"5.0 other stuff");
+            expected = 5.0;
+            remaining = span!(b" other stuff", offset = 3);
+        );
+
+        assert_parse!(
+            parser = ngc_float;
+            input = span!(b"-2.070552 J-7.727407");
+            expected = -2.070552;
+            remaining = span!(b" J-7.727407", offset = 9);
+        );
+    }
+
+    #[test]
     #[should_panic]
     fn fail_float_exponent() {
         let (remaining, _) = ngc_float(span!(b"5.0e10")).unwrap();
