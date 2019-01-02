@@ -10,5 +10,5 @@ M2"#;
 
     let iter_result: Vec<&Token> = parsed.iter_flat().collect();
 
-    assert_eq!(iter_result.len(), 4);
+    assert_eq!(iter_result.len(), 5);
 }
