@@ -110,6 +110,9 @@ fn calculate(postfix_tokens: Vec<ExpressionToken>, context: Option<&Context>) ->
     Ok(stack.pop().unwrap())
 }
 
+// TODO: Some way of returning `T` instead of a rigid `f32`
+// TODO: Better error than `()`
+/// Evaluate an expression with an optional context object
 pub fn evaluate(expression: Expression, context: Option<&Context>) -> Result<f32, ()> {
     let postfix_tokens = shunting_yard(expression, context);
 
@@ -168,7 +171,7 @@ mod tests {
             ]),
         ];
 
-        let context: Context = hashmap!{
+        let context: Context = hashmap! {
             Parameter::Numbered(1234) => 1.2,
             Parameter::Named("named".into()) => 3.4,
             Parameter::Global("global".into()) => 5.6,
@@ -179,10 +182,10 @@ mod tests {
 
     #[test]
     fn it_evaluates_exists() {
-        let good_ctx: Context = hashmap!{
+        let good_ctx: Context = hashmap! {
             Parameter::Named("foo_bar".into()) => 1.0,
         };
-        let bad_ctx: Context = hashmap!{
+        let bad_ctx: Context = hashmap! {
             Parameter::Named("baz_quux".into()) => 1.0,
             Parameter::Global("foo_bar".into()) => 1.0,
         };

@@ -15,7 +15,8 @@ named!(global_parameter<CompleteByteSlice, Parameter>, map!(
     |res| Parameter::Global(res)
 ));
 
-named!(
+named_attr!(
+    #[doc = "Parse a numbered, local or global parameter"],
     pub parameter<CompleteByteSlice, Parameter>,
     // Order is significant
     alt_complete!(numbered_parameter | global_parameter | named_parameter)

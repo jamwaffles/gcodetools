@@ -1,3 +1,5 @@
+//! Expression parsers
+
 mod gcode;
 
 pub use self::gcode::expression::expression as gcode_expression;

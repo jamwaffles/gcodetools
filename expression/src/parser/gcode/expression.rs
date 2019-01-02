@@ -95,13 +95,16 @@ named!(expression_token<CompleteByteSlice, ExpressionToken>, alt_complete!(
     map!(expression, |res| ExpressionToken::Expression(res))
 ));
 
-named!(pub expression<CompleteByteSlice, Expression>, ws!(
-    delimited!(
-        char!('['),
-        many1!(expression_token),
-        char!(']')
+named_attr!(
+    #[doc = "Parse an expression"],
+    pub expression<CompleteByteSlice, Expression>, ws!(
+        delimited!(
+            char!('['),
+            many1!(expression_token),
+            char!(']')
+        )
     )
-));
+);
 
 #[cfg(test)]
 mod tests {

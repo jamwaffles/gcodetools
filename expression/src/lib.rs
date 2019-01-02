@@ -1,9 +1,15 @@
-#![deny(/*missing_docs,*/
-        missing_debug_implementations, /*missing_copy_implementations,*/
-        trivial_casts, trivial_numeric_casts,
-        unsafe_code,
-        unstable_features,
-        unused_import_braces/*, unused_qualifications*/)]
+//! Expression parser
+
+#![deny(
+    missing_docs,
+    missing_debug_implementations,
+    trivial_casts,
+    trivial_numeric_casts,
+    unsafe_code,
+    unstable_features,
+    unused_import_braces,
+    unused_qualifications
+)]
 
 #[macro_use]
 extern crate nom;
@@ -20,8 +26,7 @@ mod value;
 pub use self::evaluator::evaluate;
 use std::collections::HashMap;
 
-/// List of parameters (variables) to pass in as the environment for the evaluation of an
-/// expression.
+/// List of parameters (variables) to pass in as the environment for the evaluation of an expression
 pub type Context = HashMap<Parameter, f32>;
 
 /// Arithmetic (`/`, `*`, `+`, `-`) operator
@@ -120,9 +125,13 @@ pub enum ExpressionToken {
 /// Wrapping expression type
 pub type Expression = Vec<ExpressionToken>;
 
+/// A parameter (variable)
 #[derive(Eq, Hash, Clone, Debug, PartialEq)]
 pub enum Parameter {
+    /// Numbered parameter like `#4711`
     Numbered(u32),
+    /// Named local parameter like `#<some_local_param>`
     Named(String),
+    /// Named global parameter like `#<_some_global_param>`
     Global(String),
 }
