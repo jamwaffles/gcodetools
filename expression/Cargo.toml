@@ -9,6 +9,7 @@ name = "evaluate_expression"
 
 [dependencies]
 nom = "4.1.1"
+gcode-parser = { path = "../gcode-parser" }
 
 [dev-dependencies]
 criterion = "0.2.7"

@@ -4,14 +4,14 @@ use crate::{
     ArithmeticOperator, BinaryOperator, Expression, ExpressionToken, Function, LogicalOperator,
     Parameter,
 };
-use nom::types::CompleteByteSlice;
+use gcode_parser::Span;
 
-named!(literal<CompleteByteSlice, ExpressionToken>, map!(
+named!(literal<Span, ExpressionToken>, map!(
     float_no_exponent,
     |res| ExpressionToken::Literal(res)
 ));
 
-named!(arithmetic<CompleteByteSlice, ExpressionToken>, map!(
+named!(arithmetic<Span, ExpressionToken>, map!(
     map_res!(
         one_of!("+-*/"),
         |operator| match operator {
@@ -25,7 +25,7 @@ named!(arithmetic<CompleteByteSlice, ExpressionToken>, map!(
     |res| ExpressionToken::ArithmeticOperator(res)
 ));
 
-named!(logical_operator<CompleteByteSlice, ExpressionToken>, map!(
+named!(logical_operator<Span, ExpressionToken>, map!(
     alt_complete!(
         map!(tag_no_case!("AND"), |_| LogicalOperator::And) |
         map!(tag_no_case!("OR"), |_| LogicalOperator::Or) |
@@ -35,7 +35,7 @@ named!(logical_operator<CompleteByteSlice, ExpressionToken>, map!(
 ));
 
 // Special snowflake ATAN with two "args"
-named!(atan<CompleteByteSlice, Function>, map!(
+named!(atan<Span, Function>, map!(
     preceded!(
         tag_no_case!("ATAN"),
         ws!(separated_pair!(expression, char!('/'), expression))
@@ -44,16 +44,16 @@ named!(atan<CompleteByteSlice, Function>, map!(
 ));
 
 // Exists is a function, but only allows named/global params as args
-named!(exists<CompleteByteSlice, Parameter>, preceded!(
+named!(exists<Span, Parameter>, preceded!(
     tag_no_case!("EXISTS"),
     ws!(delimited!(char!('['), not_numbered_parameter, char!(']')))
 ));
 
-named_args!(function_call<'a>(func_ident: &str)<CompleteByteSlice<'a>, Expression>,
+named_args!(function_call<'a>(func_ident: &str)<Span<'a>, Expression>,
     preceded!(tag_no_case!(func_ident), expression)
 );
 
-named!(function<CompleteByteSlice, ExpressionToken>, map!(
+named!(function<Span, ExpressionToken>, map!(
     alt_complete!(
         atan |
         map!(exists, |param| Function::Exists(param)) |
@@ -73,7 +73,7 @@ named!(function<CompleteByteSlice, ExpressionToken>, map!(
     |res| ExpressionToken::Function(res)
 ));
 
-named!(comparison<CompleteByteSlice, ExpressionToken>, map!(
+named!(comparison<Span, ExpressionToken>, map!(
     alt_complete!(
         map!(tag_no_case!("EQ"), |_| BinaryOperator::Equal) |
         map!(tag_no_case!("NE"), |_| BinaryOperator::NotEqual) |
@@ -85,7 +85,7 @@ named!(comparison<CompleteByteSlice, ExpressionToken>, map!(
     |res| ExpressionToken::BinaryOperator(res)
 ));
 
-named!(expression_token<CompleteByteSlice, ExpressionToken>, alt_complete!(
+named!(expression_token<Span, ExpressionToken>, alt_complete!(
     function |
     literal |
     arithmetic |
@@ -97,7 +97,7 @@ named!(expression_token<CompleteByteSlice, ExpressionToken>, alt_complete!(
 
 named_attr!(
     #[doc = "Parse an expression"],
-    pub expression<CompleteByteSlice, Expression>, ws!(
+    pub expression<Span, Expression>, ws!(
         delimited!(
             char!('['),
             many1!(expression_token),
@@ -109,13 +109,11 @@ named_attr!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom::types::CompleteByteSlice as Cbs;
-
-    const EMPTY: Cbs = Cbs(b"");
+    use crate::{empty_span, span};
 
     macro_rules! assert_expr {
         ($to_check:expr, $against:expr) => {
-            assert_eq!($to_check, Ok((EMPTY, $against)))
+            assert_eq!($to_check, Ok((empty_span!(), $against)))
         };
     }
 
@@ -129,14 +127,14 @@ mod tests {
 
     #[test]
     fn it_parses_simple_expressions() {
-        let input = Cbs(b"[1]");
+        let input = span!(b"[1]");
 
         assert_expr!(expression(input), vec![ExpressionToken::Literal(1.0)]);
     }
 
     #[test]
     fn it_parses_arithmetic() {
-        let input = Cbs(b"[1 + 2 * 3 / 4 - 5]");
+        let input = span!(b"[1 + 2 * 3 / 4 - 5]");
 
         assert_expr!(
             expression(input),
@@ -156,7 +154,7 @@ mod tests {
 
     #[test]
     fn it_parses_nested_expressions() {
-        let input = Cbs(b"[1 + [[2 - 3] * 4]]");
+        let input = span!(b"[1 + [[2 - 3] * 4]]");
 
         assert_expr!(
             expression(input),
@@ -178,7 +176,7 @@ mod tests {
 
     #[test]
     fn it_parses_atan() {
-        let input = Cbs(b"[ATAN[3 + 4]/[5]]");
+        let input = span!(b"[ATAN[3 + 4]/[5]]");
 
         assert_expr!(
             expression(input),
@@ -195,7 +193,7 @@ mod tests {
 
     #[test]
     fn it_parses_a_function() {
-        let input = Cbs(b"[ABS[1.0]]");
+        let input = span!(b"[ABS[1.0]]");
 
         assert_expr!(
             expression(input),
@@ -224,10 +222,10 @@ mod tests {
         ];
 
         for input in inputs.into_iter() {
-            let parsed = expression(Cbs(input.as_bytes()));
+            let parsed = expression(span!(input.as_bytes()));
 
             assert!(parsed.is_ok());
-            assert_eq!(parsed.unwrap().0, EMPTY);
+            assert_eq!(parsed.unwrap().0, empty_span!());
         }
     }
 
@@ -243,10 +241,10 @@ mod tests {
         ];
 
         for input in inputs.into_iter() {
-            let parsed = expression(Cbs(input.as_bytes()));
+            let parsed = expression(span!(input.as_bytes()));
 
             assert!(parsed.is_ok());
-            assert_eq!(parsed.unwrap().0, EMPTY);
+            assert_eq!(parsed.unwrap().0, empty_span!());
         }
     }
 
@@ -296,17 +294,17 @@ mod tests {
         ];
 
         for (input, expected) in inputs.into_iter() {
-            let parsed = expression(Cbs(input.as_bytes()))
+            let parsed = expression(span!(input.as_bytes()))
                 .expect(&format!("Could not parse expr {}", input));
 
-            assert_eq!(parsed.0, EMPTY);
+            assert_eq!(parsed.0, empty_span!());
             assert_eq!(parsed.1, expected);
         }
     }
 
     #[test]
     fn it_parses_negative_numbers_as_negative_numbers() {
-        let input = Cbs(b"[-10.0*-12]");
+        let input = span!(b"[-10.0*-12]");
 
         assert_expr!(
             expression(input),
@@ -320,18 +318,18 @@ mod tests {
 
     #[test]
     fn it_parses_expressions_with_parameters() {
-        let _input = Cbs(b"[1 + #1234 * #<named_param> / #<_global_param>]");
+        let _input = span!(b"[1 + #1234 * #<named_param> / #<_global_param>]");
     }
 
     #[test]
     fn it_parses_function_calls() {
-        let _input = Cbs(b"[SIN[10]]");
+        let _input = span!(b"[SIN[10]]");
     }
 
     #[test]
     fn it_parses_exists_calls() {
         assert_expr!(
-            expression(Cbs(b"[EXISTS[#<named_param>]]")),
+            expression(span!(b"[EXISTS[#<named_param>]]")),
             vec![ExpressionToken::Function(Function::Exists(
                 Parameter::Named("named_param".into()),
             ))]
