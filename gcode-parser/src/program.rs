@@ -58,12 +58,13 @@ impl<'a> Program<'a> {
 
 named!(pub program<Span, Program>,
     map!(
-        delimited!(
+        tuple!(
             opt!(line_with!(char!('%'))),
             many0!(line),
-            opt!(line_with!(char!('%')))
+            opt!(line_with!(char!('%'))),
+            multispace0
         ),
-        |lines| Program { lines }
+        |(_, lines, _, _)| Program { lines }
     )
 );
 
