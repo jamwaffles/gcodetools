@@ -3,6 +3,7 @@ use crate::token::Token;
 use crate::Span;
 use nom::types::CompleteByteSlice;
 use nom::*;
+use nom_locate::position;
 use std::io;
 
 /// A complete GCode program
@@ -10,39 +11,40 @@ use std::io;
 /// This can either be a top level program, or a sub-program included by file
 #[derive(Debug, PartialEq)]
 pub struct Program<'a> {
+    start: Span<'a>,
+    end: Span<'a>,
     lines: Vec<Line<'a>>,
 }
 
 impl<'a> Program<'a> {
+    // TODO: Return a custom parse error type
     /// Parse a GCode program from a given string
     pub fn from_str(content: &'a str) -> Result<Self, io::Error> {
-        let (remaining, program) = program(Span::new(CompleteByteSlice(content.as_bytes())))
-            .map_err(|e| {
-                let message = match e {
-                    Err::Error(Context::Code(remaining, _e)) => format_parse_error!(
-                        remaining,
-                        e,
-                        Span::new(CompleteByteSlice(content.as_bytes()))
-                    ),
-                    _ => format!("Parse execution failed: {:?}", e.into_error_kind()),
-                };
+        let input = Span::new(CompleteByteSlice(content.as_bytes()));
 
-                io::Error::new(io::ErrorKind::Other, message)
-            })?;
+        let (remaining, program) = program(input).map_err(|e| {
+            let message = match e {
+                Err::Error(Context::Code(remaining, _e)) => format_parse_error!(
+                    remaining,
+                    e,
+                    Span::new(CompleteByteSlice(content.as_bytes()))
+                ),
+                _ => format!("Parse execution failed: {:?}", e.into_error_kind()),
+            };
 
-        // TODO: Return a better error type
+            io::Error::new(io::ErrorKind::Other, message)
+        })?;
+
         if remaining.input_len() > 0 {
-            let line = remaining.line;
-            let column = remaining.get_column();
-
             Err(io::Error::new(
                 io::ErrorKind::Other,
-                format!(
-                    "Could not parse complete program, failed at line {} col {} (byte {} of {})",
-                    line,
-                    column,
-                    remaining.input_len(),
-                    content.len()
+                format_parse_error!(
+                    remaining,
+                    io::Error::new(
+                        io::ErrorKind::Other,
+                        "Could not parse complete program".into()
+                    ),
+                    input
                 ),
             ))
         } else {
@@ -57,14 +59,20 @@ impl<'a> Program<'a> {
 }
 
 named!(pub program<Span, Program>,
-    map!(
-        tuple!(
-            opt!(line_with!(char!('%'))),
-            many0!(line),
-            opt!(line_with!(char!('%'))),
-            multispace0
-        ),
-        |(_, lines, _, _)| Program { lines }
+    do_parse!(
+        start: position!() >>
+        opt!(line_with!(char!('%'))) >>
+        lines: many0!(line) >>
+        opt!(line_with!(char!('%'))) >>
+        multispace0 >>
+        end: position!() >>
+        ({
+            Program {
+                start,
+                end,
+                lines
+            }
+        })
     )
 );
 
@@ -79,6 +87,8 @@ mod tests {
             parser = program;
             input = span!(b"%\nG0 X0 Y0 Z0\nG1 X1 Y1 Z1\n%");
             expected = Program {
+                start: empty_span!(),
+                end: empty_span!(offset = 27, line = 4),
                 lines: vec![
                     Line {
                         span: empty_span!(offset = 2, line = 2),
@@ -126,6 +136,8 @@ mod tests {
             parser = program;
             input = span!(b"G0 X0 Y0 Z0\nG1 X1 Y1 Z1\nM2");
             expected = Program {
+                start: empty_span!(),
+                end: empty_span!(offset = 26, line = 3),
                 lines: vec![
                     Line {
                         span: empty_span!(),
@@ -174,6 +186,8 @@ mod tests {
             parser = program;
             input = span!(b"G0 X0 Y0 Z0\nG1 X1 Y1 Z1\nM30");
             expected = Program {
+                start: empty_span!(),
+                end: empty_span!(offset = 27, line = 3),
                 lines: vec![
                     Line {
                         span: empty_span!(),
@@ -222,6 +236,8 @@ mod tests {
             parser = program;
             input = span!(b"\n\n\nM2");
             expected = Program {
+                start: empty_span!(),
+                end: empty_span!(offset = 5, line = 4),
                 lines: vec![
                     Line { span: empty_span!(), tokens: vec![] },
                     Line { span: empty_span!(offset = 1, line = 2), tokens: vec![] },
@@ -245,6 +261,8 @@ mod tests {
             parser = program;
             input = span!(b"G0\n\nG1\nM2");
             expected = Program {
+                start: empty_span!(),
+                end: empty_span!(offset = 9, line = 4),
                 lines: vec![
                     Line {
                         span: empty_span!(),
