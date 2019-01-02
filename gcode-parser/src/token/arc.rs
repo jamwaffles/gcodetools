@@ -16,9 +16,9 @@ pub struct CenterFormatArc {
     /// Arc offset
     pub i: Option<f32>,
     /// Arc offset
-    pub k: Option<f32>,
-    /// Arc offset
     pub j: Option<f32>,
+    /// Arc offset
+    pub k: Option<f32>,
     /// Number of turns
     ///
     /// Defaults to `0`, meaning no full turns are made
@@ -44,19 +44,20 @@ named_attr!(#[doc = "Parse a center format arc"], pub center_format_arc<Span, Ce
         sep!(
             space0,
             permutation!(
-                opt!(sep!(space0, preceded!(char_no_case!('X'), ngc_float))),
-                opt!(sep!(space0, preceded!(char_no_case!('Y'), ngc_float))),
-                opt!(sep!(space0, preceded!(char_no_case!('Z'), ngc_float))),
-                opt!(sep!(space0, preceded!(char_no_case!('I'), ngc_float))),
-                opt!(sep!(space0, preceded!(char_no_case!('J'), ngc_float))),
-                opt!(sep!(space0, preceded!(char_no_case!('K'), ngc_float))),
-                opt!(sep!(space0, preceded!(char_no_case!('P'), flat_map!(digit1, parse_to!(u32)))))
+                sep!(space0, preceded!(char_no_case!('X'), ngc_float))?,
+                sep!(space0, preceded!(char_no_case!('Y'), ngc_float))?,
+                sep!(space0, preceded!(char_no_case!('Z'), ngc_float))?,
+                sep!(space0, preceded!(char_no_case!('I'), ngc_float))?,
+                sep!(space0, preceded!(char_no_case!('J'), ngc_float))?,
+                sep!(space0, preceded!(char_no_case!('K'), ngc_float))?,
+                sep!(space0, preceded!(char_no_case!('P'), flat_map!(digit1, parse_to!(u32))))?
             )
         ),
         |(x, y, z, i, j, k, turns): (Option<f32>, Option<f32>, Option<f32>, Option<f32>, Option<f32>, Option<f32>, Option<u32>)| {
             let arc = CenterFormatArc { x, y, z, i, j, k, turns: turns.unwrap_or(0) };
 
             // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
+            // TODO: Return validation error instead of `None`
             if (x, y, z) == (None, None, None) || (i, j, k) == (None, None, None) {
                 None
             } else {
@@ -124,6 +125,22 @@ mod tests {
                 y: Some(-0.2048),
                 i: Some(-0.0766),
                 j: Some(0.2022),
+                ..CenterFormatArc::default()
+            }
+        );
+    }
+
+    #[test]
+    fn backwards_center_format() {
+        assert_parse!(
+            parser = center_format_arc;
+            input = span!(b"I-2.070552 J-7.727407 X36.817108 Y-8.797959 Z-3.500000");
+            expected = CenterFormatArc {
+                x: Some(36.817108),
+                y: Some(-8.797959),
+                z: Some(-3.500000),
+                i: Some(-2.070552),
+                j: Some(-7.727407),
                 ..CenterFormatArc::default()
             }
         );
