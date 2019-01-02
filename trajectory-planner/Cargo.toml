@@ -7,4 +7,4 @@ edition = "2018"
 [dependencies]
 trajectories = { git = "https://github.com/jamwaffles/trajectories.git", rev = "1b2c42acfd6d2529e7137b2f6fd1f25acf179143" }
 gcode-parser = { path = "../gcode-parser" }
-nalgebra = "0.16.12"
+nalgebra = "0.16.13"
