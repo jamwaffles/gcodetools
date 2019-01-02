@@ -70,6 +70,7 @@ macro_rules! coord {
     }; // TODO: Other permutations of args
 }
 
+// TODO: Export from common helpers crate. This macro is duplicated in the expression crate
 #[macro_export]
 macro_rules! span {
     ($content:expr, offset = $offset:expr, line = $line:expr) => {{
@@ -100,6 +101,7 @@ macro_rules! span {
     }};
 }
 
+// TODO: Condense into span!() above
 #[macro_export]
 macro_rules! empty_span {
     (offset = $offset:expr, line = $line:expr) => {{
