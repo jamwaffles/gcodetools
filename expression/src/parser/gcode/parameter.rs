@@ -64,7 +64,7 @@ named!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::span;
+    use common::{assert_parse, span};
 
     #[test]
     fn it_parses_named_parameters() {

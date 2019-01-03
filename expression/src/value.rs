@@ -1,12 +1,18 @@
 use crate::Expression;
 use crate::Parameter;
 
-#[derive(Debug, PartialEq)]
+/// A value
+#[derive(Debug, PartialEq, Clone)]
 pub enum Value {
+    /// Unsigned integer
     Unsigned(u32),
+    /// Signed integer
     Signed(i32),
+    /// Single precision floating point number
     Float(f32),
+    /// A parameter or variable substitution
     Parameter(Parameter),
+    /// An expression that resolves to a literal value
     Expression(Expression),
 }
 

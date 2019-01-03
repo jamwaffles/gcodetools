@@ -22,6 +22,7 @@ pub mod parser;
 mod value;
 
 pub use self::evaluator::evaluate;
+pub use self::value::Value;
 use std::collections::HashMap;
 
 /// List of parameters (variables) to pass in as the environment for the evaluation of an expression

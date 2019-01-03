@@ -3,4 +3,4 @@
 pub mod expression;
 mod helpers;
 pub mod parameter;
-mod value;
+pub mod value;

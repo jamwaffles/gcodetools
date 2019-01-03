@@ -62,7 +62,9 @@ named_args!(
     )
 ));
 
-named!(
+// TODO: Fold ngc_float into this; every NGC value can potentially be an expression or parameter
+named_attr!(
+    #[doc = "Parse a literal, parameter or expression into a value"],
     pub float_value<Span, Value>, alt_complete!(
     value_float |
     value_parameter |
@@ -78,7 +80,8 @@ named_args!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{span, ArithmeticOperator, ExpressionToken, Parameter};
+    use crate::{ArithmeticOperator, ExpressionToken, Parameter};
+    use common::span;
 
     #[test]
     fn it_parses_signed_integers_or_else() {

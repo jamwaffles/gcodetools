@@ -110,7 +110,7 @@ named_attr!(
 mod tests {
     use super::*;
     use crate::BinaryOperator;
-    use common::{assert_parse, assert_parse_ok, empty_span, span};
+    use common::{assert_parse, assert_parse_ok, span};
 
     #[test]
     fn arithmetic_operators_have_the_right_precedence() {

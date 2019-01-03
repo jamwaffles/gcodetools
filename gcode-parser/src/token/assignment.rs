@@ -1,6 +1,6 @@
 use common::parsing::Span;
-use expression::parser::{gcode_expression, gcode_parameter};
-use expression::{Expression, Parameter};
+use expression::parser::{gcode_parameter, gcode_value};
+use expression::{Parameter, Value};
 use nom::*;
 
 /// Assign a value to a variable
@@ -12,7 +12,7 @@ pub struct Assignment {
     lhs: Parameter,
 
     /// The value or result of an expression to assign
-    rhs: Expression,
+    rhs: Value,
 }
 
 named!(pub assignment<Span, Assignment>,
@@ -22,7 +22,7 @@ named!(pub assignment<Span, Assignment>,
             separated_pair!(
                 gcode_parameter,
                 char!('='),
-                gcode_expression
+                gcode_value
             )
         ),
         |(lhs, rhs)| Assignment { lhs, rhs }
@@ -32,8 +32,31 @@ named!(pub assignment<Span, Assignment>,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use common::{assert_parse, assert_parse_ok, empty_span, span};
+    use common::{assert_parse, span};
+    use expression::{ArithmeticOperator, ExpressionToken};
 
     #[test]
-    fn parse_summin() {}
+    fn parse_assignment() {
+        assert_parse!(
+            parser = assignment;
+            input =
+                span!(b"#1000 = 1.0"),
+                span!(b"#<named> = [1 + 2]")
+            ;
+            expected =
+                Assignment {
+                    lhs: Parameter::Numbered(1000),
+                    rhs: Value::Float(1.0)
+                },
+                Assignment {
+                    lhs: Parameter::Named("named".into()),
+                    rhs: Value::Expression(vec![
+                        ExpressionToken::Literal(1.0),
+                        ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                        ExpressionToken::Literal(2.0),
+                    ])
+                }
+            ;
+        );
+    }
 }

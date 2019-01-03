@@ -19,7 +19,7 @@ named!(pub code_number<Span, CodeNumber>,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use common::{assert_parse, assert_parse_ok, empty_span, span};
+    use common::{assert_parse, span};
 
     #[test]
     fn parse_decimal() {

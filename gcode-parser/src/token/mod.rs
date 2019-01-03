@@ -60,6 +60,9 @@ pub enum TokenType {
 
     /// A code that this parser doesn't understand
     Unknown(Unknown),
+
+    /// An assignment of a literal, parameter or expression to a parameter
+    Assignment(Assignment),
 }
 
 /// An unknown token
@@ -102,6 +105,7 @@ named!(token_type<Span, TokenType>,
         map!(tool_number, TokenType::ToolNumber) |
         map!(comment, TokenType::Comment) |
         map!(line_number, TokenType::LineNumber) |
+        map!(assignment, TokenType::Assignment) |
         map!(unknown, TokenType::Unknown)
     )
 );
