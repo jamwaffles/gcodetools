@@ -1,3 +1,3 @@
 pub mod parsing;
-#[cfg(test)]
+#[doc(hidden)]
 pub mod testing;

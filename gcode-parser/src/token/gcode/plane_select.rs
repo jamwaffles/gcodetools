@@ -41,6 +41,7 @@ named!(pub plane_select<Span, PlaneSelect>,
 #[cfg(test)]
 mod tests {
     use super::*;
+    use common::{assert_parse, assert_parse_ok, empty_span, span};
 
     #[test]
     fn parse_integer_plane_select() {

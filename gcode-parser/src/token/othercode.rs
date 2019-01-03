@@ -78,6 +78,7 @@ named!(pub line_number<Span, LineNumber>,
 #[cfg(test)]
 mod tests {
     use super::*;
+    use common::{assert_parse, assert_parse_ok, empty_span, span};
 
     #[test]
     fn parse_feedrate() {

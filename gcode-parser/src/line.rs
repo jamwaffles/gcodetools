@@ -33,6 +33,7 @@ mod tests {
     use crate::token::{
         CenterFormatArc, Comment, CutterCompensation, GCode, TokenType, WorkOffset, WorkOffsetValue,
     };
+    use common::{assert_parse, empty_span, span};
 
     #[test]
     fn parse_multiple_spaced_tokens() {

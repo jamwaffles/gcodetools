@@ -109,7 +109,8 @@ named_attr!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{empty_span, span, BinaryOperator};
+    use crate::BinaryOperator;
+    use common::{assert_parse, assert_parse_ok, empty_span, span};
 
     #[test]
     fn arithmetic_operators_have_the_right_precedence() {

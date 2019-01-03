@@ -72,7 +72,7 @@ named_args!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::span;
+    use common::{assert_parse, span};
 
     #[test]
     fn it_takes_until_any_line_ending() {

@@ -17,8 +17,6 @@ extern crate nom;
 #[macro_use]
 extern crate maplit;
 
-#[macro_use]
-mod macros;
 mod evaluator;
 pub mod parser;
 mod value;

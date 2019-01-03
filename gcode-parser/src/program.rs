@@ -1,5 +1,6 @@
 use crate::line::{line, Line};
 use crate::token::Token;
+use common::format_parse_error;
 use common::parsing::Span;
 use nom::types::CompleteByteSlice;
 use nom::*;
@@ -79,7 +80,9 @@ named!(pub program<Span, Program>,
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::coord;
     use crate::token::{Coord, GCode, MCode, Token, TokenType};
+    use common::{assert_parse, assert_parse_ok, empty_span, span};
 
     #[test]
     fn parse_percent_delimited_program() {

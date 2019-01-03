@@ -9,15 +9,28 @@ macro_rules! assert_parse {
                 Ok(result) => assert_eq!(
                     result,
                     (
-                        empty_span!(offset = input.fragment.len()),
+                        $crate::empty_span!(offset = input.fragment.len()),
                         expected
                     )
                 ),
-                Err(Err::Error(Context::Code(remaining, _e))) => {
-                    panic!(format_parse_error!(remaining, e, input))
+                Err(nom::Err::Error(nom::Context::Code(remaining, _e))) => {
+                    panic!($crate::format_parse_error!(remaining, e, input))
                 }
                 Err(e) => panic!("Parse execution failed: {:?}", e),
             }
+        }
+    };
+
+    (parser = $parser:ident( $($parse_args:tt)* ); expected = $expected:expr $(;)*) => {
+        match $parser($($parse_args)*) {
+            Ok(result) => assert_eq!(
+                result.1,
+                $expected
+            ),
+            Err(nom::Err::Error(nom::Context::Code(_remaining, e))) => {
+                panic!("Parse failed: {:?}", e)
+            }
+            Err(e) => panic!("Parse execution failed: {:?}", e),
         }
     };
 
@@ -35,8 +48,8 @@ macro_rules! assert_parse {
                         expected
                     )
                 ),
-                Err(Err::Error(Context::Code(remaining, _e))) => {
-                    panic!(format_parse_error!(remaining, e, input))
+                Err(nom::Err::Error(nom::Context::Code(remaining, _e))) => {
+                    panic!($crate::format_parse_error!(remaining, e, input))
                 }
                 Err(e) => panic!("Parse execution failed: {:?}", e),
             }
@@ -75,7 +88,7 @@ macro_rules! coord {
 macro_rules! span {
     ($content:expr, offset = $offset:expr, line = $line:expr) => {{
         use nom::types::CompleteByteSlice;
-        use $crate::Span;
+        use $crate::parsing::Span;
 
         Span {
             offset: $offset,
@@ -85,7 +98,7 @@ macro_rules! span {
     }};
     ($content:expr, offset = $offset:expr) => {{
         use nom::types::CompleteByteSlice;
-        use $crate::Span;
+        use $crate::parsing::Span;
 
         Span {
             offset: $offset,
@@ -95,7 +108,7 @@ macro_rules! span {
     }};
     ($content:expr) => {{
         use nom::types::CompleteByteSlice;
-        use $crate::Span;
+        use $crate::parsing::Span;
 
         Span::new(CompleteByteSlice($content))
     }};
@@ -106,7 +119,7 @@ macro_rules! span {
 macro_rules! empty_span {
     (offset = $offset:expr, line = $line:expr) => {{
         use nom::types::CompleteByteSlice;
-        use $crate::Span;
+        use $crate::parsing::Span;
 
         Span {
             offset: $offset,
@@ -117,7 +130,7 @@ macro_rules! empty_span {
 
     (offset = $offset:expr) => {{
         use nom::types::CompleteByteSlice;
-        use $crate::Span;
+        use $crate::parsing::Span;
 
         Span {
             offset: $offset,

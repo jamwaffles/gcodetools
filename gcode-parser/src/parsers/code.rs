@@ -69,6 +69,8 @@ macro_rules! map_code_res(
 
 #[cfg(test)]
 mod tests {
+    use common::{assert_parse, assert_parse_ok, empty_span, span};
+
     #[test]
     fn parse_integer_code() {
         let out = code!(span!(b"G54"), "G54");
