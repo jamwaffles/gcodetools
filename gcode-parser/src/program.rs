@@ -1,6 +1,6 @@
 use crate::line::{line, Line};
 use crate::token::Token;
-use crate::Span;
+use common::parsing::Span;
 use nom::types::CompleteByteSlice;
 use nom::*;
 use nom_locate::position;

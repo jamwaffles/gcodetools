@@ -6,9 +6,9 @@ extern crate criterion;
 extern crate maplit;
 extern crate nom;
 
+use common::parsing::Span;
 use criterion::Criterion;
 use expression::{evaluate, parser::gcode_expression, Context, Parameter};
-use gcode_parser::Span;
 use nom::types::CompleteByteSlice;
 
 fn parse_and_evaluate(c: &mut Criterion) {

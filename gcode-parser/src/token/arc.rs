@@ -1,5 +1,5 @@
 use crate::parsers::ngc_float;
-use crate::Span;
+use common::parsing::Span;
 use nom::*;
 
 /// Center format arc offsets

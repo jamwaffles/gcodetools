@@ -74,8 +74,8 @@ macro_rules! coord {
 #[macro_export]
 macro_rules! span {
     ($content:expr, offset = $offset:expr, line = $line:expr) => {{
-        use common::parsing::Span;
         use nom::types::CompleteByteSlice;
+        use $crate::Span;
 
         Span {
             offset: $offset,
@@ -84,8 +84,8 @@ macro_rules! span {
         }
     }};
     ($content:expr, offset = $offset:expr) => {{
-        use common::parsing::Span;
         use nom::types::CompleteByteSlice;
+        use $crate::Span;
 
         Span {
             offset: $offset,
@@ -94,8 +94,8 @@ macro_rules! span {
         }
     }};
     ($content:expr) => {{
-        use common::parsing::Span;
         use nom::types::CompleteByteSlice;
+        use $crate::Span;
 
         Span::new(CompleteByteSlice($content))
     }};
@@ -105,8 +105,8 @@ macro_rules! span {
 #[macro_export]
 macro_rules! empty_span {
     (offset = $offset:expr, line = $line:expr) => {{
-        use common::parsing::Span;
         use nom::types::CompleteByteSlice;
+        use $crate::Span;
 
         Span {
             offset: $offset,
@@ -116,8 +116,8 @@ macro_rules! empty_span {
     }};
 
     (offset = $offset:expr) => {{
-        use common::parsing::Span;
         use nom::types::CompleteByteSlice;
+        use $crate::Span;
 
         Span {
             offset: $offset,

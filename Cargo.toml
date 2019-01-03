@@ -3,5 +3,6 @@
 members = [
     "gcode-parser",
     "expression",
-    "trajectory-planner"
+    "trajectory-planner",
+    "common"
 ]

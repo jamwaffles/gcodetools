@@ -1,4 +1,4 @@
-use crate::Span;
+use common::parsing::Span;
 use nom::*;
 
 /// A comment

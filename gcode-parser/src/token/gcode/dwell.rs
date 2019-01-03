@@ -1,5 +1,6 @@
+use crate::map_code;
 use crate::parsers::ngc_float;
-use crate::{map_code, Span};
+use common::parsing::Span;
 use nom::*;
 
 /// Dwell

@@ -1,4 +1,4 @@
-use crate::Span;
+use common::parsing::Span;
 use nom::*;
 
 pub type CodeNumber = f32;

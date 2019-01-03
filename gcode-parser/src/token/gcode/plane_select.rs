@@ -1,4 +1,5 @@
-use crate::{map_code, Span};
+use crate::map_code;
+use common::parsing::Span;
 use nom::*;
 
 // TODO: Better name than PlaneSelectValue

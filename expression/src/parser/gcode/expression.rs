@@ -4,7 +4,7 @@ use crate::{
     ArithmeticOperator, BinaryOperator, Expression, ExpressionToken, Function, LogicalOperator,
     Parameter,
 };
-use gcode_parser::Span;
+use common::parsing::Span;
 
 named!(literal<Span, ExpressionToken>, map!(
     float_no_exponent,

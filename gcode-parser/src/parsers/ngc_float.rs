@@ -1,6 +1,6 @@
 // TODO: Move to a common parser helpers module
 
-use crate::Span;
+use common::parsing::Span;
 use nom::*;
 
 named!(pub recognize_ngc_float<Span, Span>,

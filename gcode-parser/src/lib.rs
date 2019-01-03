@@ -25,12 +25,6 @@ mod program;
 pub mod token;
 
 pub use crate::program::Program;
-use nom::types::CompleteByteSlice;
-use nom_locate::LocatedSpan;
-
-// TODO: Move out to common parser utils crate
-#[doc(hidden)]
-pub type Span<'a> = LocatedSpan<CompleteByteSlice<'a>>;
 
 #[doc(hidden)]
 pub mod dev {

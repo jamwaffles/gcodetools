@@ -1,10 +1,11 @@
 // TODO: Merge with ngc_float in gcode-parser
+// TODO: Move to common crate
 
 use super::expression::expression;
 use super::helpers::float_no_exponent;
 use super::parameter::parameter;
 use crate::value::Value;
-use gcode_parser::Span;
+use common::parsing::Span;
 use nom::digit;
 
 named!(value_signed<Span, Value>, map!(

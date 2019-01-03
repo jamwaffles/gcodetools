@@ -11,7 +11,8 @@ use self::plane_select::plane_select;
 pub use self::plane_select::PlaneSelect;
 use self::work_offset::work_offset;
 pub use self::work_offset::{WorkOffset, WorkOffsetValue};
-use crate::{map_code, Span};
+use crate::map_code;
+use common::parsing::Span;
 use nom::*;
 
 /// A G-code

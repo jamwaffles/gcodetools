@@ -1,4 +1,4 @@
-use gcode_parser::Span;
+use common::parsing::Span;
 use nom::*;
 
 named!(pub take_until_line_ending<Span, Span>, alt_complete!(take_until!("\r\n") | take_until!("\n")));

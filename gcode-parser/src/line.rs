@@ -1,5 +1,5 @@
 use crate::token::{token, Token};
-use crate::Span;
+use common::parsing::Span;
 use nom::*;
 use nom_locate::position;
 

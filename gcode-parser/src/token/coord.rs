@@ -1,7 +1,7 @@
 //! Parse coordinates into a vector
 
 use crate::parsers::ngc_float;
-use crate::Span;
+use common::parsing::Span;
 use nom::*;
 
 /// A 9 dimensional `XYZABCUVW` coordinate

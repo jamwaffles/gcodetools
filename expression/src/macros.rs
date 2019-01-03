@@ -73,7 +73,7 @@ macro_rules! assert_parse_ok {
 #[macro_export]
 macro_rules! span {
     ($content:expr, offset = $offset:expr, line = $line:expr) => {{
-        use gcode_parser::Span;
+        use common::parsing::Span;
         use nom::types::CompleteByteSlice;
 
         Span {
@@ -83,7 +83,7 @@ macro_rules! span {
         }
     }};
     ($content:expr, offset = $offset:expr) => {{
-        use gcode_parser::Span;
+        use common::parsing::Span;
         use nom::types::CompleteByteSlice;
 
         Span {
@@ -93,7 +93,7 @@ macro_rules! span {
         }
     }};
     ($content:expr) => {{
-        use gcode_parser::Span;
+        use common::parsing::Span;
         use nom::types::CompleteByteSlice;
 
         Span::new(CompleteByteSlice($content))
@@ -105,7 +105,7 @@ macro_rules! span {
 #[macro_export]
 macro_rules! empty_span {
     (offset = $offset:expr, line = $line:expr) => {{
-        use gcode_parser::Span;
+        use common::parsing::Span;
         use nom::types::CompleteByteSlice;
 
         Span {
@@ -116,7 +116,7 @@ macro_rules! empty_span {
     }};
 
     (offset = $offset:expr) => {{
-        use gcode_parser::Span;
+        use common::parsing::Span;
         use nom::types::CompleteByteSlice;
 
         Span {

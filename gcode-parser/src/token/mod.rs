@@ -1,6 +1,7 @@
 //! Tokens
 
 pub(crate) mod arc;
+pub(crate) mod assignment;
 pub(crate) mod comment;
 pub(crate) mod coord;
 pub(crate) mod gcode;
@@ -9,6 +10,8 @@ pub(crate) mod othercode;
 
 use self::arc::center_format_arc;
 pub use self::arc::CenterFormatArc;
+use self::assignment::assignment;
+pub use self::assignment::Assignment;
 use self::comment::comment;
 pub use self::comment::Comment;
 use self::coord::coord;
@@ -20,7 +23,7 @@ pub use self::mcode::MCode;
 use self::othercode::{feedrate, line_number, spindle_speed, tool_number};
 pub use self::othercode::{Feedrate, LineNumber, SpindleSpeed, ToolNumber};
 use crate::parsers::code_number;
-use crate::Span;
+use common::parsing::Span;
 use nom::*;
 use nom_locate::position;
 

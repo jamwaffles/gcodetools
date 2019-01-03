@@ -1,5 +1,5 @@
 use crate::Parameter;
-use gcode_parser::Span;
+use common::parsing::Span;
 use nom::*;
 
 named!(numbered_parameter<Span, Parameter>, map!(
