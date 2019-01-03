@@ -109,13 +109,7 @@ named_attr!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{empty_span, span};
-
-    macro_rules! assert_expr {
-        ($to_check:expr, $against:expr) => {
-            assert_eq!($to_check, Ok((empty_span!(), $against)))
-        };
-    }
+    use crate::{empty_span, span, BinaryOperator};
 
     #[test]
     fn arithmetic_operators_have_the_right_precedence() {
@@ -127,18 +121,19 @@ mod tests {
 
     #[test]
     fn it_parses_simple_expressions() {
-        let input = span!(b"[1]");
-
-        assert_expr!(expression(input), vec![ExpressionToken::Literal(1.0)]);
+        assert_parse!(
+            parser = expression;
+            input = span!(b"[1]");
+            expected = vec![ExpressionToken::Literal(1.0)]
+        );
     }
 
     #[test]
     fn it_parses_arithmetic() {
-        let input = span!(b"[1 + 2 * 3 / 4 - 5]");
-
-        assert_expr!(
-            expression(input),
-            vec![
+        assert_parse!(
+            parser = expression;
+            input = span!(b"[1 + 2 * 3 / 4 - 5]");
+            expected = vec![
                 ExpressionToken::Literal(1.0),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                 ExpressionToken::Literal(2.0),
@@ -154,11 +149,10 @@ mod tests {
 
     #[test]
     fn it_parses_nested_expressions() {
-        let input = span!(b"[1 + [[2 - 3] * 4]]");
-
-        assert_expr!(
-            expression(input),
-            vec![
+        assert_parse!(
+            parser = expression;
+            input = span!(b"[1 + [[2 - 3] * 4]]");
+            expected = vec![
                 ExpressionToken::Literal(1.0),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                 ExpressionToken::Expression(vec![
@@ -176,107 +170,144 @@ mod tests {
 
     #[test]
     fn it_parses_atan() {
-        let input = span!(b"[ATAN[3 + 4]/[5]]");
-
-        assert_expr!(
-            expression(input),
-            vec![ExpressionToken::Function(Function::Atan((
-                vec![
-                    ExpressionToken::Literal(3.0),
-                    ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-                    ExpressionToken::Literal(4.0),
-                ],
-                vec![ExpressionToken::Literal(5.0)],
-            )))]
+        assert_parse!(
+            parser = expression;
+            input = span!(b"[ATAN[3 + 4]/[5]]");
+            expected =
+                vec![ExpressionToken::Function(Function::Atan((
+                    vec![
+                        ExpressionToken::Literal(3.0),
+                        ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                        ExpressionToken::Literal(4.0),
+                    ],
+                    vec![ExpressionToken::Literal(5.0)],
+                )))];
         );
     }
 
     #[test]
     fn it_parses_a_function() {
-        let input = span!(b"[ABS[1.0]]");
-
-        assert_expr!(
-            expression(input),
-            vec![ExpressionToken::Function(Function::Abs(vec![
-                ExpressionToken::Literal(1.0),
-            ]))]
+        assert_parse!(
+            parser = expression;
+            input = span!(b"[ABS[1.0]]");
+            expected =
+                vec![ExpressionToken::Function(Function::Abs(vec![
+                    ExpressionToken::Literal(1.0),
+                ]))];
         );
     }
 
     #[test]
     fn it_parses_functions() {
-        let inputs: Vec<String> = vec![
-            "[ABS[1.0]]".into(),
-            "[ACOS[1.0]]".into(),
-            "[ASIN[1.0]]".into(),
-            "[COS[1.0]]".into(),
-            "[EXP[1.0]]".into(),
-            "[FIX[1.0]]".into(),
-            "[FUP[1.0]]".into(),
-            "[ROUND[1.0]]".into(),
-            "[LN[1.0]]".into(),
-            "[SIN[1.0]]".into(),
-            "[SQRT[1.0]]".into(),
-            "[TAN[1.0]]".into(),
-            "[EXISTS[#<named>]]".into(),
-        ];
+        assert_parse!(
+            parser = expression;
+            input =
+                span!(b"[ABS[1.0]]"),
+                span!(b"[ACOS[1.0]]"),
+                span!(b"[ASIN[1.0]]"),
+                span!(b"[COS[1.0]]"),
+                span!(b"[EXP[1.0]]"),
+                span!(b"[FIX[1.0]]"),
+                span!(b"[FUP[1.0]]"),
+                span!(b"[ROUND[1.0]]"),
+                span!(b"[LN[1.0]]"),
+                span!(b"[SIN[1.0]]"),
+                span!(b"[SQRT[1.0]]"),
+                span!(b"[TAN[1.0]]"),
+                span!(b"[EXISTS[#<named>]]")
+            ;
 
-        for input in inputs.into_iter() {
-            let parsed = expression(span!(input.as_bytes()));
-
-            assert!(parsed.is_ok());
-            assert_eq!(parsed.unwrap().0, empty_span!());
-        }
+            expected =
+                vec![ExpressionToken::Function(Function::Abs(vec![
+                    ExpressionToken::Literal(1.0),
+                ]))],
+                vec![ExpressionToken::Function(Function::Acos(vec![
+                    ExpressionToken::Literal(1.0),
+                ]))],
+                vec![ExpressionToken::Function(Function::Asin(vec![
+                    ExpressionToken::Literal(1.0),
+                ]))],
+                vec![ExpressionToken::Function(Function::Cos(vec![
+                    ExpressionToken::Literal(1.0),
+                ]))],
+                vec![ExpressionToken::Function(Function::Exp(vec![
+                    ExpressionToken::Literal(1.0),
+                ]))],
+                vec![ExpressionToken::Function(Function::Floor(vec![
+                    ExpressionToken::Literal(1.0),
+                ]))],
+                vec![ExpressionToken::Function(Function::Ceil(vec![
+                    ExpressionToken::Literal(1.0),
+                ]))],
+                vec![ExpressionToken::Function(Function::Round(vec![
+                    ExpressionToken::Literal(1.0),
+                ]))],
+                vec![ExpressionToken::Function(Function::Ln(vec![
+                    ExpressionToken::Literal(1.0),
+                ]))],
+                vec![ExpressionToken::Function(Function::Sin(vec![
+                    ExpressionToken::Literal(1.0),
+                ]))],
+                vec![ExpressionToken::Function(Function::Sqrt(vec![
+                    ExpressionToken::Literal(1.0),
+                ]))],
+                vec![ExpressionToken::Function(Function::Tan(vec![
+                    ExpressionToken::Literal(1.0),
+                ]))],
+                vec![ExpressionToken::Function(Function::Exists(Parameter::Named("named".into())))]
+            ;
+        );
     }
 
     #[test]
     fn it_parses_binary_operators() {
-        let inputs: Vec<String> = vec![
-            "[1 EQ 2]".into(),
-            "[1 NE 2]".into(),
-            "[1 GT 2]".into(),
-            "[1 GE 2]".into(),
-            "[1 LT 2]".into(),
-            "[1 LE 2]".into(),
-        ];
-
-        for input in inputs.into_iter() {
-            let parsed = expression(span!(input.as_bytes()));
-
-            assert!(parsed.is_ok());
-            assert_eq!(parsed.unwrap().0, empty_span!());
-        }
+        assert_parse!(
+            parser = expression;
+            input =
+                span!(b"[1 EQ 2]"),
+                span!(b"[1 NE 2]"),
+                span!(b"[1 GT 2]"),
+                span!(b"[1 GE 2]"),
+                span!(b"[1 LT 2]"),
+                span!(b"[1 LE 2]")
+            ;
+            expected =
+                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::Equal), ExpressionToken::Literal(2.0)],
+                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::NotEqual), ExpressionToken::Literal(2.0)],
+                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan), ExpressionToken::Literal(2.0)],
+                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::GreaterThanOrEqual), ExpressionToken::Literal(2.0)],
+                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::LessThan), ExpressionToken::Literal(2.0)],
+                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual), ExpressionToken::Literal(2.0)]
+            ;
+        );
     }
 
     #[test]
     fn it_parses_logical_operators() {
-        let inputs: Vec<(String, Expression)> = vec![
-            (
-                "[1 AND 2]".into(),
+        assert_parse!(
+            parser = expression;
+            input =
+                span!(b"[1 AND 2]"),
+                span!(b"[1 OR 2]"),
+                span!(b"[1 NOT 2]"),
+                span!(b"[[#<fraction> GT .99] OR [#<fraction> LT .01]]")
+            ;
+            expected =
                 vec![
                     ExpressionToken::Literal(1.0),
                     ExpressionToken::LogicalOperator(LogicalOperator::And),
                     ExpressionToken::Literal(2.0),
                 ],
-            ),
-            (
-                "[1 OR 2]".into(),
                 vec![
                     ExpressionToken::Literal(1.0),
                     ExpressionToken::LogicalOperator(LogicalOperator::Or),
                     ExpressionToken::Literal(2.0),
                 ],
-            ),
-            (
-                "[1 NOT 2]".into(),
                 vec![
                     ExpressionToken::Literal(1.0),
                     ExpressionToken::LogicalOperator(LogicalOperator::Not),
                     ExpressionToken::Literal(2.0),
                 ],
-            ),
-            (
-                "[[#<fraction> GT .99] OR [#<fraction> LT .01]]".into(),
                 vec![
                     ExpressionToken::Expression(vec![
                         ExpressionToken::Parameter(Parameter::Named("fraction".into())),
@@ -289,50 +320,45 @@ mod tests {
                         ExpressionToken::BinaryOperator(BinaryOperator::LessThan),
                         ExpressionToken::Literal(0.01),
                     ]),
-                ],
-            ),
-        ];
-
-        for (input, expected) in inputs.into_iter() {
-            let parsed = expression(span!(input.as_bytes()))
-                .expect(&format!("Could not parse expr {}", input));
-
-            assert_eq!(parsed.0, empty_span!());
-            assert_eq!(parsed.1, expected);
-        }
+                ]
+            ;
+        );
     }
 
     #[test]
     fn it_parses_negative_numbers_as_negative_numbers() {
-        let input = span!(b"[-10.0*-12]");
-
-        assert_expr!(
-            expression(input),
-            vec![
+        assert_parse!(
+            parser = expression;
+            input = span!(b"[-10.0*-12]");
+            expected = vec![
                 ExpressionToken::Literal(-10.0),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
                 ExpressionToken::Literal(-12.0),
-            ]
+            ];
         );
     }
 
     #[test]
     fn it_parses_expressions_with_parameters() {
-        let _input = span!(b"[1 + #1234 * #<named_param> / #<_global_param>]");
+        assert_parse_ok!(
+            parser = expression,
+            input = span!(b"[1 + #1234 * #<named_param> / #<_global_param>]")
+        );
     }
 
     #[test]
     fn it_parses_function_calls() {
-        let _input = span!(b"[SIN[10]]");
+        assert_parse_ok!(parser = expression, input = span!(b"[SIN[10]]"));
     }
 
     #[test]
     fn it_parses_exists_calls() {
-        assert_expr!(
-            expression(span!(b"[EXISTS[#<named_param>]]")),
-            vec![ExpressionToken::Function(Function::Exists(
+        assert_parse!(
+            parser = expression;
+            input = span!(b"[EXISTS[#<named_param>]]");
+            expected = vec![ExpressionToken::Function(Function::Exists(
                 Parameter::Named("named_param".into()),
-            ))]
+            ))];
         );
     }
 }

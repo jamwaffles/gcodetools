@@ -76,43 +76,49 @@ mod tests {
 
     #[test]
     fn it_takes_until_any_line_ending() {
-        assert_eq!(
-            take_until_line_ending(span!(b"Unix line endings\n")),
-            Ok((span!(b"\n"), span!(b"Unix line endings")))
-        );
-
-        assert_eq!(
-            take_until_line_ending(span!(b"Windows line endings\r\n")),
-            Ok((span!(b"\r\n"), span!(b"Windows line endings")))
+        assert_parse!(
+            parser = take_until_line_ending;
+            input =
+                span!(b"Unix line endings\n"),
+                span!(b"Windows line endings\r\n")
+            ;
+            expected =
+                span!(b"Unix line endings"),
+                span!(b"Windows line endings")
+            ;
+            remaining =
+                span!(b"\n", offset = 17),
+                span!(b"\r\n", offset = 20)
+            ;
         );
     }
 
     #[test]
     fn it_parses_preceded_floats() {
-        assert_complete_parse!(preceded_f32(span!(b"J0"), "J"), 0.0f32);
-        assert_complete_parse!(preceded_f32(span!(b"I20"), "I"), 20.0f32);
-        assert_complete_parse!(preceded_f32(span!(b"x 1."), "X"), 1.0f32);
-        assert_complete_parse!(preceded_f32(span!(b"x1."), "X"), 1.0f32);
+        assert_parse!(parser = preceded_f32(span!(b"J0"), "J"); expected = 0.0f32);
+        assert_parse!(parser = preceded_f32(span!(b"I20"), "I"); expected = 20.0f32);
+        assert_parse!(parser = preceded_f32(span!(b"x 1."), "X"); expected = 1.0f32);
+        assert_parse!(parser = preceded_f32(span!(b"x1."), "X"); expected = 1.0f32);
 
-        assert_complete_parse!(preceded_f32(span!(b"x1.23"), "X"), 1.23f32);
-        assert_complete_parse!(preceded_f32(span!(b"y-1.23"), "Y"), -1.23f32);
-        assert_complete_parse!(preceded_f32(span!(b"z+1.23"), "Z"), 1.23f32);
-        assert_complete_parse!(preceded_f32(span!(b"a123"), "A"), 123.0f32);
+        assert_parse!(parser = preceded_f32(span!(b"x1.23"), "X"); expected = 1.23f32);
+        assert_parse!(parser = preceded_f32(span!(b"y-1.23"), "Y"); expected = -1.23f32);
+        assert_parse!(parser = preceded_f32(span!(b"z+1.23"), "Z"); expected = 1.23f32);
+        assert_parse!(parser = preceded_f32(span!(b"a123"), "A"); expected = 123.0f32);
 
-        assert_complete_parse!(preceded_f32(span!(b"X1.23"), "X"), 1.23f32);
-        assert_complete_parse!(preceded_f32(span!(b"Y-1.23"), "Y"), -1.23f32);
-        assert_complete_parse!(preceded_f32(span!(b"Z+1.23"), "Z"), 1.23f32);
-        assert_complete_parse!(preceded_f32(span!(b"A123"), "A"), 123.0f32);
+        assert_parse!(parser = preceded_f32(span!(b"X1.23"), "X"); expected = 1.23f32);
+        assert_parse!(parser = preceded_f32(span!(b"Y-1.23"), "Y"); expected = -1.23f32);
+        assert_parse!(parser = preceded_f32(span!(b"Z+1.23"), "Z"); expected = 1.23f32);
+        assert_parse!(parser = preceded_f32(span!(b"A123"), "A"); expected = 123.0f32);
     }
 
     #[test]
     fn it_recognizes_preceded_codes() {
-        assert_complete_parse!(code(span!(b"G00"), "G", "0"), span!(b"0"));
-        assert_complete_parse!(code(span!(b"G01"), "G", "1"), span!(b"1"));
-        assert_complete_parse!(code(span!(b"G1"), "G", "1"), span!(b"1"));
-        assert_complete_parse!(code(span!(b"G10"), "G", "10"), span!(b"10"));
-        assert_complete_parse!(code(span!(b"G38.2"), "G", "38.2"), span!(b"38.2"));
-        assert_complete_parse!(code(span!(b"G038.2"), "G", "38.2"), span!(b"38.2"));
+        assert_parse!(parser = code(span!(b"G00"), "G", "0"); expected = span!(b"0", offset = 2));
+        assert_parse!(parser = code(span!(b"G01"), "G", "1"); expected = span!(b"1", offset = 2));
+        assert_parse!(parser = code(span!(b"G1"), "G", "1"); expected = span!(b"1", offset = 1));
+        assert_parse!(parser = code(span!(b"G10"), "G", "10"); expected = span!(b"10", offset = 1));
+        assert_parse!(parser = code(span!(b"G38.2"), "G", "38.2"); expected = span!(b"38.2", offset = 1));
+        assert_parse!(parser = code(span!(b"G038.2"), "G", "38.2"); expected = span!(b"38.2", offset = 2));
 
         assert!(code(span!(b"G10"), "G", "10.1").is_err());
         assert!(code(span!(b"G10.5"), "G", "10.6").is_err());
@@ -120,13 +126,13 @@ mod tests {
 
     #[test]
     fn it_parses_preceded_unsigned_integers() {
-        assert_complete_parse!(preceded_u32(span!(b"x123"), "X"), 123u32);
-        assert_complete_parse!(preceded_u32(span!(b"X123"), "X"), 123u32);
-        assert_complete_parse!(preceded_u32(span!(b"y 123"), "Y"), 123u32);
-        assert_complete_parse!(preceded_u32(span!(b"y 123"), "Y"), 123u32);
-        assert_complete_parse!(preceded_u32(span!(b"G00"), "G"), 0u32);
-        assert_complete_parse!(preceded_u32(span!(b"G01"), "G"), 1u32);
-        assert_complete_parse!(preceded_u32(span!(b"G1"), "G"), 1u32);
+        assert_parse!(parser = preceded_u32(span!(b"x123"), "X"); expected = 123u32);
+        assert_parse!(parser = preceded_u32(span!(b"X123"), "X"); expected = 123u32);
+        assert_parse!(parser = preceded_u32(span!(b"y 123"), "Y"); expected = 123u32);
+        assert_parse!(parser = preceded_u32(span!(b"y 123"), "Y"); expected = 123u32);
+        assert_parse!(parser = preceded_u32(span!(b"G00"), "G"); expected = 0u32);
+        assert_parse!(parser = preceded_u32(span!(b"G01"), "G"); expected = 1u32);
+        assert_parse!(parser = preceded_u32(span!(b"G1"), "G"); expected = 1u32);
 
         assert!(preceded_u32(span!(b"y-123"), "Y").is_err());
         assert!(preceded_u32(span!(b"Y-123"), "Y").is_err());
@@ -146,14 +152,19 @@ mod tests {
             let expected32 = str::parse::<f32>(test).unwrap();
             let expected64 = str::parse::<f64>(test).unwrap();
 
-            assert_eq!(
-                recognize_float_no_exponent(span!(test.as_bytes())),
-                Ok((span!(b""), span!(test.as_bytes())))
+            assert_parse!(
+                parser = recognize_float_no_exponent;
+                input = span!(test.as_bytes());
+                expected = span!(test.as_bytes());
             );
+
             let larger = format!("{};", test);
-            assert_eq!(
-                recognize_float_no_exponent(span!(larger.as_bytes())),
-                Ok((span!(b";"), span!(test.as_bytes())))
+
+            assert_parse!(
+                parser = recognize_float_no_exponent;
+                input = span!(larger.as_bytes());
+                expected = span!(test.as_bytes());
+                remaining = span!(b";", offset = test.len());
             );
 
             assert_eq!(float(larger.as_bytes()), Ok((&b";"[..], expected32)));

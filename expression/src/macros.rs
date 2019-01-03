@@ -1,14 +1,70 @@
 #[cfg(test)]
 #[macro_export]
-macro_rules! assert_complete_parse {
-    ($to_check:expr, $against:expr) => {
-        assert_eq!(
-            $to_check,
-            Ok((
-                $crate::empty_span!(offset = $to_check.fragment.len()),
-                $against
-            ))
-        )
+macro_rules! assert_parse {
+    (parser = $parser:ident; input = $($input:expr),+; expected = $($expected:expr),+ $(;)*) => {
+        use nom::*;
+
+        let inputs = vec![$($input),+];
+        let comparisons = vec![$($expected),+];
+
+        for (input, expected) in inputs.into_iter().zip(comparisons.into_iter()) {
+            match $parser(input) {
+                Ok(result) => assert_eq!(
+                    result,
+                    (
+                        empty_span!(offset = input.fragment.len()),
+                        expected
+                    )
+                ),
+                Err(Err::Error(Context::Code(_remaining, e))) => {
+                    panic!("Parse failed: {:?}", e)
+                }
+                Err(e) => panic!("Parse execution failed: {:?}", e),
+            }
+        }
+    };
+
+    (parser = $parser:ident( $($parse_args:tt)* ); expected = $expected:expr $(;)*) => {
+        match $parser($($parse_args)*) {
+            Ok(result) => assert_eq!(
+                result.1,
+                $expected
+            ),
+            Err(Err::Error(Context::Code(_remaining, e))) => {
+                panic!("Parse failed: {:?}", e)
+            }
+            Err(e) => panic!("Parse execution failed: {:?}", e),
+        }
+    };
+
+    (parser = $parser:ident; input = $($input:expr),+; expected = $($expected:expr),+; remaining = $($remaining:expr),+ $(;)*) => {
+        let inputs = vec![$($input),+];
+        let comparisons = vec![$($expected),+];
+        let remaining = vec![$($remaining),+];
+
+        for ((input, expected), remaining) in inputs.into_iter().zip(comparisons.into_iter()).zip(remaining.into_iter()) {
+            match $parser(input) {
+                Ok(result) => assert_eq!(
+                    result,
+                    (
+                        remaining,
+                        expected
+                    )
+                ),
+                Err(Err::Error(Context::Code(_remaining, e))) => {
+                    panic!("Parse failed: {:?}", e)
+                }
+                Err(e) => panic!("Parse execution failed: {:?}", e),
+            }
+        }
+    };
+}
+
+#[cfg(test)]
+#[macro_export]
+macro_rules! assert_parse_ok {
+    (parser = $parser:expr, input = $input:expr) => {
+        assert!($parser($input).is_ok());
     };
 }
 
@@ -49,8 +105,8 @@ macro_rules! span {
 #[macro_export]
 macro_rules! empty_span {
     (offset = $offset:expr, line = $line:expr) => {{
+        use gcode_parser::Span;
         use nom::types::CompleteByteSlice;
-        use $crate::Span;
 
         Span {
             offset: $offset,
@@ -60,8 +116,8 @@ macro_rules! empty_span {
     }};
 
     (offset = $offset:expr) => {{
+        use gcode_parser::Span;
         use nom::types::CompleteByteSlice;
-        use $crate::Span;
 
         Span {
             offset: $offset,
