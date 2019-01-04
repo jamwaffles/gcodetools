@@ -5,6 +5,7 @@ use crate::{
     Parameter,
 };
 use common::parsing::Span;
+use nom::*;
 
 named!(literal<Span, ExpressionToken>, map!(
     float_no_exponent,
@@ -38,7 +39,7 @@ named!(logical_operator<Span, ExpressionToken>, map!(
 named!(atan<Span, Function>, map!(
     preceded!(
         tag_no_case!("ATAN"),
-        ws!(separated_pair!(expression, char!('/'), expression))
+        sep!(space0, separated_pair!(expression, char!('/'), expression))
     ),
     |(left, right)| Function::Atan((left, right))
 ));
@@ -46,7 +47,7 @@ named!(atan<Span, Function>, map!(
 // Exists is a function, but only allows named/global params as args
 named!(exists<Span, Parameter>, preceded!(
     tag_no_case!("EXISTS"),
-    ws!(delimited!(char!('['), not_numbered_parameter, char!(']')))
+    sep!(space0, delimited!(char!('['), not_numbered_parameter, char!(']')))
 ));
 
 named_args!(function_call<'a>(func_ident: &str)<Span<'a>, Expression>,
@@ -97,11 +98,12 @@ named!(expression_token<Span, ExpressionToken>, alt_complete!(
 
 named_attr!(
     #[doc = "Parse an expression"],
-    pub expression<Span, Expression>, ws!(
+    pub expression<Span, Expression>, sep!(
+        space0,
         map!(
             delimited!(
                 char!('['),
-                many1!(expression_token),
+                sep!(space0, many1!(expression_token)),
                 char!(']')
             ),
             |tokens| Expression(tokens)
