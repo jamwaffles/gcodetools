@@ -42,6 +42,17 @@ pub enum ArithmeticOperator {
     Div,
 }
 
+impl fmt::Display for ArithmeticOperator {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            ArithmeticOperator::Sub => write!(f, "-"),
+            ArithmeticOperator::Add => write!(f, "+"),
+            ArithmeticOperator::Mul => write!(f, "*"),
+            ArithmeticOperator::Div => write!(f, "/"),
+        }
+    }
+}
+
 /// Logical operator
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub enum LogicalOperator {
@@ -51,6 +62,16 @@ pub enum LogicalOperator {
     Or,
     /// Logical NOT (negation)
     Not,
+}
+
+impl fmt::Display for LogicalOperator {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            LogicalOperator::And => write!(f, "AND"),
+            LogicalOperator::Or => write!(f, "OR"),
+            LogicalOperator::Not => write!(f, "NOT"),
+        }
+    }
 }
 
 /// Builtin functions
@@ -86,6 +107,27 @@ pub enum Function {
     Tan(Expression),
 }
 
+impl fmt::Display for Function {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Function::Abs(expr) => write!(f, "abs{}", expr),
+            Function::Acos(expr) => write!(f, "acos{}", expr),
+            Function::Asin(expr) => write!(f, "asin{}", expr),
+            Function::Atan((expr1, expr2)) => write!(f, "atan[{},{}]", expr1, expr2),
+            Function::Cos(expr) => write!(f, "cos{}", expr),
+            Function::Exists(param) => write!(f, "exists{}", param),
+            Function::Exp(expr) => write!(f, "exp{}", expr),
+            Function::Floor(expr) => write!(f, "floor{}", expr),
+            Function::Ceil(expr) => write!(f, "ceil{}", expr),
+            Function::Ln(expr) => write!(f, "ln{}", expr),
+            Function::Round(expr) => write!(f, "round{}", expr),
+            Function::Sin(expr) => write!(f, "sin{}", expr),
+            Function::Sqrt(expr) => write!(f, "sqrt{}", expr),
+            Function::Tan(expr) => write!(f, "tan{}", expr),
+        }
+    }
+}
+
 /// Comparison operators
 #[derive(Clone, Debug, PartialEq)]
 pub enum BinaryOperator {
@@ -101,6 +143,19 @@ pub enum BinaryOperator {
     LessThan,
     /// `<=`
     LessThanOrEqual,
+}
+
+impl fmt::Display for BinaryOperator {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            BinaryOperator::Equal => write!(f, "EQ"),
+            BinaryOperator::NotEqual => write!(f, "NE"),
+            BinaryOperator::GreaterThan => write!(f, "GT"),
+            BinaryOperator::GreaterThanOrEqual => write!(f, "GE"),
+            BinaryOperator::LessThan => write!(f, "LT"),
+            BinaryOperator::LessThanOrEqual => write!(f, "LE"),
+        }
+    }
 }
 
 /// Union of any possible token present in an expression
@@ -122,6 +177,20 @@ pub enum ExpressionToken {
     Parameter(Parameter),
 }
 
+impl fmt::Display for ExpressionToken {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ExpressionToken::BinaryOperator(item) => write!(f, "{}", item),
+            ExpressionToken::ArithmeticOperator(item) => write!(f, "{}", item),
+            ExpressionToken::LogicalOperator(item) => write!(f, "{}", item),
+            ExpressionToken::Expression(item) => write!(f, "{}", item),
+            ExpressionToken::Function(item) => write!(f, "{}", item),
+            ExpressionToken::Literal(item) => write!(f, "{}", item),
+            ExpressionToken::Parameter(item) => write!(f, "{}", item),
+        }
+    }
+}
+
 /// Wrapping expression type
 #[derive(Clone, Debug, PartialEq)]
 pub struct Expression(pub Vec<ExpressionToken>);
@@ -129,6 +198,26 @@ pub struct Expression(pub Vec<ExpressionToken>);
 impl From<Vec<ExpressionToken>> for Expression {
     fn from(other: Vec<ExpressionToken>) -> Self {
         Expression(other)
+    }
+}
+
+impl Expression {
+    /// Create an expression from a list of tokens
+    pub fn from_tokens(tokens: Vec<ExpressionToken>) -> Self {
+        tokens.into()
+    }
+}
+
+impl fmt::Display for Expression {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let tokens = self
+            .0
+            .iter()
+            .map(|token| token.to_string())
+            .collect::<Vec<String>>()
+            .join(" ");
+
+        write!(f, "[{}]", tokens)
     }
 }
 
@@ -145,10 +234,62 @@ pub enum Parameter {
 
 impl fmt::Display for Parameter {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             Parameter::Numbered(n) => write!(f, "{}", n),
             Parameter::Named(name) => write!(f, "<{}>", name),
             Parameter::Global(name) => write!(f, "<_{}>", name),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn format() {
+        assert_eq!(
+            Expression::from_tokens(vec![
+                ExpressionToken::Literal(1.0),
+                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                ExpressionToken::Literal(2.0),
+            ])
+            .to_string(),
+            "[1 + 2]"
+        );
+
+        assert_eq!(
+            Expression::from_tokens(vec![
+                ExpressionToken::Literal(1.0),
+                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                ExpressionToken::Expression(
+                    vec![
+                        ExpressionToken::Literal(2.0),
+                        ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                        ExpressionToken::Literal(3.0),
+                    ]
+                    .into(),
+                ),
+            ])
+            .to_string(),
+            "[1 + [2 + 3]]"
+        );
+
+        assert_eq!(
+            Expression::from_tokens(vec![
+                ExpressionToken::Parameter(Parameter::Numbered(1234)),
+                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                ExpressionToken::Expression(
+                    vec![
+                        ExpressionToken::Parameter(Parameter::Named("named".into())),
+                        ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                        ExpressionToken::Parameter(Parameter::Global("global".into())),
+                    ]
+                    .into(),
+                ),
+            ])
+            .to_string(),
+            "[1234 + [<named> + <_global>]]"
+        );
     }
 }

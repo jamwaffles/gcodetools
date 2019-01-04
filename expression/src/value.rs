@@ -66,7 +66,7 @@ impl From<Expression> for Value {
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             Value::Parameter(param) => write!(f, "{}", param),
             Value::Expression(expr) => write!(f, "{}", expr),
             Value::Unsigned(n) => write!(f, "{}", n),
