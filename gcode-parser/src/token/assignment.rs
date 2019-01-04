@@ -33,7 +33,7 @@ named!(pub assignment<Span, Assignment>,
 mod tests {
     use super::*;
     use common::{assert_parse, span};
-    use expression::{ArithmeticOperator, ExpressionToken};
+    use expression::{ArithmeticOperator, Expression, ExpressionToken};
 
     #[test]
     fn parse_assignment() {
@@ -50,11 +50,11 @@ mod tests {
                 },
                 Assignment {
                     lhs: Parameter::Named("named".into()),
-                    rhs: Value::Expression(vec![
+                    rhs: Value::Expression(Expression::from_tokens(vec![
                         ExpressionToken::Literal(1.0),
                         ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                         ExpressionToken::Literal(2.0),
-                    ])
+                    ]))
                 }
             ;
         );
