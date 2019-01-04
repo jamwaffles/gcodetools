@@ -2,6 +2,7 @@
 
 pub(crate) mod arc;
 pub(crate) mod assignment;
+pub(crate) mod block;
 pub(crate) mod comment;
 pub(crate) mod coord;
 pub(crate) mod gcode;
@@ -12,6 +13,8 @@ use self::arc::center_format_arc;
 pub use self::arc::CenterFormatArc;
 use self::assignment::assignment;
 pub use self::assignment::Assignment;
+use self::block::block;
+pub use self::block::{Block, BlockType};
 use self::comment::comment;
 pub use self::comment::Comment;
 use self::coord::coord;
@@ -29,7 +32,7 @@ use nom_locate::position;
 
 /// Any possible token type recgonised by this parser
 #[derive(Debug, PartialEq, Clone)]
-pub enum TokenType {
+pub enum TokenType<'a> {
     /// Any G-code
     GCode(GCode),
 
@@ -63,6 +66,9 @@ pub enum TokenType {
 
     /// An assignment of a literal, parameter or expression to a parameter
     Assignment(Assignment),
+
+    /// A block (subrouting, while loop, if statement, etc)
+    Block(Block<'a>),
 }
 
 /// An unknown token
@@ -84,7 +90,7 @@ pub struct Token<'a> {
     pub span: Span<'a>,
 
     /// The type and value of this token
-    pub token: TokenType,
+    pub token: TokenType<'a>,
 }
 
 named!(unknown<Span, Unknown>,
@@ -106,6 +112,7 @@ named!(token_type<Span, TokenType>,
         map!(comment, TokenType::Comment) |
         map!(line_number, TokenType::LineNumber) |
         map!(assignment, TokenType::Assignment) |
+        map!(block, TokenType::Block) |
         map!(unknown, TokenType::Unknown)
     )
 );

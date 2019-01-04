@@ -3,7 +3,7 @@ use common::parsing::Span;
 use nom::*;
 use nom_locate::position;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Line<'a> {
     pub(crate) span: Span<'a>,
     pub(crate) tokens: Vec<Token<'a>>,
