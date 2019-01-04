@@ -24,6 +24,7 @@ mod value;
 pub use self::evaluator::evaluate;
 pub use self::value::Value;
 use std::collections::HashMap;
+use std::fmt;
 
 /// List of parameters (variables) to pass in as the environment for the evaluation of an expression
 pub type Context = HashMap<Parameter, f32>;
@@ -133,4 +134,14 @@ pub enum Parameter {
     Named(String),
     /// Named global parameter like `#<_some_global_param>`
     Global(String),
+}
+
+impl fmt::Display for Parameter {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Parameter::Numbered(n) => write!(f, "{}", n),
+            Parameter::Named(name) => write!(f, "<{}>", name),
+            Parameter::Global(name) => write!(f, "<_{}>", name),
+        }
+    }
 }
