@@ -98,10 +98,13 @@ named!(expression_token<Span, ExpressionToken>, alt_complete!(
 named_attr!(
     #[doc = "Parse an expression"],
     pub expression<Span, Expression>, ws!(
-        delimited!(
-            char!('['),
-            many1!(expression_token),
-            char!(']')
+        map!(
+            delimited!(
+                char!('['),
+                many1!(expression_token),
+                char!(']')
+            ),
+            |tokens| Expression(tokens)
         )
     )
 );
@@ -125,7 +128,7 @@ mod tests {
         assert_parse!(
             parser = expression;
             input = span!(b"[1]");
-            expected = vec![ExpressionToken::Literal(1.0)]
+            expected = vec![ExpressionToken::Literal(1.0)].into()
         );
     }
 
@@ -144,7 +147,7 @@ mod tests {
                 ExpressionToken::Literal(4.0),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Sub),
                 ExpressionToken::Literal(5.0),
-            ]
+            ].into()
         );
     }
 
@@ -161,11 +164,11 @@ mod tests {
                         ExpressionToken::Literal(2.0),
                         ExpressionToken::ArithmeticOperator(ArithmeticOperator::Sub),
                         ExpressionToken::Literal(3.0),
-                    ]),
+                    ].into()),
                     ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
                     ExpressionToken::Literal(4.0),
-                ]),
-            ]
+                ].into()),
+            ].into()
         );
     }
 
@@ -180,9 +183,9 @@ mod tests {
                         ExpressionToken::Literal(3.0),
                         ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                         ExpressionToken::Literal(4.0),
-                    ],
-                    vec![ExpressionToken::Literal(5.0)],
-                )))];
+                    ].into(),
+                    vec![ExpressionToken::Literal(5.0)].into(),
+                )))].into();
         );
     }
 
@@ -194,7 +197,7 @@ mod tests {
             expected =
                 vec![ExpressionToken::Function(Function::Abs(vec![
                     ExpressionToken::Literal(1.0),
-                ]))];
+                ].into()))].into();
         );
     }
 
@@ -221,41 +224,41 @@ mod tests {
             expected =
                 vec![ExpressionToken::Function(Function::Abs(vec![
                     ExpressionToken::Literal(1.0),
-                ]))],
+                ].into()))].into(),
                 vec![ExpressionToken::Function(Function::Acos(vec![
                     ExpressionToken::Literal(1.0),
-                ]))],
+                ].into()))].into(),
                 vec![ExpressionToken::Function(Function::Asin(vec![
                     ExpressionToken::Literal(1.0),
-                ]))],
+                ].into()))].into(),
                 vec![ExpressionToken::Function(Function::Cos(vec![
                     ExpressionToken::Literal(1.0),
-                ]))],
+                ].into()))].into(),
                 vec![ExpressionToken::Function(Function::Exp(vec![
                     ExpressionToken::Literal(1.0),
-                ]))],
+                ].into()))].into(),
                 vec![ExpressionToken::Function(Function::Floor(vec![
                     ExpressionToken::Literal(1.0),
-                ]))],
+                ].into()))].into(),
                 vec![ExpressionToken::Function(Function::Ceil(vec![
                     ExpressionToken::Literal(1.0),
-                ]))],
+                ].into()))].into(),
                 vec![ExpressionToken::Function(Function::Round(vec![
                     ExpressionToken::Literal(1.0),
-                ]))],
+                ].into()))].into(),
                 vec![ExpressionToken::Function(Function::Ln(vec![
                     ExpressionToken::Literal(1.0),
-                ]))],
+                ].into()))].into(),
                 vec![ExpressionToken::Function(Function::Sin(vec![
                     ExpressionToken::Literal(1.0),
-                ]))],
+                ].into()))].into(),
                 vec![ExpressionToken::Function(Function::Sqrt(vec![
                     ExpressionToken::Literal(1.0),
-                ]))],
+                ].into()))].into(),
                 vec![ExpressionToken::Function(Function::Tan(vec![
                     ExpressionToken::Literal(1.0),
-                ]))],
-                vec![ExpressionToken::Function(Function::Exists(Parameter::Named("named".into())))]
+                ].into()))].into(),
+                vec![ExpressionToken::Function(Function::Exists(Parameter::Named("named".into())))].into()
             ;
         );
     }
@@ -273,12 +276,12 @@ mod tests {
                 span!(b"[1 LE 2]")
             ;
             expected =
-                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::Equal), ExpressionToken::Literal(2.0)],
-                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::NotEqual), ExpressionToken::Literal(2.0)],
-                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan), ExpressionToken::Literal(2.0)],
-                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::GreaterThanOrEqual), ExpressionToken::Literal(2.0)],
-                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::LessThan), ExpressionToken::Literal(2.0)],
-                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual), ExpressionToken::Literal(2.0)]
+                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::Equal), ExpressionToken::Literal(2.0)].into(),
+                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::NotEqual), ExpressionToken::Literal(2.0)].into(),
+                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan), ExpressionToken::Literal(2.0)].into(),
+                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::GreaterThanOrEqual), ExpressionToken::Literal(2.0)].into(),
+                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::LessThan), ExpressionToken::Literal(2.0)].into(),
+                vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::LessThanOrEqual), ExpressionToken::Literal(2.0)].into()
             ;
         );
     }
@@ -298,30 +301,30 @@ mod tests {
                     ExpressionToken::Literal(1.0),
                     ExpressionToken::LogicalOperator(LogicalOperator::And),
                     ExpressionToken::Literal(2.0),
-                ],
+                ].into(),
                 vec![
                     ExpressionToken::Literal(1.0),
                     ExpressionToken::LogicalOperator(LogicalOperator::Or),
                     ExpressionToken::Literal(2.0),
-                ],
+                ].into(),
                 vec![
                     ExpressionToken::Literal(1.0),
                     ExpressionToken::LogicalOperator(LogicalOperator::Not),
                     ExpressionToken::Literal(2.0),
-                ],
+                ].into(),
                 vec![
                     ExpressionToken::Expression(vec![
                         ExpressionToken::Parameter(Parameter::Named("fraction".into())),
                         ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan),
                         ExpressionToken::Literal(0.99),
-                    ]),
+                    ].into()),
                     ExpressionToken::LogicalOperator(LogicalOperator::Or),
                     ExpressionToken::Expression(vec![
                         ExpressionToken::Parameter(Parameter::Named("fraction".into())),
                         ExpressionToken::BinaryOperator(BinaryOperator::LessThan),
                         ExpressionToken::Literal(0.01),
-                    ]),
-                ]
+                    ].into()),
+                ].into()
             ;
         );
     }
@@ -335,7 +338,7 @@ mod tests {
                 ExpressionToken::Literal(-10.0),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
                 ExpressionToken::Literal(-12.0),
-            ];
+            ].into();
         );
     }
 
@@ -359,7 +362,7 @@ mod tests {
             input = span!(b"[EXISTS[#<named_param>]]");
             expected = vec![ExpressionToken::Function(Function::Exists(
                 Parameter::Named("named_param".into()),
-            ))];
+            ))].into();
         );
     }
 }

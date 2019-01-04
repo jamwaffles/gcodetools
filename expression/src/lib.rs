@@ -123,7 +123,14 @@ pub enum ExpressionToken {
 }
 
 /// Wrapping expression type
-pub type Expression = Vec<ExpressionToken>;
+#[derive(Clone, Debug, PartialEq)]
+pub struct Expression(pub Vec<ExpressionToken>);
+
+impl From<Vec<ExpressionToken>> for Expression {
+    fn from(other: Vec<ExpressionToken>) -> Self {
+        Expression(other)
+    }
+}
 
 /// A parameter (variable)
 #[derive(Eq, Hash, Clone, Debug, PartialEq)]

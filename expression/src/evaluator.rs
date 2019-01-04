@@ -4,7 +4,7 @@ fn shunting_yard(tokens: Expression, context: Option<&Context>) -> Vec<Expressio
     let mut output: Vec<ExpressionToken> = Vec::new();
     let mut operators: Vec<ExpressionToken> = Vec::new();
 
-    for token in tokens {
+    for token in tokens.0 {
         match token {
             ExpressionToken::Literal(_) => output.push(token),
             ExpressionToken::ArithmeticOperator(operator) => {
@@ -113,8 +113,11 @@ fn calculate(postfix_tokens: Vec<ExpressionToken>, context: Option<&Context>) ->
 // TODO: Some way of returning `T` instead of a rigid `f32`
 // TODO: Better error than `()`
 /// Evaluate an expression with an optional context object
-pub fn evaluate(expression: Expression, context: Option<&Context>) -> Result<f32, ()> {
-    let postfix_tokens = shunting_yard(expression, context);
+pub fn evaluate<E>(expression: E, context: Option<&Context>) -> Result<f32, ()>
+where
+    E: Into<Expression>,
+{
+    let postfix_tokens = shunting_yard(expression.into(), context);
 
     calculate(postfix_tokens, context)
 }
@@ -149,11 +152,14 @@ mod tests {
         let expr = vec![
             ExpressionToken::Literal(1.0),
             ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-            ExpressionToken::Expression(vec![
-                ExpressionToken::Literal(2.0),
-                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-                ExpressionToken::Literal(3.0),
-            ]),
+            ExpressionToken::Expression(
+                vec![
+                    ExpressionToken::Literal(2.0),
+                    ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                    ExpressionToken::Literal(3.0),
+                ]
+                .into(),
+            ),
         ];
 
         assert_eq!(evaluate(expr, None), Ok(6.0));
@@ -164,11 +170,14 @@ mod tests {
         let expr = vec![
             ExpressionToken::Parameter(Parameter::Numbered(1234)),
             ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-            ExpressionToken::Expression(vec![
-                ExpressionToken::Parameter(Parameter::Named("named".into())),
-                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-                ExpressionToken::Parameter(Parameter::Global("global".into())),
-            ]),
+            ExpressionToken::Expression(
+                vec![
+                    ExpressionToken::Parameter(Parameter::Named("named".into())),
+                    ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                    ExpressionToken::Parameter(Parameter::Global("global".into())),
+                ]
+                .into(),
+            ),
         ];
 
         let context: Context = hashmap! {
@@ -224,8 +233,8 @@ mod tests {
     #[test]
     fn it_evaluates_atan() {
         let atan = vec![ExpressionToken::Function(Function::Atan((
-            vec![ExpressionToken::Literal(1.0)],
-            vec![ExpressionToken::Literal(2.0)],
+            vec![ExpressionToken::Literal(1.0)].into(),
+            vec![ExpressionToken::Literal(2.0)].into(),
         )))];
 
         assert_eq!(evaluate(atan, None), Ok(0.4636476));
@@ -235,38 +244,68 @@ mod tests {
     #[test]
     fn it_evaluates_functions() {
         let funcs: Vec<(Function, f32)> = vec![
-            (Function::Abs(vec![ExpressionToken::Literal(-1.5)]), 1.5),
-            (Function::Acos(vec![ExpressionToken::Literal(1.0)]), 0.0),
             (
-                Function::Asin(vec![ExpressionToken::Literal(1.0)]),
+                Function::Abs(vec![ExpressionToken::Literal(-1.5)].into()),
+                1.5,
+            ),
+            (
+                Function::Acos(vec![ExpressionToken::Literal(1.0)].into()),
+                0.0,
+            ),
+            (
+                Function::Asin(vec![ExpressionToken::Literal(1.0)].into()),
                 1.5707964,
             ),
             (
-                Function::Cos(vec![ExpressionToken::Literal(1.0)]),
+                Function::Cos(vec![ExpressionToken::Literal(1.0)].into()),
                 0.5403023,
             ),
             (
-                Function::Exp(vec![ExpressionToken::Literal(1.0)]),
+                Function::Exp(vec![ExpressionToken::Literal(1.0)].into()),
                 2.7182817,
             ),
-            (Function::Floor(vec![ExpressionToken::Literal(2.8)]), 2.0),
-            (Function::Floor(vec![ExpressionToken::Literal(-2.8)]), -3.0),
-            (Function::Ceil(vec![ExpressionToken::Literal(2.8)]), 3.0),
-            (Function::Ceil(vec![ExpressionToken::Literal(-2.8)]), -2.0),
-            (Function::Ln(vec![ExpressionToken::Literal(2.0)]), 0.6931472),
-            (Function::Round(vec![ExpressionToken::Literal(1.4)]), 1.0),
-            (Function::Round(vec![ExpressionToken::Literal(1.5)]), 2.0),
-            (Function::Round(vec![ExpressionToken::Literal(1.6)]), 2.0),
             (
-                Function::Sin(vec![ExpressionToken::Literal(1.0)]),
+                Function::Floor(vec![ExpressionToken::Literal(2.8)].into()),
+                2.0,
+            ),
+            (
+                Function::Floor(vec![ExpressionToken::Literal(-2.8)].into()),
+                -3.0,
+            ),
+            (
+                Function::Ceil(vec![ExpressionToken::Literal(2.8)].into()),
+                3.0,
+            ),
+            (
+                Function::Ceil(vec![ExpressionToken::Literal(-2.8)].into()),
+                -2.0,
+            ),
+            (
+                Function::Ln(vec![ExpressionToken::Literal(2.0)].into()),
+                0.6931472,
+            ),
+            (
+                Function::Round(vec![ExpressionToken::Literal(1.4)].into()),
+                1.0,
+            ),
+            (
+                Function::Round(vec![ExpressionToken::Literal(1.5)].into()),
+                2.0,
+            ),
+            (
+                Function::Round(vec![ExpressionToken::Literal(1.6)].into()),
+                2.0,
+            ),
+            (
+                Function::Sin(vec![ExpressionToken::Literal(1.0)].into()),
                 0.84147096,
             ),
             (
-                Function::Sqrt(vec![ExpressionToken::Literal(3.0)]),
+                Function::Sqrt(vec![ExpressionToken::Literal(3.0)].into()),
                 1.7320508,
             ),
             (
-                Function::Tan(vec![ExpressionToken::Literal(1.0)]),
+                Function::Tan(vec![ExpressionToken::Literal(1.0)].into()),
                 1.5574077,
             ),
         ];

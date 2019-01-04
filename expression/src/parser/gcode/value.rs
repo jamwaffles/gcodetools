@@ -103,11 +103,14 @@ mod tests {
 
         assert_eq!(
             preceded_signed_value(span!(b"A[1 + 2]"), "A").unwrap().1,
-            Value::Expression(vec![
-                ExpressionToken::Literal(1.0),
-                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-                ExpressionToken::Literal(2.0),
-            ])
+            Value::Expression(
+                vec![
+                    ExpressionToken::Literal(1.0),
+                    ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                    ExpressionToken::Literal(2.0),
+                ]
+                .into()
+            )
         );
     }
 
@@ -117,11 +120,14 @@ mod tests {
             preceded_float_value(span!(b"Z[#<zscale>*10.]"), "Z")
                 .unwrap()
                 .1,
-            Value::Expression(vec![
-                ExpressionToken::Parameter(Parameter::Named("zscale".into())),
-                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
-                ExpressionToken::Literal(10.0),
-            ])
+            Value::Expression(
+                vec![
+                    ExpressionToken::Parameter(Parameter::Named("zscale".into())),
+                    ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
+                    ExpressionToken::Literal(10.0),
+                ]
+                .into()
+            )
         );
     }
 }
