@@ -1,5 +1,5 @@
-use crate::Expression;
-use crate::Parameter;
+use crate::{Expression, Parameter};
+use std::fmt;
 
 /// A value
 #[derive(Debug, PartialEq, Clone)]
@@ -61,5 +61,17 @@ impl From<Parameter> for Value {
 impl From<Expression> for Value {
     fn from(other: Expression) -> Self {
         Value::Expression(other)
+    }
+}
+
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Value::Parameter(param) => write!(f, "{}", param),
+            Value::Expression(expr) => write!(f, "{}", expr),
+            Value::Unsigned(n) => write!(f, "{}", n),
+            Value::Signed(n) => write!(f, "{}", n),
+            Value::Float(n) => write!(f, "{}", n),
+        }
     }
 }
