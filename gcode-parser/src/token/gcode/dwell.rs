@@ -1,13 +1,13 @@
 use crate::map_code;
-use crate::parsers::ngc_float;
 use common::parsing::Span;
+use expression::{parser::ngc_float_value, Value};
 use nom::*;
 
 /// Dwell
 #[derive(Debug, PartialEq, Clone)]
 pub struct Dwell {
     /// The length of time in seconds to dwell for
-    pub time: f32,
+    pub time: Value,
 }
 
 named!(pub dwell<Span, Dwell>,
@@ -15,7 +15,7 @@ named!(pub dwell<Span, Dwell>,
         "G4",
         preceded!(
             char_no_case!('P'),
-            ngc_float
+            ngc_float_value
         ),
         |time| Dwell { time }
     )
@@ -31,7 +31,7 @@ mod tests {
         assert_parse!(
             parser = dwell;
             input = span!(b"G4 P0.01");
-            expected = Dwell { time: 0.01 }
+            expected = Dwell { time: 0.01.into() }
         );
     }
 
@@ -40,7 +40,7 @@ mod tests {
         assert_parse!(
             parser = dwell;
             input = span!(b"G04P3");
-            expected = Dwell { time: 3.0 }
+            expected = Dwell { time: 3.0.into() }
         );
     }
 
@@ -49,7 +49,7 @@ mod tests {
         assert_parse!(
             parser = dwell;
             input = span!(b"G4 P3");
-            expected = Dwell { time: 3.0 }
+            expected = Dwell { time: 3.0.into() }
         );
     }
 

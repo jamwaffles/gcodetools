@@ -11,16 +11,44 @@ type Vector9 = VectorN<f64, U9>;
 
 fn merge_vector9_and_coord(current: &Vector9, coord: &Coord) -> Vector9 {
     let mut new = current.clone();
+    let coord_c = coord.clone();
 
-    new[0] = coord.x.map(|c| c as f64).unwrap_or_else(|| current[0]);
-    new[1] = coord.y.map(|c| c as f64).unwrap_or_else(|| current[1]);
-    new[2] = coord.z.map(|c| c as f64).unwrap_or_else(|| current[2]);
-    new[3] = coord.u.map(|c| c as f64).unwrap_or_else(|| current[3]);
-    new[4] = coord.v.map(|c| c as f64).unwrap_or_else(|| current[4]);
-    new[5] = coord.w.map(|c| c as f64).unwrap_or_else(|| current[5]);
-    new[6] = coord.a.map(|c| c as f64).unwrap_or_else(|| current[6]);
-    new[7] = coord.b.map(|c| c as f64).unwrap_or_else(|| current[7]);
-    new[8] = coord.c.map(|c| c as f64).unwrap_or_else(|| current[8]);
+    new[0] = coord_c
+        .x
+        .map(|c| c.as_f64_unchecked())
+        .unwrap_or_else(|| current[0]);
+    new[1] = coord_c
+        .y
+        .map(|c| c.as_f64_unchecked())
+        .unwrap_or_else(|| current[1]);
+    new[2] = coord_c
+        .z
+        .map(|c| c.as_f64_unchecked())
+        .unwrap_or_else(|| current[2]);
+    new[3] = coord_c
+        .u
+        .map(|c| c.as_f64_unchecked())
+        .unwrap_or_else(|| current[3]);
+    new[4] = coord_c
+        .v
+        .map(|c| c.as_f64_unchecked())
+        .unwrap_or_else(|| current[4]);
+    new[5] = coord_c
+        .w
+        .map(|c| c.as_f64_unchecked())
+        .unwrap_or_else(|| current[5]);
+    new[6] = coord_c
+        .a
+        .map(|c| c.as_f64_unchecked())
+        .unwrap_or_else(|| current[6]);
+    new[7] = coord_c
+        .b
+        .map(|c| c.as_f64_unchecked())
+        .unwrap_or_else(|| current[7]);
+    new[8] = coord_c
+        .c
+        .map(|c| c.as_f64_unchecked())
+        .unwrap_or_else(|| current[8]);
 
     new
 }

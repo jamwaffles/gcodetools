@@ -39,17 +39,10 @@ named!(value_expression<Span, Value>, map!(
     |expr| Value::Expression(expr)
 ));
 
-named!(
-    pub unsigned_value<Span, Value>, alt_complete!(
-    value_unsigned |
-    value_parameter |
-    value_expression
-));
-
 named_args!(
     pub preceded_unsigned_value<'a>(preceding: &str)<Span<'a>, Value>, preceded!(
     tag_no_case!(preceding),
-    unsigned_value
+    ngc_unsigned
 ));
 
 named_args!(
@@ -65,8 +58,16 @@ named_args!(
 // TODO: Fold ngc_float into this; every NGC value can potentially be an expression or parameter
 named_attr!(
     #[doc = "Parse a literal, parameter or expression into a value"],
-    pub float_value<Span, Value>, alt_complete!(
+    pub ngc_float<Span, Value>, alt_complete!(
     value_float |
+    value_parameter |
+    value_expression
+));
+
+named_attr!(
+    #[doc = "Parse an unsigned integer, parameter or expression into a value"],
+    pub ngc_unsigned<Span, Value>, alt_complete!(
+    value_unsigned |
     value_parameter |
     value_expression
 ));
@@ -74,7 +75,7 @@ named_attr!(
 named_args!(
     pub preceded_float_value<'a>(preceding: &str)<Span<'a>, Value>, ws!(preceded!(
     tag_no_case!(preceding),
-    float_value
+    ngc_float
 )));
 
 #[cfg(test)]

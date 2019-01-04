@@ -88,10 +88,10 @@ mod tests {
                     Token {
                         span: empty_span!(offset = 3),
                         token: TokenType::CenterFormatArc(CenterFormatArc {
-                            x: Some(-2.4438),
-                            y: Some(-0.2048),
-                            i: Some(-0.0766),
-                            j: Some(0.2022),
+                            x: Some((-2.4438f32).into()),
+                            y: Some((-0.2048f32).into()),
+                            i: Some((-0.0766f32).into()),
+                            j: Some((0.2022f32).into()),
                             ..CenterFormatArc::default()
                         })
                     }

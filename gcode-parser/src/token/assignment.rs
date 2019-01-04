@@ -1,5 +1,5 @@
 use common::parsing::Span;
-use expression::parser::{gcode_parameter, gcode_value};
+use expression::parser::{gcode_parameter, ngc_float_value};
 use expression::{Parameter, Value};
 use nom::*;
 
@@ -22,7 +22,7 @@ named!(pub assignment<Span, Assignment>,
             separated_pair!(
                 gcode_parameter,
                 char!('='),
-                gcode_value
+                ngc_float_value
             )
         ),
         |(lhs, rhs)| Assignment { lhs, rhs }

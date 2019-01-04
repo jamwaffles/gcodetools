@@ -16,9 +16,27 @@ pub enum Value {
     Expression(Expression),
 }
 
+impl Value {
+    /// Convert a numeric value to an f64. Will panic if value is not an integer of f32
+    pub fn as_f64_unchecked(&self) -> f64 {
+        match *self {
+            Value::Unsigned(n) => n as f64,
+            Value::Signed(n) => n as f64,
+            Value::Float(n) => n as f64,
+            _ => panic!("Attempted to convert non-numeric value to f64"),
+        }
+    }
+}
+
 impl From<f32> for Value {
     fn from(other: f32) -> Self {
         Value::Float(other)
+    }
+}
+
+impl From<f64> for Value {
+    fn from(other: f64) -> Self {
+        Value::Float(other as f32)
     }
 }
 

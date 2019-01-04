@@ -1,6 +1,6 @@
 use crate::map_code;
-use crate::parsers::ngc_float;
 use common::parsing::Span;
+use expression::{parser::ngc_float_value, Value};
 use nom::*;
 
 /// Cutter compensation type
@@ -10,10 +10,10 @@ pub enum CutterCompensation {
     Off,
 
     /// Offset the tool to the left of the path (G41)
-    Left(Option<f32>),
+    Left(Option<Value>),
 
     /// Offset the tool to the right of the path (G42)
-    Right(Option<f32>),
+    Right(Option<Value>),
 }
 
 named!(pub cutter_compensation<Span, CutterCompensation>,
@@ -27,7 +27,7 @@ named!(pub cutter_compensation<Span, CutterCompensation>,
             opt!(
                 preceded!(
                     char_no_case!('D'),
-                    ngc_float
+                    ngc_float_value
                 )
             ),
             |dia| CutterCompensation::Left(dia)
@@ -37,7 +37,7 @@ named!(pub cutter_compensation<Span, CutterCompensation>,
             opt!(
                 preceded!(
                     char_no_case!('D'),
-                    ngc_float
+                    ngc_float_value
                 )
             ),
             |dia| CutterCompensation::Right(dia)
@@ -76,8 +76,8 @@ mod tests {
                 span!(b"G42d10.1")
             ;
             expected =
-                CutterCompensation::Left(Some(5.0)),
-                CutterCompensation::Right(Some(10.1))
+                CutterCompensation::Left(Some(5.0.into())),
+                CutterCompensation::Right(Some(10.1.into()))
             ;
         );
     }

@@ -31,11 +31,3 @@ pub mod dev {
     pub use crate::token::arc::center_format_arc;
     pub use crate::token::coord::coord;
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}

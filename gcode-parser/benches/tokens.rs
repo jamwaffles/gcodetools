@@ -1,10 +1,8 @@
 extern crate criterion;
 
+use common::parsing::Span;
 use criterion::*;
-use gcode_parser::{
-    dev::{center_format_arc, coord},
-    Span,
-};
+use gcode_parser::dev::{center_format_arc, coord};
 use nom::types::CompleteByteSlice;
 use std::time::Duration;
 
