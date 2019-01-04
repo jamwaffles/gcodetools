@@ -235,7 +235,7 @@ pub enum Parameter {
 impl fmt::Display for Parameter {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Parameter::Numbered(n) => write!(f, "{}", n),
+            Parameter::Numbered(n) => write!(f, "#{}", n),
             Parameter::Named(name) => write!(f, "<{}>", name),
             Parameter::Global(name) => write!(f, "<_{}>", name),
         }
