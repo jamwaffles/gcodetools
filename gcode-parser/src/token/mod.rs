@@ -3,6 +3,7 @@
 pub(crate) mod arc;
 pub(crate) mod assignment;
 pub(crate) mod block;
+pub(crate) mod call;
 pub(crate) mod comment;
 pub(crate) mod coord;
 pub(crate) mod gcode;
@@ -15,6 +16,8 @@ use self::assignment::assignment;
 pub use self::assignment::Assignment;
 use self::block::block;
 pub use self::block::{Block, BlockType};
+use self::call::call;
+pub use self::call::Call;
 use self::comment::comment;
 pub use self::comment::Comment;
 use self::coord::coord;
@@ -72,6 +75,9 @@ pub enum TokenType<'a> {
 
     /// A block (subrouting, while loop, if statement, etc)
     Block(Block<'a>),
+
+    /// A subroutine call
+    Call(Call),
 }
 
 /// An unknown token
@@ -117,6 +123,7 @@ named!(token_type<Span, TokenType>,
         map!(line_number, TokenType::LineNumber) |
         map!(assignment, TokenType::Assignment) |
         map!(block, TokenType::Block) |
+        map!(call, TokenType::Call) |
         map!(unknown, TokenType::Unknown)
     )
 );
