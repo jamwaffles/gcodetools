@@ -241,9 +241,9 @@ impl Parameter {
     /// ```
     /// use expression::Parameter;
     ///
-    /// assert_eq!(Parameter::Numbered(101).as_ident_string(), "101");
-    /// assert_eq!(Parameter::Named("some_name".to_string()).as_ident_string(), "<some_name>");
-    /// assert_eq!(Parameter::Global("some_global".to_string()).as_ident_string(), "<_some_global>");
+    /// assert_eq!(Parameter::Numbered(101).to_ident_string(), "101");
+    /// assert_eq!(Parameter::Named("some_name".to_string()).to_ident_string(), "<some_name>");
+    /// assert_eq!(Parameter::Global("some_global".to_string()).to_ident_string(), "<_some_global>");
     /// ```
     pub fn to_ident_string(&self) -> String {
         match self {
