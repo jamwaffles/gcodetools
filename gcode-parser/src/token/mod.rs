@@ -9,8 +9,8 @@ pub(crate) mod gcode;
 pub(crate) mod mcode;
 pub(crate) mod othercode;
 
-use self::arc::center_format_arc;
-pub use self::arc::CenterFormatArc;
+use self::arc::{center_format_arc, radius_format_arc};
+pub use self::arc::{CenterFormatArc, RadiusFormatArc};
 use self::assignment::assignment;
 pub use self::assignment::Assignment;
 use self::block::block;
@@ -45,6 +45,9 @@ pub enum TokenType<'a> {
     /// The coordinates and offsets that define a clockwise (G2) or counterclockwise (G3) center
     /// format arc
     CenterFormatArc(CenterFormatArc),
+
+    /// Radius-format arc
+    RadiusFormatArc(RadiusFormatArc),
 
     /// Feedrate
     Feedrate(Feedrate),
@@ -103,6 +106,7 @@ named!(unknown<Span, Unknown>,
 named!(token_type<Span, TokenType>,
     alt_complete!(
         map!(center_format_arc, TokenType::CenterFormatArc) |
+        map!(radius_format_arc, TokenType::RadiusFormatArc) |
         map!(coord, TokenType::Coord) |
         map!(gcode, TokenType::GCode) |
         map!(mcode, TokenType::MCode) |

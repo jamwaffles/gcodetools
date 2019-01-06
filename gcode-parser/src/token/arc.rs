@@ -28,6 +28,25 @@ pub struct CenterFormatArc {
     pub turns: Value,
 }
 
+/// Radius format arc
+///
+/// TODO: The parser does not currently validate that the offset/axis combinations are valid.
+#[derive(Debug, PartialEq, Clone)]
+pub struct RadiusFormatArc {
+    /// Arc end position, X component
+    pub x: Option<Value>,
+    /// Arc end position, Y component
+    pub y: Option<Value>,
+    /// Arc end position, Z component
+    pub z: Option<Value>,
+    /// Arc radius
+    pub radius: Value,
+    /// Number of turns
+    ///
+    /// Defaults to `0`, meaning no full turns are made
+    pub turns: Value,
+}
+
 impl Default for CenterFormatArc {
     fn default() -> Self {
         Self {
@@ -62,6 +81,32 @@ named_attr!(#[doc = "Parse a center format arc"], pub center_format_arc<Span, Ce
             // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
             // TODO: Return validation error instead of `None`
             if (&arc.x, &arc.y, &arc.z) == (&None, &None, &None) || (&arc.i, &arc.j, &arc.k) == (&None, &None, &None) {
+                None
+            } else {
+                Some(arc)
+            }
+        }
+    )
+);
+
+named_attr!(#[doc = "Parse a radius format arc"], pub radius_format_arc<Span, RadiusFormatArc>,
+    map_opt!(
+        sep!(
+            space0,
+            permutation!(
+                sep!(space0, preceded!(char_no_case!('X'), ngc_float_value))?,
+                sep!(space0, preceded!(char_no_case!('Y'), ngc_float_value))?,
+                sep!(space0, preceded!(char_no_case!('Z'), ngc_float_value))?,
+                sep!(space0, preceded!(char_no_case!('R'), ngc_float_value)),
+                sep!(space0, preceded!(char_no_case!('P'), ngc_unsigned_value))?
+            )
+        ),
+        |(x, y, z, radius, turns): (Option<Value>, Option<Value>, Option<Value>, Value, Option<Value>)| {
+            let arc = RadiusFormatArc { x, y, z, radius, turns: turns.unwrap_or(Value::Unsigned(0)) };
+
+            // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
+            // TODO: Return validation error instead of `None`
+            if (&arc.x, &arc.y, &arc.z) == (&None, &None, &None) {
                 None
             } else {
                 Some(arc)
