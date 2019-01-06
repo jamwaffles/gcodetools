@@ -2,47 +2,39 @@ use crate::Parameter;
 use common::parsing::Span;
 use nom::*;
 
-named!(numbered_parameter<Span, Parameter>, map!(
-    flat_map!(preceded!(char!('#'), digit), parse_to!(u32)),
+named!(pub numbered_parameter_ident<Span, Parameter>, map!(
+    flat_map!(digit, parse_to!(u32)),
     |res| Parameter::Numbered(res)
 ));
 
-named!(named_parameter<Span, Parameter>,
+named!(pub named_parameter_ident<Span, Parameter>,
     map!(
         flat_map!(
             sep!(
                 space0,
-                preceded!(
-                    char!('#'),
-                    delimited!(
-                        char!('<'),
-                        take_until!(">"),
-                        char!('>')
-                    )
+                delimited!(
+                    char!('<'),
+                    take_until!(">"),
+                    char!('>')
                 )
-            )
-            ,
+            ),
             parse_to!(String)
         ),
         |res| Parameter::Named(res)
     )
 );
 
-named!(global_parameter<Span, Parameter>,
+named!(global_parameter_ident<Span, Parameter>,
     map!(
         flat_map!(
             sep!(
                 space0,
-                preceded!(
-                    char!('#'),
-                    delimited!(
-                        tag!("<_"),
-                        take_until!(">"),
-                        char!('>')
-                    )
+                delimited!(
+                    tag!("<_"),
+                    take_until!(">"),
+                    char!('>')
                 )
-            )
-            ,
+            ),
             parse_to!(String)
         ),
         |res| Parameter::Global(res)
@@ -50,15 +42,33 @@ named!(global_parameter<Span, Parameter>,
 );
 
 named_attr!(
+    #[doc = "Parse a non-global identifier like `100` or `<foo>`
+
+This is useful when parsing block markers like `O<foo>` or O100` where a global parameter cannot be
+used."],
+    pub non_global_ident<Span, Parameter>,
+    alt_complete!(numbered_parameter_ident | named_parameter_ident)
+);
+
+named!(pub parameter_ident<Span, Parameter>,
+    // Order is significant
+    alt_complete!(numbered_parameter_ident | global_parameter_ident | named_parameter_ident)
+);
+
+named_attr!(
     #[doc = "Parse a numbered, local or global parameter"],
     pub parameter<Span, Parameter>,
+    preceded!(char!('#'), parameter_ident)
+);
+
+named!(pub not_numbered_parameter_ident<Span, Parameter>,
     // Order is significant
-    alt_complete!(numbered_parameter | global_parameter | named_parameter)
+    alt_complete!(global_parameter_ident | named_parameter_ident)
 );
 
 named!(
     pub not_numbered_parameter<Span, Parameter>,
-    alt_complete!(global_parameter | named_parameter)
+    preceded!(char!('#'), not_numbered_parameter_ident)
 );
 
 #[cfg(test)]

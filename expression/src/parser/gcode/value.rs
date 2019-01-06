@@ -82,7 +82,7 @@ named_args!(
 mod tests {
     use super::*;
     use crate::{ArithmeticOperator, ExpressionToken, Parameter};
-    use common::span;
+    use common::{assert_parse, span};
 
     #[test]
     fn it_parses_signed_integers_or_else() {
@@ -128,6 +128,21 @@ mod tests {
                 ]
                 .into()
             )
+        );
+    }
+
+    #[test]
+    fn parse_unsigned_value() {
+        assert_parse!(
+            parser = ngc_unsigned;
+            input =
+                span!(b"100"),
+                span!(b"#<sth>")
+            ;
+            expected =
+                Value::Unsigned(100),
+                Value::Parameter(Parameter::Named("sth".into()))
+            ;
         );
     }
 }

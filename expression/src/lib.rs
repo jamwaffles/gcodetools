@@ -232,13 +232,31 @@ pub enum Parameter {
     Global(String),
 }
 
+impl Parameter {
+    /// Convert this parameter into its string identifier representation
+    ///
+    /// To output the parameter with a leading `#`, use `format!()` to call the `Display` impl for
+    /// this struct.
+    ///
+    /// ```
+    /// use expression::Parameter;
+    ///
+    /// assert_eq!(Parameter::Numbered(101).as_ident_string(), "101");
+    /// assert_eq!(Parameter::Named("some_name".to_string()).as_ident_string(), "<some_name>");
+    /// assert_eq!(Parameter::Global("some_global".to_string()).as_ident_string(), "<_some_global>");
+    /// ```
+    pub fn to_ident_string(&self) -> String {
+        match self {
+            Parameter::Numbered(n) => n.to_string(),
+            Parameter::Named(name) => format!("<{}>", name),
+            Parameter::Global(global) => format!("<_{}>", global),
+        }
+    }
+}
+
 impl fmt::Display for Parameter {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Parameter::Numbered(n) => write!(f, "#{}", n),
-            Parameter::Named(name) => write!(f, "<{}>", name),
-            Parameter::Global(name) => write!(f, "<_{}>", name),
-        }
+        write!(f, "#{}", self.to_ident_string())
     }
 }
 
@@ -289,7 +307,7 @@ mod tests {
                 ),
             ])
             .to_string(),
-            "[1234 + [<named> + <_global>]]"
+            "[#1234 + [#<named> + #<_global>]]"
         );
     }
 }
