@@ -9,6 +9,7 @@ pub(crate) mod coord;
 pub(crate) mod gcode;
 pub(crate) mod mcode;
 pub(crate) mod othercode;
+pub(crate) mod polar;
 
 use self::arc::{center_format_arc, radius_format_arc};
 pub use self::arc::{CenterFormatArc, RadiusFormatArc};
@@ -28,6 +29,8 @@ use self::mcode::mcode;
 pub use self::mcode::MCode;
 use self::othercode::{feedrate, line_number, spindle_speed, tool_number};
 pub use self::othercode::{Feedrate, LineNumber, SpindleSpeed, ToolNumber};
+use self::polar::polar;
+pub use self::polar::PolarCoord;
 use crate::parsers::code_number;
 use common::parsing::Span;
 use nom::*;
@@ -44,6 +47,9 @@ pub enum TokenType<'a> {
 
     /// A coordinate consisting of at least one XYZUVWABC component
     Coord(Coord),
+
+    /// A polar coordinate defined by distance and angle from current position
+    PolarCoord(PolarCoord),
 
     /// The coordinates and offsets that define a clockwise (G2) or counterclockwise (G3) center
     /// format arc
@@ -124,6 +130,7 @@ named!(token_type<Span, TokenType>,
         map!(assignment, TokenType::Assignment) |
         map!(block, TokenType::Block) |
         map!(call, TokenType::Call) |
+        map!(polar, TokenType::PolarCoord) |
         map!(unknown, TokenType::Unknown)
     )
 );
