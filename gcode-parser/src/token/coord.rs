@@ -63,15 +63,15 @@ named_attr!(#[doc = "Parse a coordinate"], pub coord<Span, Coord>,
         sep!(
             space0,
             permutation!(
-                sep!(space0, preceded!(char_no_case!('X'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('Y'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('Z'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('A'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('B'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('C'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('U'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('V'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('W'), ngc_float_value))?
+                preceded!(char_no_case!('X'), ngc_float_value)?,
+                preceded!(char_no_case!('Y'), ngc_float_value)?,
+                preceded!(char_no_case!('Z'), ngc_float_value)?,
+                preceded!(char_no_case!('A'), ngc_float_value)?,
+                preceded!(char_no_case!('B'), ngc_float_value)?,
+                preceded!(char_no_case!('C'), ngc_float_value)?,
+                preceded!(char_no_case!('U'), ngc_float_value)?,
+                preceded!(char_no_case!('V'), ngc_float_value)?,
+                preceded!(char_no_case!('W'), ngc_float_value)?
             )
         ),
         |(x, y, z, a, b, c, u, v, w)| {

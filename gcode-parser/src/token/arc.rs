@@ -66,13 +66,13 @@ named_attr!(#[doc = "Parse a center format arc"], pub center_format_arc<Span, Ce
         sep!(
             space0,
             permutation!(
-                sep!(space0, preceded!(char_no_case!('X'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('Y'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('Z'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('I'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('J'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('K'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('P'), ngc_unsigned_value))?
+                preceded!(char_no_case!('X'), ngc_float_value)?,
+                preceded!(char_no_case!('Y'), ngc_float_value)?,
+                preceded!(char_no_case!('Z'), ngc_float_value)?,
+                preceded!(char_no_case!('I'), ngc_float_value)?,
+                preceded!(char_no_case!('J'), ngc_float_value)?,
+                preceded!(char_no_case!('K'), ngc_float_value)?,
+                preceded!(char_no_case!('P'), ngc_unsigned_value)?
             )
         ),
         |(x, y, z, i, j, k, turns): (Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>)| {
@@ -94,11 +94,11 @@ named_attr!(#[doc = "Parse a radius format arc"], pub radius_format_arc<Span, Ra
         sep!(
             space0,
             permutation!(
-                sep!(space0, preceded!(char_no_case!('X'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('Y'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('Z'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('R'), ngc_float_value)),
-                sep!(space0, preceded!(char_no_case!('P'), ngc_unsigned_value))?
+                preceded!(char_no_case!('X'), ngc_float_value)?,
+                preceded!(char_no_case!('Y'), ngc_float_value)?,
+                preceded!(char_no_case!('Z'), ngc_float_value)?,
+                preceded!(char_no_case!('R'), ngc_float_value),
+                preceded!(char_no_case!('P'), ngc_unsigned_value)?
             )
         ),
         |(x, y, z, radius, turns): (Option<Value>, Option<Value>, Option<Value>, Value, Option<Value>)| {
