@@ -98,16 +98,17 @@ named!(expression_token<Span, ExpressionToken>, alt_complete!(
 
 named_attr!(
     #[doc = "Parse an expression"],
-    pub expression<Span, Expression>, sep!(
-        space0,
-        map!(
+    pub expression<Span, Expression>,
+    map!(
+        sep!(
+            space0,
             delimited!(
                 char!('['),
                 sep!(space0, many1!(expression_token)),
                 char!(']')
-            ),
-            |tokens| Expression(tokens)
-        )
+            )
+        ),
+        |tokens| Expression(tokens)
     )
 );
 
@@ -139,6 +140,25 @@ mod tests {
         assert_parse!(
             parser = expression;
             input = span!(b"[1 + 2 * 3 / 4 - 5]");
+            expected = vec![
+                ExpressionToken::Literal(1.0),
+                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                ExpressionToken::Literal(2.0),
+                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
+                ExpressionToken::Literal(3.0),
+                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Div),
+                ExpressionToken::Literal(4.0),
+                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Sub),
+                ExpressionToken::Literal(5.0),
+            ].into()
+        );
+    }
+
+    #[test]
+    fn whitespace() {
+        assert_parse!(
+            parser = expression;
+            input = span!(b"[ 1 + 2 * 3 / 4 - 5 ]");
             expected = vec![
                 ExpressionToken::Literal(1.0),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
