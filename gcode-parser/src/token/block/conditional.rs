@@ -1,9 +1,10 @@
 use crate::line::{line, Line};
 use common::parsing::Span;
 use expression::parser::{gcode_expression, gcode_non_global_ident};
-use expression::Expression;
+use expression::{Expression, Parameter};
 use nom::*;
 
+/// What type of branch this is
 #[derive(Debug, PartialEq, Clone)]
 pub enum BranchType {
     /// If
@@ -26,7 +27,8 @@ pub struct Branch<'a> {
 
 /// An if/else if/else chain
 #[derive(Debug, PartialEq, Clone)]
-pub struct Condition<'a> {
+pub struct Conditional<'a> {
+    identifier: Parameter,
     branches: Vec<Branch<'a>>,
 }
 
@@ -69,9 +71,10 @@ named_args!(else_block(ident: String)<Span, Branch>,
     )
 );
 
-named!(pub condition<Span, Condition>,
+named!(pub conditional<Span, Conditional>,
     sep!(
         space0,
+        // TODO: Extract out into some kind of named_args macro
         do_parse!(
             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
             tag_no_case!("if") >>
@@ -95,7 +98,7 @@ named!(pub condition<Span, Condition>,
                     branches.push(e);
                 }
 
-                Condition { branches }
+                Conditional { identifier: block_ident, branches }
             })
         )
     )
@@ -111,9 +114,10 @@ mod tests {
     #[test]
     fn parse_if() {
         assert_parse!(
-            parser = condition;
+            parser = conditional;
             input = span!(b"o1 if [1 gt 0]\nf500\no1 endif");
-            expected = Condition {
+            expected = Conditional {
+                identifier: Parameter::Numbered(1),
                 branches: vec![
                     Branch {
                         branch_type: BranchType::If,
@@ -141,9 +145,10 @@ mod tests {
     #[test]
     fn parse_if_elseif() {
         assert_parse!(
-            parser = condition;
+            parser = conditional;
             input = span!(b"o1 if [1 gt 0]\nf500\no1 elseif [2 lt 3]\nf400\no1 endif");
-            expected = Condition {
+            expected = Conditional {
+                identifier: Parameter::Numbered(1),
                 branches: vec![
                     Branch {
                         branch_type: BranchType::If,
@@ -188,9 +193,10 @@ mod tests {
     #[test]
     fn parse_if_elseif_else() {
         assert_parse!(
-            parser = condition;
+            parser = conditional;
             input = span!(b"o1 if [1 gt 0]\nf500\no1 elseif [2 lt 3]\nf400\no1 else\nf200\no1 endif");
-            expected = Condition {
+            expected = Conditional {
+                identifier: Parameter::Numbered(1),
                 branches: vec![
                     Branch {
                         branch_type: BranchType::If,

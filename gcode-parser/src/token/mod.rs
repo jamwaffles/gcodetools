@@ -16,7 +16,7 @@ pub use self::arc::{CenterFormatArc, RadiusFormatArc};
 use self::assignment::assignment;
 pub use self::assignment::Assignment;
 use self::block::block;
-pub use self::block::{Block, BlockType};
+pub use self::block::{Block, Branch, BranchType, Conditional, Repeat, Subroutine, While};
 use self::call::call;
 pub use self::call::Call;
 use self::comment::comment;
