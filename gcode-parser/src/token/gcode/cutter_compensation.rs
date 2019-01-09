@@ -17,7 +17,7 @@ pub enum CutterCompensation {
 }
 
 named!(pub cutter_compensation<Span, CutterCompensation>,
-    alt_complete!(
+    alt!(
         map_code!(
             "G40",
             |_| CutterCompensation::Off

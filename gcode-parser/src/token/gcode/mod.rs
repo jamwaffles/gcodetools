@@ -53,7 +53,7 @@ pub enum GCode {
 }
 
 named!(pub gcode<Span, GCode>,
-    alt_complete!(
+    alt!(
         map_code!("G0", |_| GCode::Rapid) |
         map_code!("G1", |_| GCode::Feed) |
         map_code!("G2", |_| GCode::ClockwiseArc) |

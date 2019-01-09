@@ -28,7 +28,7 @@ pub struct PlaneSelect {
 }
 
 named!(pub plane_select<Span, PlaneSelect>,
-    alt_complete!(
+    alt!(
         map_code!("G17", |_| PlaneSelect { plane: PlaneSelectValue::XY }) |
         map_code!("G18", |_| PlaneSelect { plane: PlaneSelectValue::ZX }) |
         map_code!("G19", |_| PlaneSelect { plane: PlaneSelectValue::YZ }) |

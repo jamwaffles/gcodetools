@@ -116,7 +116,7 @@ named!(unknown<Span, Unknown>,
 );
 
 named!(token_type<Span, TokenType>,
-    alt_complete!(
+    alt!(
         map!(center_format_arc, TokenType::CenterFormatArc) |
         map!(radius_format_arc, TokenType::RadiusFormatArc) |
         map!(coord, TokenType::Coord) |

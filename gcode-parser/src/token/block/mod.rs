@@ -104,7 +104,7 @@ named!(pub subroutine<Span, Subroutine>,
 );
 
 named!(pub block<Span, Block>,
-    alt_complete!(
+    alt!(
         map!(conditional, |conditional| Block::Conditional(conditional)) |
         map!(while_block, |while_block| Block::While(while_block)) |
         map!(repeat_block, |repeat_block| Block::Repeat(repeat_block)) |

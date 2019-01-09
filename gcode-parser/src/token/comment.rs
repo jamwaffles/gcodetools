@@ -13,7 +13,7 @@ pub struct Comment {
 named!(pub(crate) comment<Span, Comment>,
     map!(
         flat_map!(
-            alt_complete!(
+            alt!(
                 delimited!(
                     char!('('),
                     take_until!(")"),

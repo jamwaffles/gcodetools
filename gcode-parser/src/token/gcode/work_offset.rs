@@ -34,7 +34,7 @@ pub struct WorkOffset {
 }
 
 named!(pub work_offset<Span, WorkOffset>,
-    alt_complete!(
+    alt!(
         map_code!("G59.1", |_| WorkOffset { offset: WorkOffsetValue::G59_1 }) |
         map_code!("G59.2", |_| WorkOffset { offset: WorkOffsetValue::G59_2 }) |
         map_code!("G59.3", |_| WorkOffset { offset: WorkOffsetValue::G59_3 }) |

@@ -99,7 +99,7 @@ macro_rules! line_with (
         terminated!(
             $i,
             $submac!($($args)*),
-            alt_complete!(line_ending | eof!())
+            alt!(line_ending | eof!())
         )
     });
     ($i:expr, $submac:expr) => (

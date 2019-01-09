@@ -21,7 +21,7 @@ macro_rules! code(
         preceded!(
             $i,
             tag_no_case!(letter),
-            alt_complete!(
+            alt!(
                 delimited!(
                     char!('0'),
                     tag!(number),

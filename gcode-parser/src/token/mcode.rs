@@ -25,8 +25,7 @@ pub enum MCode {
 }
 
 named!(pub mcode<Span, MCode>,
-    // TODO: Handle leading zeros like `M06`, etc
-    alt_complete!(
+    alt!(
         map_code!("M2", |_| MCode::EndProgram) |
         map_code!("M3", |_| MCode::SpindleForward) |
         map_code!("M4", |_| MCode::SpindleReverse) |
