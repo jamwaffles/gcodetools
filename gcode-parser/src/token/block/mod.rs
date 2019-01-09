@@ -1,3 +1,5 @@
+mod condition;
+
 use crate::line::{line, Line};
 use common::parsing::Span;
 use expression::parser::{gcode_expression, gcode_non_global_ident};
