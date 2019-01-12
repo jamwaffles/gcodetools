@@ -10,6 +10,7 @@ pub(crate) mod gcode;
 pub(crate) mod mcode;
 pub(crate) mod othercode;
 pub(crate) mod polar;
+pub(crate) mod return_stmt;
 
 use self::arc::{center_format_arc, radius_format_arc};
 pub use self::arc::{CenterFormatArc, RadiusFormatArc};
@@ -31,6 +32,8 @@ use self::othercode::{feedrate, line_number, spindle_speed, tool_number};
 pub use self::othercode::{Feedrate, LineNumber, SpindleSpeed, ToolNumber};
 use self::polar::polar;
 pub use self::polar::PolarCoord;
+use self::return_stmt::return_stmt;
+pub use self::return_stmt::Return;
 use crate::parsers::code_number;
 use common::parsing::Span;
 use nom::*;
@@ -84,6 +87,9 @@ pub enum TokenType<'a> {
 
     /// A subroutine call
     Call(Call),
+
+    /// A return statement
+    Return(Return),
 }
 
 /// An unknown token
@@ -130,6 +136,7 @@ named!(token_type<Span, TokenType>,
         map!(assignment, TokenType::Assignment) |
         map!(block, TokenType::Block) |
         map!(call, TokenType::Call) |
+        map!(return_stmt, TokenType::Return) |
         map!(polar, TokenType::PolarCoord) |
         map!(unknown, TokenType::Unknown)
     )
