@@ -37,16 +37,19 @@ pub struct LineNumber {
 
 named!(pub(crate) feedrate<Span, Feedrate>,
     map!(
-        preceded!(char_no_case!('F'), ngc_float_value),
+        sep!(
+            space0,
+            preceded!(char_no_case!('F'), ngc_float_value)
+        ),
         |feedrate| Feedrate { feedrate }
     )
 );
 
 named!(pub(crate) spindle_speed<Span, SpindleSpeed>,
     map!(
-        preceded!(
-            char_no_case!('S'),
-            ngc_float_value
+        sep!(
+            space0,
+            preceded!(char_no_case!('S'), ngc_float_value)
         ),
         |rpm| SpindleSpeed { rpm }
     )
@@ -54,9 +57,9 @@ named!(pub(crate) spindle_speed<Span, SpindleSpeed>,
 
 named!(pub tool_number<Span, ToolNumber>,
     map!(
-        preceded!(
-            char_no_case!('T'),
-            ngc_unsigned_value
+        sep!(
+            space0,
+            preceded!(char_no_case!('T'), ngc_unsigned_value)
         ),
         |tool_number| ToolNumber { tool_number }
     )
@@ -64,11 +67,14 @@ named!(pub tool_number<Span, ToolNumber>,
 
 named!(pub line_number<Span, LineNumber>,
     map!(
-        preceded!(
-            char_no_case!('N'),
-            flat_map!(
-                digit1,
-                parse_to!(u32)
+        sep!(
+            space0,
+            preceded!(
+                char_no_case!('N'),
+                flat_map!(
+                    digit1,
+                    parse_to!(u32)
+                )
             )
         ),
         |line_number| LineNumber { line_number }
@@ -79,6 +85,7 @@ named!(pub line_number<Span, LineNumber>,
 mod tests {
     use super::*;
     use common::{assert_parse, span};
+    use expression::Parameter;
 
     #[test]
     fn parse_feedrate() {
@@ -130,6 +137,15 @@ mod tests {
             parser = feedrate;
             input = span!(b"F5.");
             expected = Feedrate { feedrate: Value::Float(5.0) }
+        );
+    }
+
+    #[test]
+    fn parse_space_sep() {
+        assert_parse!(
+            parser = feedrate;
+            input = span!(b"f #<feedrate>");
+            expected = Feedrate { feedrate: Value::Parameter(Parameter::Named("feedrate".to_string())) }
         );
     }
 }
