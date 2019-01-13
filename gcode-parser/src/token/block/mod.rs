@@ -66,7 +66,6 @@ named!(pub while_block<Span, While>,
             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
             tag_no_case!("while") >>
             condition: gcode_expression >>
-            line_ending >>
             lines: many0!(line) >>
             preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
             tag_no_case!("endwhile") >>
@@ -84,7 +83,6 @@ named!(pub do_while_block<Span, DoWhile>,
         do_parse!(
             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
             tag_no_case!("do") >>
-            line_ending >>
             lines: many0!(line) >>
             preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
             tag_no_case!("while") >>
@@ -104,7 +102,6 @@ named!(pub repeat_block<Span, Repeat>,
             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
             tag_no_case!("repeat") >>
             condition: gcode_expression >>
-            line_ending >>
             lines: many0!(line) >>
             preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
             tag_no_case!("endrepeat") >>
@@ -122,7 +119,6 @@ named!(pub subroutine<Span, Subroutine>,
         do_parse!(
             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
             tag_no_case!("sub") >>
-            line_ending >>
             lines: many0!(line) >>
             preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
             tag_no_case!("endsub") >>
