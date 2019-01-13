@@ -34,8 +34,8 @@ use self::polar::polar;
 pub use self::polar::PolarCoord;
 use self::return_stmt::return_stmt;
 pub use self::return_stmt::Return;
-use crate::parsers::code_number;
 use common::parsing::Span;
+use expression::{parser::ngc_float_value, Value};
 use nom::*;
 use nom_locate::position;
 
@@ -99,9 +99,7 @@ pub struct Unknown {
     pub code_letter: char,
 
     /// Code number
-    ///
-    /// For G54, this would be `54.0`. For `G33.1`, this would be `33.1`
-    pub code_number: f32,
+    pub code_number: Value,
 }
 
 /// Parsed GCode token
@@ -116,7 +114,7 @@ pub struct Token<'a> {
 
 named!(unknown<Span, Unknown>,
     map!(
-        tuple!(one_of!("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), code_number),
+        tuple!(one_of!("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), ngc_float_value),
         |(code_letter, code_number)| Unknown { code_letter, code_number }
     )
 );
