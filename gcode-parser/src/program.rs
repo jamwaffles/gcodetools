@@ -25,9 +25,9 @@ impl<'a> Program<'a> {
 
         let (remaining, program) = program(input).map_err(|e| {
             let message = match e {
-                Err::Error(Context::Code(remaining, _e)) => format_parse_error!(
+                Err::Error(Context::Code(remaining, inner_e)) => format_parse_error!(
                     remaining,
-                    e,
+                    inner_e,
                     Span::new(CompleteByteSlice(content.as_bytes()))
                 ),
                 _ => format!("Parse execution failed: {:?}", e.into_error_kind()),
@@ -43,7 +43,7 @@ impl<'a> Program<'a> {
                     remaining,
                     io::Error::new(
                         io::ErrorKind::Other,
-                        "Could not parse complete program".into()
+                        "Could not parse complete program".to_string()
                     ),
                     input
                 ),

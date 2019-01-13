@@ -13,7 +13,7 @@ macro_rules! assert_parse {
                         expected
                     )
                 ),
-                Err(nom::Err::Error(nom::Context::Code(remaining, _e))) => {
+                Err(nom::Err::Error(nom::Context::Code(remaining, e))) => {
                     panic!($crate::format_parse_error!(remaining, e, input))
                 }
                 Err(e) => panic!("Parse execution failed: {:?}", e),
@@ -48,7 +48,7 @@ macro_rules! assert_parse {
                         expected
                     )
                 ),
-                Err(nom::Err::Error(nom::Context::Code(remaining, _e))) => {
+                Err(nom::Err::Error(nom::Context::Code(remaining, e))) => {
                     panic!($crate::format_parse_error!(remaining, e, input))
                 }
                 Err(e) => panic!("Parse execution failed: {:?}", e),
