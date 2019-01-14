@@ -114,7 +114,10 @@ pub struct Token<'a> {
 
 named!(unknown<Span, Unknown>,
     map!(
-        tuple!(one_of!("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), ngc_float_value),
+        sep!(
+            space0,
+            tuple!(one_of!("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), ngc_float_value)
+        ),
         |(code_letter, code_number)| Unknown { code_letter, code_number }
     )
 );
