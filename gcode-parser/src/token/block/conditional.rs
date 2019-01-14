@@ -1,4 +1,5 @@
 use crate::line::{line, Line};
+use crate::token::{comment, Comment};
 use common::parsing::Span;
 use expression::parser::{gcode_expression, gcode_non_global_ident};
 use expression::{Expression, Parameter};
@@ -23,6 +24,7 @@ pub struct Branch<'a> {
     branch_type: BranchType,
     lines: Vec<Line<'a>>,
     condition: Option<Expression>,
+    trailing_comment: Option<Comment>,
 }
 
 /// An if/else if/else chain
@@ -39,6 +41,7 @@ named_args!(elseif(ident: String)<Span, Branch>,
             preceded!(char_no_case!('O'), tag_no_case!(ident.as_str())) >>
             tag_no_case!("elseif") >>
             condition: gcode_expression >>
+            trailing_comment: opt!(comment) >>
             line_ending >>
             lines: many0!(line) >>
             ({
@@ -46,6 +49,7 @@ named_args!(elseif(ident: String)<Span, Branch>,
                     branch_type: BranchType::ElseIf,
                     condition: Some(condition),
                     lines,
+                    trailing_comment,
                 }
             })
         )
@@ -58,6 +62,7 @@ named_args!(else_block(ident: String)<Span, Branch>,
         do_parse!(
             preceded!(char_no_case!('O'), tag_no_case!(ident.as_str())) >>
             tag_no_case!("else") >>
+            trailing_comment: opt!(comment) >>
             line_ending >>
             lines: many0!(line) >>
             ({
@@ -65,6 +70,7 @@ named_args!(else_block(ident: String)<Span, Branch>,
                     branch_type: BranchType::Else,
                     condition: None,
                     lines,
+                    trailing_comment,
                 }
             })
         )
@@ -79,6 +85,7 @@ named!(pub conditional<Span, Conditional>,
             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
             tag_no_case!("if") >>
             condition: gcode_expression >>
+            trailing_comment: opt!(comment) >>
             line_ending >>
             lines: many0!(line) >>
             elseifs: many0!(call!(elseif, block_ident.to_ident_string())) >>
@@ -89,7 +96,8 @@ named!(pub conditional<Span, Conditional>,
                 let mut branches = vec![Branch {
                     branch_type: BranchType::If,
                     condition: Some(condition),
-                    lines
+                    lines,
+                    trailing_comment
                 }];
 
                 branches.append(&mut elseifs.clone());
@@ -107,9 +115,43 @@ named!(pub conditional<Span, Conditional>,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::token::{Feedrate, Token, TokenType};
+    use crate::token::{Comment, Feedrate, Token, TokenType};
     use common::{assert_parse, empty_span, span};
     use expression::{BinaryOperator, ExpressionToken, Value};
+
+    #[test]
+    fn trailing_comment() {
+        assert_parse!(
+            parser = conditional;
+            input = span!(b"o1 if [1 gt 0] ; comment here\nf500\no1 endif");
+            expected = Conditional {
+                identifier: Parameter::Numbered(1),
+                branches: vec![
+                    Branch {
+                        trailing_comment: Some(Comment { text: "comment here".into() }),
+                        branch_type: BranchType::If,
+                        condition: Some(Expression::from_tokens(vec![
+                            ExpressionToken::Literal(1.0),
+                            ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan),
+                            ExpressionToken::Literal(0.0),
+                        ])),
+                        lines: vec![
+                            Line {
+                                span: empty_span!(offset = 30, line = 2),
+                                tokens: vec![
+                                    Token {
+                                        span: empty_span!(offset = 30, line = 2),
+                                        token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(500.0) })
+                                    },
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            };
+            remaining = empty_span!(offset = 43, line = 3)
+        );
+    }
 
     #[test]
     fn parse_if() {
@@ -120,6 +162,7 @@ mod tests {
                 identifier: Parameter::Numbered(1),
                 branches: vec![
                     Branch {
+                        trailing_comment: None,
                         branch_type: BranchType::If,
                         condition: Some(Expression::from_tokens(vec![
                             ExpressionToken::Literal(1.0),
@@ -151,6 +194,7 @@ mod tests {
                 identifier: Parameter::Numbered(1),
                 branches: vec![
                     Branch {
+                        trailing_comment: None,
                         branch_type: BranchType::If,
                         condition: Some(Expression::from_tokens(vec![
                             ExpressionToken::Literal(1.0),
@@ -168,6 +212,7 @@ mod tests {
                         }]
                     },
                     Branch {
+                        trailing_comment: None,
                         branch_type: BranchType::ElseIf,
                         condition: Some(Expression::from_tokens(vec![
                             ExpressionToken::Literal(2.0),
@@ -199,6 +244,7 @@ mod tests {
                 identifier: Parameter::Numbered(1),
                 branches: vec![
                     Branch {
+                        trailing_comment: None,
                         branch_type: BranchType::If,
                         condition: Some(Expression::from_tokens(vec![
                             ExpressionToken::Literal(1.0),
@@ -216,6 +262,7 @@ mod tests {
                         }]
                     },
                     Branch {
+                        trailing_comment: None,
                         branch_type: BranchType::ElseIf,
                         condition: Some(Expression::from_tokens(vec![
                             ExpressionToken::Literal(2.0),
@@ -233,6 +280,7 @@ mod tests {
                         }]
                     },
                     Branch {
+                        trailing_comment: None,
                         branch_type: BranchType::Else,
                         condition: None,
                         lines: vec![Line {

@@ -3,6 +3,7 @@ mod conditional;
 use self::conditional::conditional;
 pub use self::conditional::{Branch, BranchType, Conditional};
 use crate::line::{line, Line};
+use crate::token::{comment, Comment};
 use common::parsing::Span;
 use expression::parser::{gcode_expression, gcode_non_global_ident};
 use expression::{Expression, Parameter};
@@ -41,6 +42,7 @@ pub struct While<'a> {
     identifier: Parameter,
     condition: Expression,
     lines: Vec<Line<'a>>,
+    trailing_comment: Option<Comment>,
 }
 
 /// A block that is repeated _n_ times
@@ -49,6 +51,7 @@ pub struct Repeat<'a> {
     identifier: Parameter,
     condition: Expression,
     lines: Vec<Line<'a>>,
+    trailing_comment: Option<Comment>,
 }
 
 /// A subroutine definition
@@ -56,6 +59,7 @@ pub struct Repeat<'a> {
 pub struct Subroutine<'a> {
     identifier: Parameter,
     lines: Vec<Line<'a>>,
+    trailing_comment: Option<Comment>,
     returns: Option<Expression>,
 }
 
@@ -67,11 +71,13 @@ named!(pub while_block<Span, While>,
             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
             tag_no_case!("while") >>
             condition: gcode_expression >>
+            trailing_comment: opt!(comment) >>
+            line_ending >>
             lines: many0!(line) >>
             preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
             tag_no_case!("endwhile") >>
             ({
-                While { identifier: block_ident, condition, lines }
+                While { identifier: block_ident, condition, lines, trailing_comment }
             })
         )
     )
@@ -103,11 +109,13 @@ named!(pub repeat_block<Span, Repeat>,
             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
             tag_no_case!("repeat") >>
             condition: gcode_expression >>
+            trailing_comment: opt!(comment) >>
+            line_ending >>
             lines: many0!(line) >>
             preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
             tag_no_case!("endrepeat") >>
             ({
-                Repeat { identifier: block_ident, condition, lines }
+                Repeat { identifier: block_ident, condition, lines, trailing_comment }
             })
         )
     )
@@ -120,12 +128,14 @@ named!(pub subroutine<Span, Subroutine>,
         do_parse!(
             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
             tag_no_case!("sub") >>
+            trailing_comment: opt!(comment) >>
+            line_ending >>
             lines: many0!(line) >>
             preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
             tag_no_case!("endsub") >>
             returns: opt!(gcode_expression) >>
             ({
-                Subroutine { identifier: block_ident, lines, returns }
+                Subroutine { identifier: block_ident, lines, returns, trailing_comment }
             })
         )
     )
