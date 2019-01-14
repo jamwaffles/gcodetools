@@ -80,7 +80,8 @@ named_attr!(#[doc = "Parse a center format arc"], pub center_format_arc<Span, Ce
 
             // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
             // TODO: Return validation error instead of `None`
-            if (&arc.x, &arc.y, &arc.z) == (&None, &None, &None) || (&arc.i, &arc.j, &arc.k) == (&None, &None, &None) {
+            // Require at least one offset coordinate to be present
+            if (&arc.i, &arc.j, &arc.k) == (&None, &None, &None) {
                 None
             } else {
                 Some(arc)
@@ -190,6 +191,18 @@ mod tests {
                 z: Some((-3.500000f32).into()),
                 i: Some((-2.070552f32).into()),
                 j: Some((-7.727407f32).into()),
+                ..CenterFormatArc::default()
+            }
+        );
+    }
+
+    #[test]
+    fn full_circle() {
+        assert_parse!(
+            parser = center_format_arc;
+            input = span!(b"I -20");
+            expected = CenterFormatArc {
+                i: Some((-20.0f32).into()),
                 ..CenterFormatArc::default()
             }
         );
