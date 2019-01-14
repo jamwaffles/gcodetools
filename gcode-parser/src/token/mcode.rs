@@ -22,10 +22,14 @@ pub enum MCode {
 
     /// Swap pallets and end program (M30)
     EndProgramSwapPallets,
+
+    /// Optional pause (M1)
+    OptionalPause,
 }
 
 named!(pub mcode<Span, MCode>,
     alt!(
+        map_code!("M1", |_| MCode::OptionalPause) |
         map_code!("M2", |_| MCode::EndProgram) |
         map_code!("M3", |_| MCode::SpindleForward) |
         map_code!("M4", |_| MCode::SpindleReverse) |
