@@ -56,6 +56,7 @@ pub struct Repeat<'a> {
 pub struct Subroutine<'a> {
     identifier: Parameter,
     lines: Vec<Line<'a>>,
+    returns: Option<Expression>,
 }
 
 named!(pub while_block<Span, While>,
@@ -122,8 +123,9 @@ named!(pub subroutine<Span, Subroutine>,
             lines: many0!(line) >>
             preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
             tag_no_case!("endsub") >>
+            returns: opt!(gcode_expression) >>
             ({
-                Subroutine { identifier: block_ident, lines }
+                Subroutine { identifier: block_ident, lines, returns }
             })
         )
     )
