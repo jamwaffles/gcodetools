@@ -24,7 +24,7 @@ pub struct CenterFormatArc {
     pub k: Option<Value>,
     /// Number of turns
     ///
-    /// Defaults to `0`, meaning no full turns are made
+    /// Defaults to `1`, a full circle
     pub turns: Value,
 }
 
@@ -43,7 +43,7 @@ pub struct RadiusFormatArc {
     pub radius: Value,
     /// Number of turns
     ///
-    /// Defaults to `0`, meaning no full turns are made
+    /// Defaults to `1`
     pub turns: Value,
 }
 
@@ -56,7 +56,7 @@ impl Default for CenterFormatArc {
             i: None,
             j: None,
             k: None,
-            turns: Value::Unsigned(0),
+            turns: Value::Unsigned(1),
         }
     }
 }
@@ -76,7 +76,7 @@ named_attr!(#[doc = "Parse a center format arc"], pub center_format_arc<Span, Ce
             )
         ),
         |(x, y, z, i, j, k, turns): (Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>)| {
-            let arc = CenterFormatArc { x, y, z, i, j, k, turns: turns.unwrap_or(Value::Unsigned(0)) };
+            let arc = CenterFormatArc { x, y, z, i, j, k, turns: turns.unwrap_or(Value::Unsigned(1)) };
 
             // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
             // TODO: Return validation error instead of `None`
@@ -102,7 +102,7 @@ named_attr!(#[doc = "Parse a radius format arc"], pub radius_format_arc<Span, Ra
             )
         ),
         |(x, y, z, radius, turns): (Option<Value>, Option<Value>, Option<Value>, Value, Option<Value>)| {
-            let arc = RadiusFormatArc { x, y, z, radius, turns: turns.unwrap_or(Value::Unsigned(0)) };
+            let arc = RadiusFormatArc { x, y, z, radius, turns: turns.unwrap_or(Value::Unsigned(1)) };
 
             // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
             // TODO: Return validation error instead of `None`
