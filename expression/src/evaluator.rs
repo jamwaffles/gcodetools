@@ -86,6 +86,7 @@ fn calculate(postfix_tokens: Vec<ExpressionToken>, context: Option<&Context>) ->
                         let result = match operator {
                             ArithmeticOperator::Div => x / y,
                             ArithmeticOperator::Mul => x * y,
+                            ArithmeticOperator::Mod => x % y,
                             ArithmeticOperator::Add => x + y,
                             ArithmeticOperator::Sub => x - y,
                         };

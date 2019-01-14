@@ -29,7 +29,7 @@ use std::fmt;
 /// List of parameters (variables) to pass in as the environment for the evaluation of an expression
 pub type Context = HashMap<Parameter, f32>;
 
-/// Arithmetic (`/`, `*`, `+`, `-`) operator
+/// Arithmetic (`/`, `*`, `+`, `-` and modulo) operator
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub enum ArithmeticOperator {
     /// Subtract
@@ -38,6 +38,8 @@ pub enum ArithmeticOperator {
     Add,
     /// Multiply
     Mul,
+    /// Modulo
+    Mod,
     /// Divide
     Div,
 }
@@ -48,6 +50,7 @@ impl fmt::Display for ArithmeticOperator {
             ArithmeticOperator::Sub => write!(f, "-"),
             ArithmeticOperator::Add => write!(f, "+"),
             ArithmeticOperator::Mul => write!(f, "*"),
+            ArithmeticOperator::Mod => write!(f, "mod"),
             ArithmeticOperator::Div => write!(f, "/"),
         }
     }

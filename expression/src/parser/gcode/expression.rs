@@ -12,19 +12,18 @@ named!(literal<Span, ExpressionToken>, map!(
     |res| ExpressionToken::Literal(res)
 ));
 
-named!(arithmetic<Span, ExpressionToken>, map!(
-    map_res!(
-        one_of!("+-*/"),
-        |operator| match operator {
-            '+' => Ok(ArithmeticOperator::Add),
-            '-' => Ok(ArithmeticOperator::Sub),
-            '*' => Ok(ArithmeticOperator::Mul),
-            '/' => Ok(ArithmeticOperator::Div),
-            _ => Err(())
-        }
-    ),
-    |res| ExpressionToken::ArithmeticOperator(res)
-));
+named!(arithmetic<Span, ExpressionToken>,
+    map!(
+        alt!(
+            map!(char!('+'), |_| ArithmeticOperator::Add) |
+            map!(char!('-'), |_| ArithmeticOperator::Sub) |
+            map!(char!('*'), |_| ArithmeticOperator::Mul) |
+            map!(char!('/'), |_| ArithmeticOperator::Div) |
+            map!(tag_no_case!("mod"), |_| ArithmeticOperator::Mod)
+        ),
+        |res| ExpressionToken::ArithmeticOperator(res)
+    )
+);
 
 named!(logical_operator<Span, ExpressionToken>, map!(
     alt_complete!(
@@ -135,6 +134,19 @@ mod tests {
             parser = expression;
             input = span!(b"[1]");
             expected = vec![ExpressionToken::Literal(1.0)].into()
+        );
+    }
+
+    #[test]
+    fn modulo() {
+        assert_parse!(
+            parser = expression;
+            input = span!(b"[10 mod 3]");
+            expected = vec![
+                ExpressionToken::Literal(10.0),
+                ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mod),
+                ExpressionToken::Literal(3.0),
+            ].into()
         );
     }
 
