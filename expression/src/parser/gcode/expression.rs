@@ -102,10 +102,13 @@ named_attr!(
     map!(
         sep!(
             space0,
-            delimited!(
-                char!('['),
-                sep!(space0, many1!(expression_token)),
-                char!(']')
+            alt!(
+                delimited!(
+                    char!('['),
+                    sep!(space0, many1!(expression_token)),
+                    char!(']')
+                ) |
+                map!(function, |f| vec![ f ])
             )
         ),
         |tokens| Expression(tokens)
@@ -215,11 +218,18 @@ mod tests {
     fn it_parses_a_function() {
         assert_parse!(
             parser = expression;
-            input = span!(b"[ABS[1.0]]");
+            input =
+                span!(b"[ABS[1.0]]"),
+                span!(b"ABS[1.0]")
+            ;
             expected =
                 vec![ExpressionToken::Function(Function::Abs(vec![
                     ExpressionToken::Literal(1.0),
-                ].into()))].into();
+                ].into()))].into(),
+                vec![ExpressionToken::Function(Function::Abs(vec![
+                    ExpressionToken::Literal(1.0),
+                ].into()))].into()
+            ;
         );
     }
 
