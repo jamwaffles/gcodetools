@@ -94,6 +94,7 @@ mod tests {
                 end: empty_span!(offset = 27, line = 4),
                 lines: vec![
                     Line {
+                        block_delete: false,
                         span: empty_span!(offset = 2, line = 2),
                         tokens: vec![
                             Token {
@@ -107,6 +108,7 @@ mod tests {
                         ]
                     },
                     Line {
+                        block_delete: false,
                         span: empty_span!(offset = 14, line = 3),
                         tokens: vec![
                             Token {
@@ -143,6 +145,7 @@ mod tests {
                 end: empty_span!(offset = 26, line = 3),
                 lines: vec![
                     Line {
+                        block_delete: false,
                         span: empty_span!(),
                         tokens: vec![
                             Token {
@@ -156,6 +159,7 @@ mod tests {
                         ]
                     },
                     Line {
+                        block_delete: false,
                         span: empty_span!(offset = 12, line = 2),
                         tokens: vec![
                             Token {
@@ -169,6 +173,7 @@ mod tests {
                         ]
                     },
                     Line {
+                        block_delete: false,
                         span: empty_span!(offset = 24, line = 3),
                         tokens: vec![
                             Token {
@@ -193,6 +198,7 @@ mod tests {
                 end: empty_span!(offset = 27, line = 3),
                 lines: vec![
                     Line {
+                        block_delete: false,
                         span: empty_span!(),
                         tokens: vec![
                             Token {
@@ -206,6 +212,7 @@ mod tests {
                         ]
                     },
                     Line {
+                        block_delete: false,
                         span: empty_span!(offset = 12, line = 2),
                         tokens: vec![
                             Token {
@@ -219,6 +226,7 @@ mod tests {
                         ]
                     },
                     Line {
+                        block_delete: false,
                         span: empty_span!(offset = 24, line = 3),
                         tokens: vec![
                             Token {
@@ -242,10 +250,11 @@ mod tests {
                 start: empty_span!(),
                 end: empty_span!(offset = 5, line = 4),
                 lines: vec![
-                    Line { span: empty_span!(), tokens: vec![] },
-                    Line { span: empty_span!(offset = 1, line = 2), tokens: vec![] },
-                    Line { span: empty_span!(offset = 2, line = 3), tokens: vec![] },
+                    Line { block_delete: false, span: empty_span!(), tokens: vec![] },
+                    Line { block_delete: false, span: empty_span!(offset = 1, line = 2), tokens: vec![] },
+                    Line { block_delete: false, span: empty_span!(offset = 2, line = 3), tokens: vec![] },
                     Line {
+                        block_delete: false,
                         span: empty_span!(offset = 3, line = 4),
                         tokens: vec![Token {
                             span: empty_span!(offset = 3, line = 4),
@@ -268,14 +277,16 @@ mod tests {
                 end: empty_span!(offset = 9, line = 4),
                 lines: vec![
                     Line {
+                        block_delete: false,
                         span: empty_span!(),
                         tokens: vec![Token {
                             span: empty_span!(),
                             token: TokenType::GCode(GCode::Rapid)
                         }]
                     },
-                    Line { span: empty_span!(offset = 3, line = 2), tokens: vec![] },
+                    Line { block_delete: false, span: empty_span!(offset = 3, line = 2), tokens: vec![] },
                     Line {
+                        block_delete: false,
                         span: empty_span!(offset = 4, line = 3),
                         tokens: vec![Token {
                             span: empty_span!(offset = 4, line = 3),
@@ -283,6 +294,7 @@ mod tests {
                         }]
                     },
                     Line {
+                        block_delete: false,
                         span: empty_span!(offset = 7, line = 4),
                         tokens: vec![Token {
                             span: empty_span!(offset = 7, line = 4),

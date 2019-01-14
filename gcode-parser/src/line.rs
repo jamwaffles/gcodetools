@@ -5,6 +5,7 @@ use nom_locate::position;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Line<'a> {
+    pub(crate) block_delete: bool,
     pub(crate) span: Span<'a>,
     pub(crate) tokens: Vec<Token<'a>>,
 }
@@ -18,11 +19,13 @@ impl<'a> Line<'a> {
 named!(pub line<Span, Line>,
     sep!(
         space0,
+        // TODO: Parse line number at beginning of line
         do_parse!(
             span: position!() >>
+            block_delete: opt!(char!('/')) >>
             tokens: many0!(token) >>
             alt!(line_ending | eof!()) >>
-            (Line { tokens, span })
+            (Line { tokens, span, block_delete: block_delete.is_some() })
         )
     )
 );
@@ -36,11 +39,53 @@ mod tests {
     use common::{assert_parse, empty_span, span};
 
     #[test]
+    fn block_delete() {
+        assert_parse!(
+            parser = line;
+            input =
+                span!(b"/G54\n"),
+                span!(b"/ G55\n")
+            ;
+            expected =
+                Line {
+                    block_delete: true,
+                    span: empty_span!(),
+                    tokens: vec![
+                        Token {
+                            span: empty_span!(offset = 1),
+                            token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
+                                offset: WorkOffsetValue::G54,
+                            }))
+                        }
+                    ]
+                },
+                Line {
+                    block_delete: true,
+                    span: empty_span!(),
+                    tokens: vec![
+                        Token {
+                            span: empty_span!(offset = 2),
+                            token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
+                                offset: WorkOffsetValue::G55,
+                            }))
+                        }
+                    ]
+                }
+            ;
+            remaining =
+                empty_span!(offset = 5, line = 2),
+                empty_span!(offset = 6, line = 2)
+            ;
+        );
+    }
+
+    #[test]
     fn parse_multiple_spaced_tokens() {
         assert_parse!(
             parser = line;
             input = span!(b"G54 G55  G56\tG57\n");
             expected = Line {
+                block_delete: false,
                 span: empty_span!(),
                 tokens: vec![
                     Token {
@@ -79,6 +124,7 @@ mod tests {
             parser = line;
             input = span!(b"G3 X-2.4438 Y-0.2048 I-0.0766 J0.2022\n");
             expected = Line {
+                block_delete: false,
                 span: empty_span!(),
                 tokens: vec![
                     Token {
@@ -107,6 +153,7 @@ mod tests {
             parser = line;
             input = span!(b"G54\nG55");
             expected = Line {
+                block_delete: false,
                 span: empty_span!(),
                 tokens: vec![Token {
                     span: empty_span!(),
@@ -125,6 +172,7 @@ mod tests {
             parser = line;
             input = span!(b" G54 \nG55");
             expected = Line {
+                block_delete: false,
                 span: empty_span!(offset = 1),
                 tokens: vec![Token {
                     span: empty_span!(offset = 1),
@@ -143,6 +191,7 @@ mod tests {
             parser = line;
             input = span!(b"; Line comment\nG55");
             expected = Line {
+                block_delete: false,
                 span: empty_span!(),
                 tokens: vec![Token {
                     span: empty_span!(),
@@ -161,6 +210,7 @@ mod tests {
             parser = line;
             input = span!(b"G55");
             expected = Line {
+                block_delete: false,
                 span: empty_span!(),
                 tokens: vec![Token {
                     span: empty_span!(),
@@ -178,6 +228,7 @@ mod tests {
             parser = line;
             input = span!(b"G40 (disable tool radius compensation)\r\n");
             expected = Line {
+                block_delete: false,
                 span: empty_span!(),
                 tokens: vec![Token {
                     span: empty_span!(),

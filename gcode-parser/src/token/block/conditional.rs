@@ -137,6 +137,7 @@ mod tests {
                         ])),
                         lines: vec![
                             Line {
+                                block_delete: false,
                                 span: empty_span!(offset = 30, line = 2),
                                 tokens: vec![
                                     Token {
@@ -170,6 +171,7 @@ mod tests {
                             ExpressionToken::Literal(0.0),
                         ])),
                         lines: vec![Line {
+                            block_delete: false,
                             span: empty_span!(offset = 15, line = 2),
                             tokens: vec![
                                 Token {
@@ -202,6 +204,7 @@ mod tests {
                             ExpressionToken::Literal(0.0),
                         ])),
                         lines: vec![Line {
+                            block_delete: false,
                             span: empty_span!(offset = 15, line = 2),
                             tokens: vec![
                                 Token {
@@ -220,6 +223,7 @@ mod tests {
                             ExpressionToken::Literal(3.0),
                         ])),
                         lines: vec![Line {
+                            block_delete: false,
                             span: empty_span!(offset = 39, line = 4),
                             tokens: vec![
                                 Token {
@@ -252,6 +256,7 @@ mod tests {
                             ExpressionToken::Literal(0.0),
                         ])),
                         lines: vec![Line {
+                            block_delete: false,
                             span: empty_span!(offset = 15, line = 2),
                             tokens: vec![
                                 Token {
@@ -270,6 +275,7 @@ mod tests {
                             ExpressionToken::Literal(3.0),
                         ])),
                         lines: vec![Line {
+                            block_delete: false,
                             span: empty_span!(offset = 39, line = 4),
                             tokens: vec![
                                 Token {
@@ -284,6 +290,7 @@ mod tests {
                         branch_type: BranchType::Else,
                         condition: None,
                         lines: vec![Line {
+                            block_delete: false,
                             span: empty_span!(offset = 52, line = 6),
                             tokens: vec![
                                 Token {
