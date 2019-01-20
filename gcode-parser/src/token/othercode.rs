@@ -65,7 +65,7 @@ named!(pub tool_number<Span, ToolNumber>,
     )
 );
 
-named!(pub line_number<Span, LineNumber>,
+named!(pub raw_line_number<Span, LineNumber>,
     map!(
         sep!(
             space0,
@@ -123,7 +123,7 @@ mod tests {
     #[test]
     fn parse_line_number() {
         assert_parse!(
-            parser = line_number;
+            parser = raw_line_number;
             input = span!(b"N1234");
             expected = LineNumber {
                 line_number: 1234u32

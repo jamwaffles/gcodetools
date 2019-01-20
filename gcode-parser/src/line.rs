@@ -1,11 +1,11 @@
-use crate::token::{token, Token};
+use crate::token::{block_delete, line_number, token, Token};
 use common::parsing::Span;
+use nom::types::CompleteByteSlice;
 use nom::*;
 use nom_locate::position;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Line<'a> {
-    pub(crate) block_delete: bool,
     pub(crate) span: Span<'a>,
     pub(crate) tokens: Vec<Token<'a>>,
 }
@@ -16,16 +16,33 @@ impl<'a> Line<'a> {
     }
 }
 
+impl<'a> Default for Line<'a> {
+    fn default() -> Self {
+        Self {
+            span: Span::new(CompleteByteSlice(b"")),
+            tokens: Vec::new(),
+        }
+    }
+}
+
 named!(pub line<Span, Line>,
     sep!(
         space0,
-        // TODO: Parse line number at beginning of line
         do_parse!(
             span: position!() >>
-            block_delete: opt!(char!('/')) >>
-            tokens: many0!(token) >>
+            block_delete: opt!(block_delete) >>
+            line_number: opt!(line_number) >>
+            line_tokens: many0!(token) >>
             alt!(line_ending | eof!()) >>
-            (Line { tokens, span, block_delete: block_delete.is_some() })
+            ({
+                let pre: Vec<Token> = vec![block_delete, line_number]
+                    .into_iter()
+                    .filter_map(|t| t)
+                    .chain(line_tokens.into_iter())
+                    .collect();
+
+                Line { tokens: pre, span }
+            })
         )
     )
 );
@@ -48,28 +65,34 @@ mod tests {
             ;
             expected =
                 Line {
-                    block_delete: true,
-                    span: empty_span!(),
                     tokens: vec![
+                        Token {
+                            span: empty_span!(),
+                            token: TokenType::BlockDelete
+                        },
                         Token {
                             span: empty_span!(offset = 1),
                             token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
                                 offset: WorkOffsetValue::G54,
                             }))
                         }
-                    ]
+                    ],
+                    ..Line::default()
                 },
                 Line {
-                    block_delete: true,
-                    span: empty_span!(),
                     tokens: vec![
+                        Token {
+                            span: empty_span!(),
+                            token: TokenType::BlockDelete
+                        },
                         Token {
                             span: empty_span!(offset = 2),
                             token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
                                 offset: WorkOffsetValue::G55,
                             }))
                         }
-                    ]
+                    ],
+                    ..Line::default()
                 }
             ;
             remaining =
@@ -85,8 +108,6 @@ mod tests {
             parser = line;
             input = span!(b"G54 G55  G56\tG57\n");
             expected = Line {
-                block_delete: false,
-                span: empty_span!(),
                 tokens: vec![
                     Token {
                         span: empty_span!(),
@@ -112,7 +133,8 @@ mod tests {
                             offset: WorkOffsetValue::G57,
                         }))
                     }
-                ]
+                ],
+                ..Line::default()
             };
             remaining = empty_span!(offset = 17, line = 2)
         );
@@ -124,8 +146,6 @@ mod tests {
             parser = line;
             input = span!(b"G3 X-2.4438 Y-0.2048 I-0.0766 J0.2022\n");
             expected = Line {
-                block_delete: false,
-                span: empty_span!(),
                 tokens: vec![
                     Token {
                         span: empty_span!(),
@@ -141,7 +161,8 @@ mod tests {
                             ..CenterFormatArc::default()
                         })
                     }
-                ]
+                ],
+                ..Line::default()
             };
             remaining = empty_span!(offset = 38, line = 2)
         );
@@ -153,14 +174,13 @@ mod tests {
             parser = line;
             input = span!(b"G54\nG55");
             expected = Line {
-                block_delete: false,
-                span: empty_span!(),
                 tokens: vec![Token {
                     span: empty_span!(),
                     token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
                         offset: WorkOffsetValue::G54,
                     }))
-                }]
+                }],
+                ..Line::default()
             };
             remaining = span!(b"G55", offset = 4, line = 2)
         );
@@ -172,14 +192,14 @@ mod tests {
             parser = line;
             input = span!(b" G54 \nG55");
             expected = Line {
-                block_delete: false,
                 span: empty_span!(offset = 1),
                 tokens: vec![Token {
                     span: empty_span!(offset = 1),
                     token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
                         offset: WorkOffsetValue::G54,
                     }))
-                }]
+                }],
+                ..Line::default()
             };
             remaining = span!(b"G55", offset = 6, line = 2)
         );
@@ -191,14 +211,13 @@ mod tests {
             parser = line;
             input = span!(b"; Line comment\nG55");
             expected = Line {
-                block_delete: false,
-                span: empty_span!(),
                 tokens: vec![Token {
                     span: empty_span!(),
                     token: TokenType::Comment(Comment {
                         text: "Line comment".to_string()
                     })
-                }]
+                }],
+                ..Line::default()
             };
             remaining = span!(b"G55", offset = 15, line = 2)
         );
@@ -210,14 +229,13 @@ mod tests {
             parser = line;
             input = span!(b"G55");
             expected = Line {
-                block_delete: false,
-                span: empty_span!(),
                 tokens: vec![Token {
                     span: empty_span!(),
                     token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
                         offset: WorkOffsetValue::G55,
                     }))
-                }]
+                }],
+                ..Line::default()
             };
         );
     }
@@ -228,8 +246,6 @@ mod tests {
             parser = line;
             input = span!(b"G40 (disable tool radius compensation)\r\n");
             expected = Line {
-                block_delete: false,
-                span: empty_span!(),
                 tokens: vec![Token {
                     span: empty_span!(),
                     token: TokenType::GCode(GCode::CutterCompensation(CutterCompensation::Off))
@@ -238,7 +254,8 @@ mod tests {
                     token: TokenType::Comment(Comment {
                         text: "disable tool radius compensation".into()
                     })
-                }]
+                }],
+                ..Line::default()
             };
             remaining = empty_span!(offset = 40, line = 2)
         );

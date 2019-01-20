@@ -137,14 +137,14 @@ mod tests {
                         ])),
                         lines: vec![
                             Line {
-                                block_delete: false,
                                 span: empty_span!(offset = 30, line = 2),
                                 tokens: vec![
                                     Token {
                                         span: empty_span!(offset = 30, line = 2),
                                         token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(500.0) })
                                     },
-                                ]
+                                ],
+                                ..Line::default()
                             }
                         ]
                     }
@@ -171,14 +171,14 @@ mod tests {
                             ExpressionToken::Literal(0.0),
                         ])),
                         lines: vec![Line {
-                            block_delete: false,
                             span: empty_span!(offset = 15, line = 2),
                             tokens: vec![
                                 Token {
                                     span: empty_span!(offset = 15, line = 2),
                                     token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(500.0) })
                                 },
-                            ]
+                            ],
+                            ..Line::default()
                         }]
                     }
                 ]
@@ -204,14 +204,14 @@ mod tests {
                             ExpressionToken::Literal(0.0),
                         ])),
                         lines: vec![Line {
-                            block_delete: false,
                             span: empty_span!(offset = 15, line = 2),
                             tokens: vec![
                                 Token {
                                     span: empty_span!(offset = 15, line = 2),
                                     token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(500.0) })
                                 },
-                            ]
+                            ],
+                            ..Line::default()
                         }]
                     },
                     Branch {
@@ -223,14 +223,14 @@ mod tests {
                             ExpressionToken::Literal(3.0),
                         ])),
                         lines: vec![Line {
-                            block_delete: false,
                             span: empty_span!(offset = 39, line = 4),
                             tokens: vec![
                                 Token {
                                     span: empty_span!(offset = 39, line = 4),
                                     token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(400.0) })
                                 },
-                            ]
+                            ],
+                            ..Line::default()
                         }]
                     }
                 ]
@@ -256,14 +256,14 @@ mod tests {
                             ExpressionToken::Literal(0.0),
                         ])),
                         lines: vec![Line {
-                            block_delete: false,
                             span: empty_span!(offset = 15, line = 2),
                             tokens: vec![
                                 Token {
                                     span: empty_span!(offset = 15, line = 2),
                                     token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(500.0) })
                                 },
-                            ]
+                            ],
+                            ..Line::default()
                         }]
                     },
                     Branch {
@@ -275,14 +275,14 @@ mod tests {
                             ExpressionToken::Literal(3.0),
                         ])),
                         lines: vec![Line {
-                            block_delete: false,
                             span: empty_span!(offset = 39, line = 4),
                             tokens: vec![
                                 Token {
                                     span: empty_span!(offset = 39, line = 4),
                                     token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(400.0) })
                                 },
-                            ]
+                            ],
+                            ..Line::default()
                         }]
                     },
                     Branch {
@@ -290,14 +290,14 @@ mod tests {
                         branch_type: BranchType::Else,
                         condition: None,
                         lines: vec![Line {
-                            block_delete: false,
                             span: empty_span!(offset = 52, line = 6),
                             tokens: vec![
                                 Token {
                                     span: empty_span!(offset = 52, line = 6),
                                     token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(200.0) })
                                 },
-                            ]
+                            ],
+                            ..Line::default()
                         }]
                     }
                 ]

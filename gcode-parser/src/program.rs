@@ -25,7 +25,7 @@ impl<'a> Program<'a> {
 
         let (remaining, program) = program(input).map_err(|e| {
             let message = match e {
-                Err::Error(Context::Code(remaining, inner_e)) => format_parse_error!(
+                Err::Error(Context::Code(remaining, _inner_e)) => format_parse_error!(
                     remaining,
                     inner_e,
                     Span::new(CompleteByteSlice(content.as_bytes()))
@@ -94,7 +94,6 @@ mod tests {
                 end: empty_span!(offset = 27, line = 4),
                 lines: vec![
                     Line {
-                        block_delete: false,
                         span: empty_span!(offset = 2, line = 2),
                         tokens: vec![
                             Token {
@@ -105,10 +104,10 @@ mod tests {
                                 span: empty_span!(offset = 5, line = 2),
                                 token: TokenType::Coord(coord!(0.0, 0.0, 0.0))
                             }
-                        ]
+                        ],
+                        ..Line::default()
                     },
                     Line {
-                        block_delete: false,
                         span: empty_span!(offset = 14, line = 3),
                         tokens: vec![
                             Token {
@@ -119,7 +118,8 @@ mod tests {
                                 span: empty_span!(offset = 17, line = 3),
                                 token: TokenType::Coord(coord!(1.0, 1.0, 1.0))
                             }
-                        ]
+                        ],
+                        ..Line::default()
                     }
                 ]
             };
@@ -145,8 +145,6 @@ mod tests {
                 end: empty_span!(offset = 26, line = 3),
                 lines: vec![
                     Line {
-                        block_delete: false,
-                        span: empty_span!(),
                         tokens: vec![
                             Token {
                                 span: empty_span!(),
@@ -156,10 +154,10 @@ mod tests {
                                 span: empty_span!(offset = 3),
                                 token: TokenType::Coord(coord!(0.0, 0.0, 0.0))
                             }
-                        ]
+                        ],
+                        ..Line::default()
                     },
                     Line {
-                        block_delete: false,
                         span: empty_span!(offset = 12, line = 2),
                         tokens: vec![
                             Token {
@@ -170,17 +168,18 @@ mod tests {
                                 span: empty_span!(offset = 15, line = 2),
                                 token: TokenType::Coord(coord!(1.0, 1.0, 1.0))
                             }
-                        ]
+                        ],
+                        ..Line::default()
                     },
                     Line {
-                        block_delete: false,
                         span: empty_span!(offset = 24, line = 3),
                         tokens: vec![
                             Token {
                                 span: empty_span!(offset = 24, line = 3),
                                 token: TokenType::MCode(MCode::EndProgram)
                             }
-                        ]
+                        ],
+                        ..Line::default()
                     }
                 ]
             };
@@ -198,7 +197,6 @@ mod tests {
                 end: empty_span!(offset = 27, line = 3),
                 lines: vec![
                     Line {
-                        block_delete: false,
                         span: empty_span!(),
                         tokens: vec![
                             Token {
@@ -209,10 +207,10 @@ mod tests {
                                 span: empty_span!(offset = 3),
                                 token: TokenType::Coord(coord!(0.0, 0.0, 0.0))
                             }
-                        ]
+                        ],
+                        ..Line::default()
                     },
                     Line {
-                        block_delete: false,
                         span: empty_span!(offset = 12, line = 2),
                         tokens: vec![
                             Token {
@@ -223,17 +221,18 @@ mod tests {
                                 span: empty_span!(offset = 15, line = 2),
                                 token: TokenType::Coord(coord!(1.0, 1.0, 1.0))
                             }
-                        ]
+                        ],
+                        ..Line::default()
                     },
                     Line {
-                        block_delete: false,
                         span: empty_span!(offset = 24, line = 3),
                         tokens: vec![
                             Token {
                                 span: empty_span!(offset = 24, line = 3),
                                 token: TokenType::MCode(MCode::EndProgramSwapPallets)
                             }
-                        ]
+                        ],
+                        ..Line::default()
                     }
                 ]
             };
@@ -250,16 +249,16 @@ mod tests {
                 start: empty_span!(),
                 end: empty_span!(offset = 5, line = 4),
                 lines: vec![
-                    Line { block_delete: false, span: empty_span!(), tokens: vec![] },
-                    Line { block_delete: false, span: empty_span!(offset = 1, line = 2), tokens: vec![] },
-                    Line { block_delete: false, span: empty_span!(offset = 2, line = 3), tokens: vec![] },
+                    Line::default(),
+                    Line { span: empty_span!(offset = 1, line = 2), ..Line::default() },
+                    Line { span: empty_span!(offset = 2, line = 3), ..Line::default() },
                     Line {
-                        block_delete: false,
                         span: empty_span!(offset = 3, line = 4),
                         tokens: vec![Token {
                             span: empty_span!(offset = 3, line = 4),
                             token: TokenType::MCode(MCode::EndProgram)
-                        }]
+                        }],
+                        ..Line::default()
                     },
                 ]
             };
@@ -277,29 +276,28 @@ mod tests {
                 end: empty_span!(offset = 9, line = 4),
                 lines: vec![
                     Line {
-                        block_delete: false,
-                        span: empty_span!(),
                         tokens: vec![Token {
                             span: empty_span!(),
                             token: TokenType::GCode(GCode::Rapid)
-                        }]
+                        }],
+                        ..Line::default()
                     },
-                    Line { block_delete: false, span: empty_span!(offset = 3, line = 2), tokens: vec![] },
+                    Line { span: empty_span!(offset = 3, line = 2), ..Line::default() },
                     Line {
-                        block_delete: false,
                         span: empty_span!(offset = 4, line = 3),
                         tokens: vec![Token {
                             span: empty_span!(offset = 4, line = 3),
                             token: TokenType::GCode(GCode::Feed)
-                        }]
+                        }],
+                        ..Line::default()
                     },
                     Line {
-                        block_delete: false,
                         span: empty_span!(offset = 7, line = 4),
                         tokens: vec![Token {
                             span: empty_span!(offset = 7, line = 4),
                             token: TokenType::MCode(MCode::EndProgram)
-                        }]
+                        }],
+                        ..Line::default()
                     }
                 ]
             };

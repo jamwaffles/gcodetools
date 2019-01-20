@@ -28,12 +28,14 @@ use self::gcode::gcode;
 pub use self::gcode::{CutterCompensation, GCode, WorkOffset, WorkOffsetValue};
 use self::mcode::mcode;
 pub use self::mcode::MCode;
-use self::othercode::{feedrate, line_number, spindle_speed, tool_number};
-pub use self::othercode::{Feedrate, LineNumber, SpindleSpeed, ToolNumber};
+use self::othercode::{feedrate, spindle_speed, tool_number};
+pub use self::othercode::{Feedrate, SpindleSpeed, ToolNumber};
 use self::polar::polar;
 pub use self::polar::PolarCoord;
 use self::return_stmt::return_stmt;
 pub use self::return_stmt::Return;
+use crate::token::othercode::raw_line_number;
+pub use crate::token::othercode::LineNumber;
 use common::parsing::Span;
 use expression::{parser::ngc_float_value, Value};
 use nom::*;
@@ -70,11 +72,11 @@ pub enum TokenType<'a> {
     /// Tool number
     ToolNumber(ToolNumber),
 
+    /// Line number
+    LineNumber(LineNumber),
+
     /// A comment
     Comment(Comment),
-
-    /// A line number
-    LineNumber(LineNumber),
 
     /// A code that this parser doesn't understand
     Unknown(Unknown),
@@ -90,6 +92,9 @@ pub enum TokenType<'a> {
 
     /// A return statement
     Return(Return),
+
+    /// Block delete (`/` character at beginning of line)
+    BlockDelete,
 }
 
 /// An unknown token
@@ -133,7 +138,6 @@ named!(token_type<Span, TokenType>,
         map!(spindle_speed, TokenType::SpindleSpeed) |
         map!(tool_number, TokenType::ToolNumber) |
         map!(comment, TokenType::Comment) |
-        map!(line_number, TokenType::LineNumber) |
         map!(assignment, TokenType::Assignment) |
         map!(block, TokenType::Block) |
         map!(call, TokenType::Call) |
@@ -147,6 +151,22 @@ named!(pub(crate) token<Span, Token>,
     do_parse!(
         span: position!() >>
         token: token_type >>
+        (Token { span, token })
+    )
+);
+
+named!(pub(crate) block_delete<Span, Token>,
+    do_parse!(
+        span: position!() >>
+        token: map!(char!('/'), |_| TokenType::BlockDelete) >>
+        (Token { span, token })
+    )
+);
+
+named!(pub(crate) line_number<Span, Token>,
+    do_parse!(
+        span: position!() >>
+        token: map!(raw_line_number, |n| TokenType::LineNumber(n)) >>
         (Token { span, token })
     )
 );
