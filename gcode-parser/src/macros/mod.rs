@@ -2,31 +2,7 @@
 #[macro_use]
 mod test_helpers;
 
-// macro_rules! snip {
-//     ($input:expr, $n:expr) => {{
-//         let lines = $input.lines();
-//         let num_lines = $input.lines().count();
-
-//         if num_lines > $n {
-//             // TODO: Fix clone
-//             let start = lines.clone().take($n / 2).collect::<Vec<&str>>().join("\n");
-//             let mut end = lines.rev().take($n / 2).collect::<Vec<&str>>();
-
-//             end.reverse();
-
-//             let end = end.join("\n");
-
-//             format!("{}\n...\n{}", start, end)
-//         } else {
-//             lines.take($n).collect::<Vec<&str>>().join("\n")
-//         }
-//     }};
-
-//     ($input:expr) => {
-//         snip!($input, 10)
-//     };
-// }
-
+/// Wrap a parser to return a start position with it as a tuple of `(position, result)`
 // TODO: Move to parsers/
 #[macro_export]
 macro_rules! positioned(
@@ -48,6 +24,7 @@ macro_rules! positioned(
     );
 );
 
+/// As `positioned!()` but allows returning the parse result in a `Result`
 // TODO: Move to parsers/
 #[macro_export]
 macro_rules! positioned_res(
@@ -66,6 +43,7 @@ macro_rules! positioned_res(
     );
 );
 
+/// Match a single character using `.eq_ignore_ascii_case()`
 // TODO: Move to parsers/
 #[macro_export]
 macro_rules! char_no_case (
@@ -92,6 +70,7 @@ macro_rules! char_no_case (
     });
 );
 
+/// Parse a single line with a given parser
 // TODO: Move to parsers/
 #[macro_export]
 macro_rules! line_with (

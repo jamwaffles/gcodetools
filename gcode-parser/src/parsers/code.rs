@@ -1,3 +1,4 @@
+/// Parse a code and value, optionally separated by one or more spaces
 #[macro_export]
 macro_rules! code(
     ($i:expr, $code:expr, $following:ident!( $($args:tt)* )) => ({
@@ -37,6 +38,8 @@ macro_rules! code(
     });
 );
 
+/// Parse a code and value, optionally separated by one or more spaces. Allows mapping of the parsed
+/// value.
 #[macro_export]
 macro_rules! map_code(
     ($i:expr, $code:expr, $map:expr) => ({
@@ -52,6 +55,8 @@ macro_rules! map_code(
     });
 );
 
+/// Parse a code and value, optionally separated by one or more spaces. Allows returning value in a
+/// `Result`
 #[macro_export]
 macro_rules! map_code_res(
     ($i:expr, $code:expr, $map:expr) => ({

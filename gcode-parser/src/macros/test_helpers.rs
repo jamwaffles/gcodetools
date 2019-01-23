@@ -1,3 +1,4 @@
+/// Create a coordinate with only some fields populated
 #[macro_export]
 macro_rules! coord {
     ($x:expr, $y:expr, $z:expr) => {
