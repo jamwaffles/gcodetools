@@ -23,13 +23,13 @@ name = "huge"
 harness = false
 
 [dependencies]
-nom = "4.1.1"
+nom = "4.2.0"
 nom_locate = { version = "0.3.1", features = [ "verbose-errors" ] }
 expression = { path = "../expression" }
 common = { path = "../common" }
 
 [dev-dependencies]
-criterion = "0.2.7"
+criterion = "0.2.10"
 
 [build-dependencies]
 glob = "0.2.11"

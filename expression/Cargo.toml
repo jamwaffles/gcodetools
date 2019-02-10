@@ -8,9 +8,9 @@ harness = false
 name = "evaluate_expression"
 
 [dependencies]
-nom = "4.1.1"
+nom = "4.2.0"
 common = { path = "../common" }
 
 [dev-dependencies]
-criterion = "0.2.7"
+criterion = "0.2.10"
 maplit = "1.0.1"
