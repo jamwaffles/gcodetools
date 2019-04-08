@@ -100,4 +100,51 @@ mod tests {
 
         assert!(trajectory.is_ok());
     }
+
+    #[test]
+    fn long_program() {
+        let program = fs::read_to_string(&FilePath::new(
+            "../test_files/universal_gcode_sender/stress_test.gcode",
+        ))
+        .unwrap();
+
+        let parsed = Program::from_str(&program).unwrap();
+
+        let coords: Vec<Coord> = parsed
+            .iter_flat()
+            .cloned()
+            .filter_map(|token| match token.token {
+                TokenType::Coord(c) => Some(c),
+                _ => None,
+            })
+            .collect();
+
+        // Simulate the current state/position of the machine
+        let current_position = Vector9::repeat(9.99);
+
+        let waypoints: Vec<Vector9> = coords
+            .iter()
+            .scan(current_position, |current, coord| {
+                let new = merge_vector9_and_coord(current, &coord);
+
+                *current = new;
+
+                Some(new)
+            })
+            .collect();
+
+        // println!("{:#?}", waypoints);
+
+        let path = Path::from_waypoints(&waypoints, 0.001);
+
+        let trajectory = Trajectory::new(
+            path,
+            Vector9::repeat(1.0),
+            Vector9::repeat(1.0),
+            0.000001,
+            0.001,
+        );
+
+        assert!(trajectory.is_ok());
+    }
 }
