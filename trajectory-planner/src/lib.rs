@@ -56,6 +56,7 @@ fn merge_vector9_and_coord(current: &Vector9, coord: &Coord) -> Vector9 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use trajectories::{PathOptions, TrajectoryOptions};
 
     #[test]
     fn parse_program_to_path() {
@@ -88,14 +89,21 @@ mod tests {
 
         println!("{:#?}", waypoints);
 
-        let path = Path::from_waypoints(&waypoints, 0.001);
+        let path = Path::from_waypoints(
+            &waypoints,
+            PathOptions {
+                max_deviation: 0.001,
+            },
+        );
 
         let trajectory = Trajectory::new(
             path,
-            Vector9::repeat(1.0),
-            Vector9::repeat(1.0),
-            0.000001,
-            0.001,
+            TrajectoryOptions {
+                velocity_limit: Vector9::repeat(1.0),
+                acceleration_limit: Vector9::repeat(1.0),
+                epsilon: 0.000001,
+                timestep: 0.001,
+            },
         );
 
         assert!(trajectory.is_ok());
@@ -135,14 +143,21 @@ mod tests {
 
         // println!("{:#?}", waypoints);
 
-        let path = Path::from_waypoints(&waypoints, 0.001);
+        let path = Path::from_waypoints(
+            &waypoints,
+            PathOptions {
+                max_deviation: 0.001,
+            },
+        );
 
         let trajectory = Trajectory::new(
             path,
-            Vector9::repeat(1.0),
-            Vector9::repeat(1.0),
-            0.000001,
-            0.001,
+            TrajectoryOptions {
+                velocity_limit: Vector9::repeat(1.0),
+                acceleration_limit: Vector9::repeat(1.0),
+                epsilon: 0.000001,
+                timestep: 0.001,
+            },
         );
 
         assert!(trajectory.is_ok());
