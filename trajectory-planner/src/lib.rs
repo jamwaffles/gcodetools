@@ -60,6 +60,8 @@ mod tests {
 
     #[test]
     fn parse_program_to_path() {
+        // pretty_env_logger::init();
+
         let program = fs::read_to_string(&FilePath::new("./assets/simple_traj.ngc")).unwrap();
 
         let parsed = Program::from_str(&program).unwrap();
@@ -87,8 +89,6 @@ mod tests {
             })
             .collect();
 
-        println!("{:#?}", waypoints);
-
         let path = Path::from_waypoints(
             &waypoints,
             PathOptions {
@@ -97,7 +97,7 @@ mod tests {
         );
 
         let trajectory = Trajectory::new(
-            path,
+            &path,
             TrajectoryOptions {
                 velocity_limit: Vector9::repeat(1.0),
                 acceleration_limit: Vector9::repeat(1.0),
@@ -111,6 +111,8 @@ mod tests {
 
     #[test]
     fn long_program() {
+        pretty_env_logger::init();
+
         let program = fs::read_to_string(&FilePath::new(
             "../test_files/universal_gcode_sender/stress_test.gcode",
         ))
@@ -143,6 +145,13 @@ mod tests {
 
         // println!("{:#?}", waypoints);
 
+        // Validate (slowly) that no waypoints contain NaNs
+        for point in waypoints.iter() {
+            for i in point.iter() {
+                assert!(!i.is_nan());
+            }
+        }
+
         let path = Path::from_waypoints(
             &waypoints,
             PathOptions {
@@ -151,7 +160,7 @@ mod tests {
         );
 
         let trajectory = Trajectory::new(
-            path,
+            &path,
             TrajectoryOptions {
                 velocity_limit: Vector9::repeat(1.0),
                 acceleration_limit: Vector9::repeat(1.0),

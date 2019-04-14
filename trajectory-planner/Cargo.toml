@@ -8,3 +8,7 @@ edition = "2018"
 gcode-parser = { path = "../gcode-parser" }
 nalgebra = "0.17.0"
 trajectories = { git = "https://github.com/jamwaffles/trajectories.git" }
+# trajectories = { path = "../../trajectories/trajectories" }
+
+[dev-dependencies]
+pretty_env_logger = "0.3.0"
