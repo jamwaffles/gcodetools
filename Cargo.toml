@@ -6,3 +6,6 @@ members = [
     "trajectory-planner",
     "common"
 ]
+
+[profile.test]
+opt-level = 3

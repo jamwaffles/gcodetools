@@ -1,3 +1,5 @@
+mod test_helpers;
+
 use gcode_parser::{
     token::{Coord, TokenType},
     Program,
@@ -56,6 +58,7 @@ fn merge_vector9_and_coord(current: &Vector9, coord: &Coord) -> Vector9 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_helpers::{end_profile, start_profile};
     use trajectories::{PathOptions, TrajectoryOptions};
 
     #[test]
@@ -132,6 +135,8 @@ mod tests {
         // Simulate the current state/position of the machine
         let current_position = Vector9::repeat(9.99);
 
+        start_profile();
+
         let waypoints: Vec<Vector9> = coords
             .iter()
             .scan(current_position, |current, coord| {
@@ -168,6 +173,8 @@ mod tests {
                 timestep: 0.001,
             },
         );
+
+        end_profile();
 
         assert!(trajectory.is_ok());
     }
