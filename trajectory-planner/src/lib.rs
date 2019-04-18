@@ -8,6 +8,7 @@ use nalgebra::{VectorN, U9};
 use std::fs;
 use std::path::Path as FilePath;
 use trajectories::{Path, Trajectory};
+use trajectories_sys::{path_create, Trajectory as CppTrajectory};
 
 type Vector9 = VectorN<f64, U9>;
 
@@ -99,7 +100,7 @@ mod tests {
             },
         );
 
-        let trajectory = Trajectory::new(
+        let _trajectory = Trajectory::new(
             &path,
             TrajectoryOptions {
                 velocity_limit: Vector9::repeat(1.0),
@@ -107,9 +108,8 @@ mod tests {
                 epsilon: 0.000001,
                 timestep: 0.001,
             },
-        );
-
-        assert!(trajectory.is_ok());
+        )
+        .unwrap();
     }
 
     #[test]
@@ -164,23 +164,24 @@ mod tests {
             },
         );
 
-        let trajectory = Trajectory::new(
+        let _trajectory = Trajectory::new(
             &path,
             TrajectoryOptions {
-                velocity_limit: Vector9::repeat(1.0),
-                acceleration_limit: Vector9::repeat(1.0),
+                velocity_limit: Vector9::repeat(200.0),
+                acceleration_limit: Vector9::repeat(200.0),
                 epsilon: 0.000001,
                 timestep: 0.001,
             },
-        );
+        )
+        .unwrap();
 
         end_profile();
-
-        assert!(trajectory.is_ok());
     }
 
     #[test]
     fn birthday() {
+        pretty_env_logger::init();
+
         let program =
             fs::read_to_string(&FilePath::new("../test_files/tinyg/birthday.nc")).unwrap();
 
@@ -227,18 +228,40 @@ mod tests {
             },
         );
 
-        let trajectory = Trajectory::new(
+        let _trajectory = Trajectory::new(
             &path,
             TrajectoryOptions {
-                velocity_limit: Vector9::repeat(1.0),
-                acceleration_limit: Vector9::repeat(1.0),
+                velocity_limit: Vector9::repeat(200.0),
+                acceleration_limit: Vector9::repeat(5.0),
                 epsilon: 0.000001,
                 timestep: 0.001,
             },
-        );
+        )
+        .unwrap();
 
         end_profile();
 
-        assert!(trajectory.is_ok());
+        let cpp_path = unsafe {
+            path_create(
+                waypoints
+                    .iter()
+                    .flat_map(|point| vec![point[0], point[1], point[2]])
+                    .collect::<Vec<f64>>()
+                    .as_ptr(),
+                waypoints.len() * 3,
+                // Max deviation
+                0.001f64,
+            )
+        };
+
+        let _cpp_trajectory = unsafe {
+            CppTrajectory::new(
+                cpp_path,
+                &[200.0, 200.0, 200.0],
+                &[5.0, 5.0, 5.0],
+                // Timestep
+                0.001f64,
+            )
+        };
     }
 }
