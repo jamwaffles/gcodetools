@@ -113,13 +113,76 @@ mod tests {
     }
 
     #[test]
-    fn long_program() {
+    fn stress_test() {
         pretty_env_logger::init();
 
         let program = fs::read_to_string(&FilePath::new(
             "../test_files/universal_gcode_sender/stress_test.gcode",
         ))
         .unwrap();
+
+        let parsed = Program::from_str(&program).unwrap();
+
+        let coords: Vec<Coord> = parsed
+            .iter_flat()
+            .cloned()
+            .filter_map(|token| match token.token {
+                TokenType::Coord(c) => Some(c),
+                _ => None,
+            })
+            .collect();
+
+        // Simulate the current state/position of the machine
+        let current_position = Vector9::repeat(9.99);
+
+        start_profile();
+
+        let waypoints: Vec<Vector9> = coords
+            .iter()
+            .scan(current_position, |current, coord| {
+                let new = merge_vector9_and_coord(current, &coord);
+
+                *current = new;
+
+                Some(new)
+            })
+            .collect();
+
+        // println!("{:#?}", waypoints);
+
+        // Validate (slowly) that no waypoints contain NaNs
+        for point in waypoints.iter() {
+            for i in point.iter() {
+                assert!(!i.is_nan());
+            }
+        }
+
+        let path = Path::from_waypoints(
+            &waypoints,
+            PathOptions {
+                max_deviation: 0.001,
+            },
+        );
+
+        let trajectory = Trajectory::new(
+            &path,
+            TrajectoryOptions {
+                velocity_limit: Vector9::repeat(1.0),
+                acceleration_limit: Vector9::repeat(1.0),
+                epsilon: 0.000001,
+                timestep: 0.001,
+            },
+        );
+
+        end_profile();
+
+        assert!(trajectory.is_ok());
+    }
+
+    #[test]
+    fn birthday() {
+        let program =
+            fs::read_to_string(&FilePath::new("../test_files/tinyg/birthday.nc")).unwrap();
 
         let parsed = Program::from_str(&program).unwrap();
 
