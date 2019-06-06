@@ -27,7 +27,7 @@ before_install:
 
 script:
   - cargo test --release
-  - cargo bench -- --test
+  - cargo bench -- --no-run
   - cargo doc
 
 after_success:

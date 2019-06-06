@@ -5,5 +5,5 @@ authors = ["James Waples <james@wapl.es>"]
 edition = "2018"
 
 [dependencies]
-nom = "4.2.0"
+nom = "4.2.3"
 nom_locate = "0.3.1"

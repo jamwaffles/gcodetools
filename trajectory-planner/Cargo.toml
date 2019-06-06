@@ -9,15 +9,15 @@ gcode-parser = { path = "../gcode-parser" }
 nalgebra = "0.17.0"
 trajectories = { git = "https://github.com/jamwaffles/trajectories.git" }
 trajectories-sys = { git = "https://github.com/jamwaffles/trajectories.git" }
+
+[dependencies.cpuprofiler]
+optional = true
+version = "0.0.3"
 #trajectories = { path = "../../trajectories/trajectories" }
 #trajectories-sys = { path = "../../trajectories/trajectories-sys" }
 
 [dev-dependencies]
 pretty_env_logger = "0.3.0"
-
-[dependencies.cpuprofiler]
-optional = true
-version = "0.0.3"
 
 [features]
 default = []
