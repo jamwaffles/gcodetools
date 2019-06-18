@@ -114,7 +114,7 @@ mod tests {
 
     #[test]
     fn stress_test() {
-        pretty_env_logger::init();
+        // pretty_env_logger::init();
 
         let program = fs::read_to_string(&FilePath::new(
             "../test_files/universal_gcode_sender/stress_test.gcode",
@@ -180,7 +180,7 @@ mod tests {
 
     #[test]
     fn birthday() {
-        pretty_env_logger::init();
+        // pretty_env_logger::init();
 
         let program =
             fs::read_to_string(&FilePath::new("../test_files/tinyg/birthday.nc")).unwrap();
