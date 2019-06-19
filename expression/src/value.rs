@@ -5,11 +5,11 @@ use std::fmt;
 #[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     /// Unsigned integer
-    Unsigned(u32),
+    Unsigned(u64),
     /// Signed integer
-    Signed(i32),
-    /// Single precision floating point number
-    Float(f32),
+    Signed(i64),
+    /// Double precision floating point number
+    Float(f64),
     /// A parameter or variable substitution
     Parameter(Parameter),
     /// An expression that resolves to a literal value
@@ -22,47 +22,30 @@ impl Value {
         match *self {
             Value::Unsigned(n) => n as f64,
             Value::Signed(n) => n as f64,
-            Value::Float(n) => n as f64,
+            Value::Float(n) => n,
             _ => panic!("Attempted to convert non-numeric value to f64"),
         }
     }
 }
 
-impl From<f32> for Value {
-    fn from(other: f32) -> Self {
-        Value::Float(other)
-    }
+macro_rules! impl_from {
+    ($ty_in:ty => $ty_out:path) => {
+        impl From<$ty_in> for Value {
+            fn from(other: $ty_in) -> Self {
+                $ty_out(other.into())
+            }
+        }
+    };
 }
 
-impl From<f64> for Value {
-    fn from(other: f64) -> Self {
-        Value::Float(other as f32)
-    }
-}
-
-impl From<i32> for Value {
-    fn from(other: i32) -> Self {
-        Value::Signed(other)
-    }
-}
-
-impl From<u32> for Value {
-    fn from(other: u32) -> Self {
-        Value::Unsigned(other)
-    }
-}
-
-impl From<Parameter> for Value {
-    fn from(other: Parameter) -> Self {
-        Value::Parameter(other)
-    }
-}
-
-impl From<Expression> for Value {
-    fn from(other: Expression) -> Self {
-        Value::Expression(other)
-    }
-}
+impl_from!(u32 => Value::Unsigned);
+impl_from!(i32 => Value::Signed);
+impl_from!(f32 => Value::Float);
+impl_from!(u64 => Value::Unsigned);
+impl_from!(i64 => Value::Signed);
+impl_from!(f64 => Value::Float);
+impl_from!(Parameter => Value::Parameter);
+impl_from!(Expression => Value::Expression);
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
