@@ -8,7 +8,7 @@ harness = false
 name = "evaluate_expression"
 
 [dependencies]
-nom = "4.2.3"
+nom = "5.0.0-beta2"
 common = { path = "../common" }
 
 [dev-dependencies]
