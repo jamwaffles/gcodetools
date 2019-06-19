@@ -210,6 +210,11 @@ impl Expression {
     pub fn from_tokens(tokens: Vec<ExpressionToken>) -> Self {
         tokens.into()
     }
+
+    /// Create an empty expression
+    pub fn empty() -> Self {
+        Self(Vec::new())
+    }
 }
 
 impl fmt::Display for Expression {
