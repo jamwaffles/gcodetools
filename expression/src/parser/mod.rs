@@ -14,26 +14,26 @@ mod tests {
         let expr = r#"[ 1 + 2 / 3 * 4 - 5 + sin[5 + 6 * [cos[4] + 2.0 ] ] ]"#;
 
         let expd = Expression::from_tokens(vec![
-            ExpressionToken::Literal(1.0.into()),
+            ExpressionToken::Literal(1.into()),
             ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-            ExpressionToken::Literal(2.0.into()),
+            ExpressionToken::Literal(2.into()),
             ExpressionToken::ArithmeticOperator(ArithmeticOperator::Div),
-            ExpressionToken::Literal(3.0.into()),
+            ExpressionToken::Literal(3.into()),
             ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
-            ExpressionToken::Literal(4.0.into()),
+            ExpressionToken::Literal(4.into()),
             ExpressionToken::ArithmeticOperator(ArithmeticOperator::Sub),
-            ExpressionToken::Literal(5.0.into()),
+            ExpressionToken::Literal(5.into()),
             ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
             ExpressionToken::Function(Function::Sin(
                 vec![
-                    ExpressionToken::Literal(5.0.into()),
+                    ExpressionToken::Literal(5.into()),
                     ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-                    ExpressionToken::Literal(6.0.into()),
+                    ExpressionToken::Literal(6.into()),
                     ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
                     ExpressionToken::Expression(
                         vec![
                             ExpressionToken::Function(Function::Cos(
-                                vec![ExpressionToken::Literal(4.0.into())].into(),
+                                vec![ExpressionToken::Literal(4.into())].into(),
                             )),
                             ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                             ExpressionToken::Literal(2.0.into()),
@@ -55,14 +55,8 @@ mod tests {
                 _ => String::from("Failed to parse for unknown reason"),
             })?;
 
-        assert_eq!(result, expd);
         assert_eq!(remaining.len(), 0);
-
-        // assert_parse!(
-        //     parser = gcode_expression;
-        //     input = expr.as_bytes();
-        //     expected = expd;
-        // );
+        assert_eq!(result, expd);
 
         Ok(())
     }
