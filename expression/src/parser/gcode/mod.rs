@@ -40,21 +40,11 @@ fn literal<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Value, E>
 
     alt((
         map(double, Value::Float),
-        map(alphanumeric1, |s| {
-            println!("Signed: {:?}", s);
-            Value::Unsigned(
-                String::from(s)
-                    .parse::<u64>()
-                    .expect("Failed to parse unsigned value"),
-            )
+        map_res(alphanumeric1, |s| {
+            String::from(s).parse::<u64>().map(Value::Unsigned)
         }),
-        map(recognize(preceded(opt(char('-')), alphanumeric1)), |s| {
-            println!("Signed: {:?}", s);
-            Value::Signed(
-                String::from(s)
-                    .parse::<i64>()
-                    .expect("Failed to parse signed value"),
-            )
+        map_res(recognize(preceded(opt(char('-')), alphanumeric1)), |s| {
+            String::from(s).parse::<i64>().map(Value::Signed)
         }),
     ))(i)
 }
