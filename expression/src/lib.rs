@@ -236,7 +236,7 @@ pub enum Parameter {
     /// Numbered parameter like `#4711`
     Numbered(u32),
     /// Named local parameter like `#<some_local_param>`
-    Named(String),
+    Local(String),
     /// Named global parameter like `#<_some_global_param>`
     Global(String),
 }
@@ -251,13 +251,13 @@ impl Parameter {
     /// use expression::Parameter;
     ///
     /// assert_eq!(Parameter::Numbered(101).to_ident_string(), "101");
-    /// assert_eq!(Parameter::Named("some_name".to_string()).to_ident_string(), "<some_name>");
+    /// assert_eq!(Parameter::Local("some_name".to_string()).to_ident_string(), "<some_name>");
     /// assert_eq!(Parameter::Global("some_global".to_string()).to_ident_string(), "<_some_global>");
     /// ```
     pub fn to_ident_string(&self) -> String {
         match self {
             Parameter::Numbered(n) => n.to_string(),
-            Parameter::Named(name) => format!("<{}>", name),
+            Parameter::Local(name) => format!("<{}>", name),
             Parameter::Global(global) => format!("<_{}>", global),
         }
     }
@@ -308,7 +308,7 @@ mod tests {
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                 ExpressionToken::Expression(
                     vec![
-                        ExpressionToken::Parameter(Parameter::Named("named".into())),
+                        ExpressionToken::Parameter(Parameter::Local("named".into())),
                         ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                         ExpressionToken::Parameter(Parameter::Global("global".into())),
                     ]

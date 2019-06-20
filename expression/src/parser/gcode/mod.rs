@@ -66,7 +66,7 @@ fn parameter<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Paramet
                     Parameter::Global(String::from(s))
                 }),
                 map(delimited(char('<'), take_until(">"), char('>')), |s| {
-                    Parameter::Named(String::from(s))
+                    Parameter::Local(String::from(s))
                 }),
                 map_res(alphanumeric1, |s| {
                     String::from(s).parse::<u32>().map(Parameter::Numbered)
@@ -135,4 +135,47 @@ fn function<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Function
             ),
         )),
     )(i)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nom::{
+        error::{convert_error, VerboseError},
+        Err,
+    };
+
+    #[test]
+    fn parse_parameters() -> Result<(), String> {
+        let numbered = "#123";
+        let local = "#<local>";
+        let global = "#<_global>";
+
+        let (remaining, result) =
+            parameter::<VerboseError<&str>>(numbered).map_err(|e| match e {
+                Err::Error(e) | Err::Failure(e) => convert_error(numbered, e),
+                _ => String::from("Failed to parse for unknown reason"),
+            })?;
+
+        assert_eq!(remaining.len(), 0);
+        assert_eq!(result, Parameter::Numbered(123u32));
+
+        let (remaining, result) = parameter::<VerboseError<&str>>(local).map_err(|e| match e {
+            Err::Error(e) | Err::Failure(e) => convert_error(local, e),
+            _ => String::from("Failed to parse for unknown reason"),
+        })?;
+
+        assert_eq!(remaining.len(), 0);
+        assert_eq!(result, Parameter::Local("local".into()));
+
+        let (remaining, result) = parameter::<VerboseError<&str>>(global).map_err(|e| match e {
+            Err::Error(e) | Err::Failure(e) => convert_error(global, e),
+            _ => String::from("Failed to parse for unknown reason"),
+        })?;
+
+        assert_eq!(remaining.len(), 0);
+        assert_eq!(result, Parameter::Global("global".into()));
+
+        Ok(())
+    }
 }
