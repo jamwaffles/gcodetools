@@ -18,11 +18,11 @@ extern crate nom;
 #[macro_use]
 extern crate maplit;
 
-mod evaluator;
+// mod evaluator;
 pub mod parser;
 mod value;
 
-pub use self::evaluator::evaluate;
+// pub use self::evaluator::evaluate;
 pub use self::value::Value;
 use std::collections::HashMap;
 use std::fmt;
@@ -175,8 +175,8 @@ pub enum ExpressionToken {
     Expression(Expression),
     /// Builtin function
     Function(Function),
-    /// Number, always parsed to float
-    Literal(f32),
+    /// A signed, unsigned or floating point number
+    Literal(Value),
     /// Parameter
     Parameter(Parameter),
 }
@@ -277,9 +277,9 @@ mod tests {
     fn format() {
         assert_eq!(
             Expression::from_tokens(vec![
-                ExpressionToken::Literal(1.0),
+                ExpressionToken::Literal(1.0.into()),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-                ExpressionToken::Literal(2.0),
+                ExpressionToken::Literal(2.0.into()),
             ])
             .to_string(),
             "[1 + 2]"
@@ -287,13 +287,13 @@ mod tests {
 
         assert_eq!(
             Expression::from_tokens(vec![
-                ExpressionToken::Literal(1.0),
+                ExpressionToken::Literal(1.0.into()),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                 ExpressionToken::Expression(
                     vec![
-                        ExpressionToken::Literal(2.0),
+                        ExpressionToken::Literal(2.0.into()),
                         ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-                        ExpressionToken::Literal(3.0),
+                        ExpressionToken::Literal(3.0.into()),
                     ]
                     .into(),
                 ),
