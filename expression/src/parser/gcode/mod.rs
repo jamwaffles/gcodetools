@@ -1,4 +1,7 @@
-use crate::{ArithmeticOperator, Expression, ExpressionToken, Function, Parameter, Value};
+use crate::{
+    ArithmeticOperator, BinaryOperator, Expression, ExpressionToken, Function, LogicalOperator,
+    Parameter, Value,
+};
 use nom::{
     branch::alt,
     bytes::complete::{tag, tag_no_case, take_until},
@@ -29,7 +32,10 @@ fn expression_token<'a, E: ParseError<&'a str>>(
         multispace0,
         alt((
             map(operator, ExpressionToken::ArithmeticOperator),
+            map(logical_operator, ExpressionToken::LogicalOperator),
+            map(binary_operator, ExpressionToken::BinaryOperator),
             map(function, ExpressionToken::Function),
+            map(exists, ExpressionToken::Function),
             map(gcode_expression, ExpressionToken::Expression),
             map(literal, ExpressionToken::Literal),
         )),
@@ -53,6 +59,28 @@ fn operator<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Arithmet
         map(char('*'), |_| ArithmeticOperator::Mul),
         map(char('+'), |_| ArithmeticOperator::Add),
         map(char('-'), |_| ArithmeticOperator::Sub),
+        map(tag_no_case("mod"), |_| ArithmeticOperator::Mod),
+    ))(i)
+}
+
+fn logical_operator<'a, E: ParseError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, LogicalOperator, E> {
+    alt((
+        map(tag("AND"), |_| LogicalOperator::And),
+        map(tag("OR"), |_| LogicalOperator::Or),
+        map(tag("NOT"), |_| LogicalOperator::Not),
+    ))(i)
+}
+
+fn binary_operator<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, BinaryOperator, E> {
+    alt((
+        map(tag_no_case("EQ"), |_| BinaryOperator::Equal),
+        map(tag_no_case("NE"), |_| BinaryOperator::NotEqual),
+        map(tag_no_case("GT"), |_| BinaryOperator::GreaterThan),
+        map(tag_no_case("GE"), |_| BinaryOperator::GreaterThanOrEqual),
+        map(tag_no_case("LT"), |_| BinaryOperator::LessThan),
+        map(tag_no_case("LE"), |_| BinaryOperator::LessThanOrEqual),
     ))(i)
 }
 
@@ -72,6 +100,24 @@ fn parameter<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Paramet
                     String::from(s).parse::<u32>().map(Parameter::Numbered)
                 }),
             )),
+        ),
+    )(i)
+}
+
+/// `exists` is a special function that can only take a single parameter as an argument
+fn exists<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Function, E> {
+    context(
+        "exists",
+        map(
+            preceded(
+                tag_no_case("exists"),
+                delimited(
+                    char('['),
+                    delimited(multispace0, parameter, multispace0),
+                    char(']'),
+                ),
+            ),
+            Function::Exists,
         ),
     )(i)
 }
@@ -103,7 +149,6 @@ fn function<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Function
                 preceded(tag_no_case("cos"), gcode_expression),
                 Function::Cos,
             ),
-            map(preceded(tag_no_case("exists"), parameter), Function::Exists),
             map(
                 preceded(tag_no_case("exp"), gcode_expression),
                 Function::Exp,
