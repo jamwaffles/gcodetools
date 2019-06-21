@@ -1,21 +1,24 @@
 use crate::{
     ArithmeticOperator, BinaryOperator, Expression, ExpressionToken, Function, LogicalOperator,
-    Parameter, Value,
+    Parameter,
 };
 use nom::{
     branch::alt,
     bytes::complete::{tag, tag_no_case, take_until},
     character::complete::{alphanumeric1, char, multispace0},
-    combinator::{map, map_res, not, opt, recognize},
+    combinator::{map, map_res},
     error::{context, ParseError},
     multi::many1,
-    number::complete::double,
+    number::complete::recognize_float,
     sequence::{delimited, preceded, separated_pair},
     IResult,
 };
+use std::str::FromStr;
 
 /// Expression entry point
-pub fn gcode_expression<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Expression, E> {
+pub fn gcode_expression<'a, E: ParseError<&'a str>, V: FromStr>(
+    i: &'a str,
+) -> IResult<&'a str, Expression<V>, E> {
     context(
         "expression",
         map(
@@ -25,9 +28,9 @@ pub fn gcode_expression<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a s
     )(i)
 }
 
-fn expression_token<'a, E: ParseError<&'a str>>(
+fn expression_token<'a, E: ParseError<&'a str>, V: FromStr>(
     i: &'a str,
-) -> IResult<&'a str, ExpressionToken, E> {
+) -> IResult<&'a str, ExpressionToken<V>, E> {
     delimited(
         multispace0,
         alt((
@@ -43,14 +46,8 @@ fn expression_token<'a, E: ParseError<&'a str>>(
     )(i)
 }
 
-fn literal<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Value, E> {
-    alt((
-        map_res(
-            recognize(delimited(opt(char('-')), alphanumeric1, not(char('.')))),
-            |s| String::from(s).parse::<i64>().map(Value::Integer),
-        ),
-        map(double, Value::Double),
-    ))(i)
+fn literal<'a, E: ParseError<&'a str>, V: FromStr>(i: &'a str) -> IResult<&'a str, V, E> {
+    map_res(recognize_float, |s| String::from(s).parse::<V>())(i)
 }
 
 fn operator<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, ArithmeticOperator, E> {
@@ -105,7 +102,7 @@ fn parameter<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Paramet
 }
 
 /// `exists` is a special function that can only take a single parameter as an argument
-fn exists<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Function, E> {
+fn exists<'a, E: ParseError<&'a str>, V>(i: &'a str) -> IResult<&'a str, Function<V>, E> {
     context(
         "exists",
         map(
@@ -122,7 +119,9 @@ fn exists<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Function, 
     )(i)
 }
 
-fn function<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Function, E> {
+fn function<'a, E: ParseError<&'a str>, V: FromStr>(
+    i: &'a str,
+) -> IResult<&'a str, Function<V>, E> {
     context(
         "function",
         alt((

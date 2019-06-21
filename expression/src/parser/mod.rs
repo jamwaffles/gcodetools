@@ -46,7 +46,7 @@ mod tests {
         ]);
 
         let (remaining, result) =
-            gcode_expression::<VerboseError<&str>>(expr).map_err(|e| match e {
+            gcode_expression::<VerboseError<&str>, f64>(expr).map_err(|e| match e {
                 Err::Error(e) | Err::Failure(e) => {
                     let e = convert_error(expr, e);
                     println!("{}", e);

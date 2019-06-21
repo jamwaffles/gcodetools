@@ -12,18 +12,16 @@
     unused_qualifications
 )]
 
-#[macro_use]
-extern crate nom;
 #[cfg(test)]
 #[macro_use]
 extern crate maplit;
 
-// mod evaluator;
+mod evaluator;
 pub mod parser;
-mod value;
+// mod value;
 
-// pub use self::evaluator::evaluate;
-pub use self::value::Value;
+pub use self::evaluator::evaluate;
+// pub use self::value::Value;
 use std::collections::HashMap;
 use std::fmt;
 
@@ -80,38 +78,41 @@ impl fmt::Display for LogicalOperator {
 
 /// Builtin functions
 #[derive(Clone, Debug, PartialEq)]
-pub enum Function {
+pub enum Function<V> {
     /// Absolute
-    Abs(Expression),
+    Abs(Expression<V>),
     /// ACOS
-    Acos(Expression),
+    Acos(Expression<V>),
     /// ASIN
-    Asin(Expression),
+    Asin(Expression<V>),
     /// Arctan
-    Atan((Expression, Expression)),
+    Atan((Expression<V>, Expression<V>)),
     /// Cos
-    Cos(Expression),
+    Cos(Expression<V>),
     /// Check if parameter exists (1.0) or not (0.0)
     Exists(Parameter),
     /// Exponent
-    Exp(Expression),
+    Exp(Expression<V>),
     /// Round down
-    Floor(Expression),
+    Floor(Expression<V>),
     /// Round up
-    Ceil(Expression),
+    Ceil(Expression<V>),
     /// Ln
-    Ln(Expression),
+    Ln(Expression<V>),
     /// Round to nearest integer
-    Round(Expression),
+    Round(Expression<V>),
     /// Sin
-    Sin(Expression),
+    Sin(Expression<V>),
     /// Square root
-    Sqrt(Expression),
+    Sqrt(Expression<V>),
     /// Tan
-    Tan(Expression),
+    Tan(Expression<V>),
 }
 
-impl fmt::Display for Function {
+impl<V> fmt::Display for Function<V>
+where
+    V: fmt::Display,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Function::Abs(expr) => write!(f, "abs{}", expr),
@@ -164,7 +165,7 @@ impl fmt::Display for BinaryOperator {
 
 /// Union of any possible token present in an expression
 #[derive(Clone, Debug, PartialEq)]
-pub enum ExpressionToken {
+pub enum ExpressionToken<V> {
     /// Comparison
     BinaryOperator(BinaryOperator),
     /// General arithmetic
@@ -172,16 +173,19 @@ pub enum ExpressionToken {
     /// Logical operator
     LogicalOperator(LogicalOperator),
     /// Nested expressions
-    Expression(Expression),
+    Expression(Expression<V>),
     /// Builtin function
-    Function(Function),
+    Function(Function<V>),
     /// A signed, unsigned or floating point number
-    Literal(Value),
+    Literal(V),
     /// Parameter
     Parameter(Parameter),
 }
 
-impl fmt::Display for ExpressionToken {
+impl<V> fmt::Display for ExpressionToken<V>
+where
+    V: fmt::Display,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             ExpressionToken::BinaryOperator(item) => write!(f, "{}", item),
@@ -197,17 +201,17 @@ impl fmt::Display for ExpressionToken {
 
 /// Wrapping expression type
 #[derive(Clone, Debug, PartialEq)]
-pub struct Expression(pub Vec<ExpressionToken>);
+pub struct Expression<V>(pub Vec<ExpressionToken<V>>);
 
-impl From<Vec<ExpressionToken>> for Expression {
-    fn from(other: Vec<ExpressionToken>) -> Self {
+impl<V> From<Vec<ExpressionToken<V>>> for Expression<V> {
+    fn from(other: Vec<ExpressionToken<V>>) -> Self {
         Expression(other)
     }
 }
 
-impl Expression {
+impl<V> Expression<V> {
     /// Create an expression from a list of tokens
-    pub fn from_tokens(tokens: Vec<ExpressionToken>) -> Self {
+    pub fn from_tokens(tokens: Vec<ExpressionToken<V>>) -> Self {
         tokens.into()
     }
 
@@ -217,7 +221,10 @@ impl Expression {
     }
 }
 
-impl fmt::Display for Expression {
+impl<V> fmt::Display for Expression<V>
+where
+    V: fmt::Display,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let tokens = self
             .0
@@ -276,7 +283,7 @@ mod tests {
     #[test]
     fn format() {
         assert_eq!(
-            Expression::from_tokens(vec![
+            Expression::<f64>::from_tokens(vec![
                 ExpressionToken::Literal(1.0.into()),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                 ExpressionToken::Literal(2.0.into()),
@@ -286,7 +293,7 @@ mod tests {
         );
 
         assert_eq!(
-            Expression::from_tokens(vec![
+            Expression::<f64>::from_tokens(vec![
                 ExpressionToken::Literal(1.0.into()),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                 ExpressionToken::Expression(
@@ -303,7 +310,7 @@ mod tests {
         );
 
         assert_eq!(
-            Expression::from_tokens(vec![
+            Expression::<f64>::from_tokens(vec![
                 ExpressionToken::Parameter(Parameter::Numbered(1234)),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                 ExpressionToken::Expression(
