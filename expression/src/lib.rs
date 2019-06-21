@@ -18,10 +18,8 @@ extern crate maplit;
 
 mod evaluator;
 pub mod parser;
-// mod value;
 
 pub use self::evaluator::evaluate;
-// pub use self::value::Value;
 
 use std::collections::HashMap;
 use std::fmt;
