@@ -200,31 +200,43 @@ mod tests {
     };
 
     #[test]
-    fn parse_parameters() -> Result<(), String> {
+    fn parse_numbered_parameter() -> Result<(), String> {
         let numbered = "#123";
-        let local = "#<local>";
-        let global = "#<_global>";
 
         let (remaining, result) =
             parameter::<VerboseError<&str>>(numbered).map_err(|e| match e {
                 Err::Error(e) | Err::Failure(e) => convert_error(numbered, e),
-                _ => String::from("Failed to parse for unknown reason"),
+                e => format!("Failed to parse: {:?}", e),
             })?;
 
         assert_eq!(remaining.len(), 0);
         assert_eq!(result, Parameter::Numbered(123u32));
 
+        Ok(())
+    }
+
+    #[test]
+    fn parse_local_parameter() -> Result<(), String> {
+        let local = "#<local>";
+
         let (remaining, result) = parameter::<VerboseError<&str>>(local).map_err(|e| match e {
             Err::Error(e) | Err::Failure(e) => convert_error(local, e),
-            _ => String::from("Failed to parse for unknown reason"),
+            e => format!("Failed to parse: {:?}", e),
         })?;
 
         assert_eq!(remaining.len(), 0);
         assert_eq!(result, Parameter::Local("local".into()));
 
+        Ok(())
+    }
+
+    #[test]
+    fn parse_global_parameter() -> Result<(), String> {
+        let global = "#<_global>";
+
         let (remaining, result) = parameter::<VerboseError<&str>>(global).map_err(|e| match e {
             Err::Error(e) | Err::Failure(e) => convert_error(global, e),
-            _ => String::from("Failed to parse for unknown reason"),
+            e => format!("Failed to parse: {:?}", e),
         })?;
 
         assert_eq!(remaining.len(), 0);
