@@ -41,6 +41,7 @@ fn expression_token<'a, E: ParseError<&'a str>, V: FromStr>(
             map(exists, ExpressionToken::Function),
             map(gcode_expression, ExpressionToken::Expression),
             map(literal, ExpressionToken::Literal),
+            map(parameter, ExpressionToken::Parameter),
         )),
         multispace0,
     )(i)
