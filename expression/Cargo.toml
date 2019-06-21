@@ -9,7 +9,6 @@ name = "evaluate_expression"
 
 [dependencies]
 nom = "5.0.0-beta2"
-common = { path = "../common" }
 num-traits = "0.2.8"
 
 [dev-dependencies]
