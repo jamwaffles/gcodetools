@@ -22,11 +22,12 @@ pub mod parser;
 
 pub use self::evaluator::evaluate;
 // pub use self::value::Value;
+
 use std::collections::HashMap;
 use std::fmt;
 
 /// List of parameters (variables) to pass in as the environment for the evaluation of an expression
-pub type Context = HashMap<Parameter, f32>;
+pub type Context<V> = HashMap<Parameter, V>;
 
 /// Arithmetic (`/`, `*`, `+`, `-` and modulo) operator
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]

@@ -1,8 +1,12 @@
 use crate::{ArithmeticOperator, Context, Expression, ExpressionToken, Function};
+use num_traits::Float;
 
-fn shunting_yard(tokens: Expression, context: Option<&Context>) -> Vec<ExpressionToken> {
-    let mut output: Vec<ExpressionToken> = Vec::new();
-    let mut operators: Vec<ExpressionToken> = Vec::new();
+fn shunting_yard<V>(tokens: Expression<V>, context: Option<&Context<V>>) -> Vec<ExpressionToken<V>>
+where
+    V: Float + From<f32>,
+{
+    let mut output: Vec<ExpressionToken<V>> = Vec::new();
+    let mut operators: Vec<ExpressionToken<V>> = Vec::new();
 
     for token in tokens.0 {
         match token {
@@ -27,7 +31,7 @@ fn shunting_yard(tokens: Expression, context: Option<&Context>) -> Vec<Expressio
             ExpressionToken::Expression(nested_expr) => {
                 let res = evaluate(nested_expr, context);
 
-                output.push(ExpressionToken::Literal(res.unwrap()));
+                output.push(ExpressionToken::Literal(res.unwrap().into()));
             }
             ExpressionToken::Parameter(_) => output.push(token),
             ExpressionToken::Function(func) => {
@@ -42,13 +46,6 @@ fn shunting_yard(tokens: Expression, context: Option<&Context>) -> Vec<Expressio
                         res1.atan2(res2)
                     }
                     Function::Cos(arg) => evaluate(arg, context).unwrap().cos(),
-                    Function::Exists(arg) => match context {
-                        Some(ctx) => match ctx.contains_key(&arg) {
-                            true => 1.0,
-                            false => 0.0,
-                        },
-                        None => 0.0,
-                    },
                     Function::Exp(arg) => evaluate(arg, context).unwrap().exp(),
                     Function::Floor(arg) => evaluate(arg, context).unwrap().floor(),
                     Function::Ceil(arg) => evaluate(arg, context).unwrap().ceil(),
@@ -57,9 +54,16 @@ fn shunting_yard(tokens: Expression, context: Option<&Context>) -> Vec<Expressio
                     Function::Sin(arg) => evaluate(arg, context).unwrap().sin(),
                     Function::Sqrt(arg) => evaluate(arg, context).unwrap().sqrt(),
                     Function::Tan(arg) => evaluate(arg, context).unwrap().tan(),
+                    Function::Exists(param) => match context {
+                        Some(ctx) => match ctx.contains_key(&param) {
+                            true => 1.0.into(),
+                            false => 0.0.into(),
+                        },
+                        None => 0.0.into(),
+                    },
                 };
 
-                output.push(ExpressionToken::Literal(res))
+                output.push(ExpressionToken::Literal(res.into()))
             }
             _ => unimplemented!(),
         }
@@ -74,7 +78,13 @@ fn shunting_yard(tokens: Expression, context: Option<&Context>) -> Vec<Expressio
     output
 }
 
-fn calculate(postfix_tokens: Vec<ExpressionToken>, context: Option<&Context>) -> Result<f32, ()> {
+fn calculate<V>(
+    postfix_tokens: Vec<ExpressionToken<V>>,
+    context: Option<&Context<V>>,
+) -> Result<V, ()>
+where
+    V: Float,
+{
     let mut stack = Vec::new();
 
     for token in postfix_tokens {
@@ -111,12 +121,12 @@ fn calculate(postfix_tokens: Vec<ExpressionToken>, context: Option<&Context>) ->
     Ok(stack.pop().unwrap())
 }
 
-// TODO: Some way of returning `T` instead of a rigid `f32`
 // TODO: Better error than `()`
 /// Evaluate an expression with an optional context object
-pub fn evaluate<E>(expression: E, context: Option<&Context>) -> Result<f32, ()>
+pub fn evaluate<E, V>(expression: E, context: Option<&Context<V>>) -> Result<V, ()>
 where
-    E: Into<Expression>,
+    V: Float + From<f32>,
+    E: Into<Expression<V>>,
 {
     let postfix_tokens = shunting_yard(expression.into(), context);
 
@@ -139,7 +149,7 @@ mod tests {
 
     #[test]
     fn it_evaluates_simple_expressions() {
-        let expr = vec![
+        let expr: Vec<ExpressionToken<f32>> = vec![
             ExpressionToken::Literal(1.0),
             ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
             ExpressionToken::Literal(2.0),
@@ -150,20 +160,20 @@ mod tests {
 
     #[test]
     fn it_evaluates_nested_expressions() {
-        let expr = vec![
+        let expr: Vec<ExpressionToken<f32>> = vec![
             ExpressionToken::Literal(1.0),
             ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
             ExpressionToken::Expression(
                 vec![
-                    ExpressionToken::Literal(2.0),
+                    ExpressionToken::Literal(2.0.into()),
                     ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-                    ExpressionToken::Literal(3.0),
+                    ExpressionToken::Literal(3.0.into()),
                 ]
                 .into(),
             ),
         ];
 
-        assert_eq!(evaluate(expr, None), Ok(6.0));
+        assert_eq!(evaluate(expr, None), Ok(6.0.into()));
     }
 
     #[test]
@@ -173,7 +183,7 @@ mod tests {
             ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
             ExpressionToken::Expression(
                 vec![
-                    ExpressionToken::Parameter(Parameter::Named("named".into())),
+                    ExpressionToken::Parameter(Parameter::Local("named".into())),
                     ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
                     ExpressionToken::Parameter(Parameter::Global("global".into())),
                 ]
@@ -181,9 +191,9 @@ mod tests {
             ),
         ];
 
-        let context: Context = hashmap! {
+        let context: Context<f32> = hashmap! {
             Parameter::Numbered(1234) => 1.2,
-            Parameter::Named("named".into()) => 3.4,
+            Parameter::Local("named".into()) => 3.4,
             Parameter::Global("global".into()) => 5.6,
         };
 
@@ -192,42 +202,42 @@ mod tests {
 
     #[test]
     fn it_evaluates_exists() {
-        let good_ctx: Context = hashmap! {
-            Parameter::Named("foo_bar".into()) => 1.0,
+        let good_ctx: Context<f32> = hashmap! {
+            Parameter::Local("foo_bar".into()) => 1.0,
         };
-        let bad_ctx: Context = hashmap! {
-            Parameter::Named("baz_quux".into()) => 1.0,
+        let bad_ctx: Context<f32> = hashmap! {
+            Parameter::Local("baz_quux".into()) => 1.0,
             Parameter::Global("foo_bar".into()) => 1.0,
         };
 
         assert_eq!(
             evaluate(
                 vec![ExpressionToken::Function(Function::Exists(
-                    Parameter::Named("foo_bar".into()),
+                    Parameter::Local("foo_bar".into()),
                 ))],
                 Some(&good_ctx)
             ),
-            Ok(1.0)
+            Ok(1.0.into())
         );
 
         assert_eq!(
             evaluate(
                 vec![ExpressionToken::Function(Function::Exists(
-                    Parameter::Named("foo_bar".into()),
+                    Parameter::Local("foo_bar".into()),
                 ))],
                 Some(&bad_ctx)
             ),
-            Ok(0.0)
+            Ok(0.0.into())
         );
 
         assert_eq!(
             evaluate(
                 vec![ExpressionToken::Function(Function::Exists(
-                    Parameter::Named("foo_bar".into()),
+                    Parameter::Local("foo_bar".into()),
                 ))],
                 None
             ),
-            Ok(0.0)
+            Ok(0.0f32)
         );
     }
 
@@ -238,75 +248,75 @@ mod tests {
             vec![ExpressionToken::Literal(2.0)].into(),
         )))];
 
-        assert_eq!(evaluate(atan, None), Ok(0.4636476));
+        assert_eq!(evaluate(atan, None), Ok(0.4636476090008061));
     }
 
     // Not an exhaustive test by any means, but it should get us in the ballpark
     #[test]
     fn it_evaluates_functions() {
-        let funcs: Vec<(Function, f32)> = vec![
+        let funcs: Vec<(Function<f32>, f32)> = vec![
             (
-                Function::Abs(vec![ExpressionToken::Literal(-1.5)].into()),
+                Function::Abs(vec![ExpressionToken::Literal((-1.5).into())].into()),
                 1.5,
             ),
             (
-                Function::Acos(vec![ExpressionToken::Literal(1.0)].into()),
+                Function::Acos(vec![ExpressionToken::Literal(1.0.into())].into()),
                 0.0,
             ),
             (
-                Function::Asin(vec![ExpressionToken::Literal(1.0)].into()),
+                Function::Asin(vec![ExpressionToken::Literal(1.0.into())].into()),
                 1.5707964,
             ),
             (
-                Function::Cos(vec![ExpressionToken::Literal(1.0)].into()),
+                Function::Cos(vec![ExpressionToken::Literal(1.0.into())].into()),
                 0.5403023,
             ),
             (
-                Function::Exp(vec![ExpressionToken::Literal(1.0)].into()),
+                Function::Exp(vec![ExpressionToken::Literal(1.0.into())].into()),
                 2.7182817,
             ),
             (
-                Function::Floor(vec![ExpressionToken::Literal(2.8)].into()),
+                Function::Floor(vec![ExpressionToken::Literal(2.8.into())].into()),
                 2.0,
             ),
             (
-                Function::Floor(vec![ExpressionToken::Literal(-2.8)].into()),
+                Function::Floor(vec![ExpressionToken::Literal((-2.8).into())].into()),
                 -3.0,
             ),
             (
-                Function::Ceil(vec![ExpressionToken::Literal(2.8)].into()),
+                Function::Ceil(vec![ExpressionToken::Literal(2.8.into())].into()),
                 3.0,
             ),
             (
-                Function::Ceil(vec![ExpressionToken::Literal(-2.8)].into()),
+                Function::Ceil(vec![ExpressionToken::Literal((-2.8).into())].into()),
                 -2.0,
             ),
             (
-                Function::Ln(vec![ExpressionToken::Literal(2.0)].into()),
+                Function::Ln(vec![ExpressionToken::Literal(2.0.into())].into()),
                 0.6931472,
             ),
             (
-                Function::Round(vec![ExpressionToken::Literal(1.4)].into()),
+                Function::Round(vec![ExpressionToken::Literal(1.4.into())].into()),
                 1.0,
             ),
             (
-                Function::Round(vec![ExpressionToken::Literal(1.5)].into()),
+                Function::Round(vec![ExpressionToken::Literal(1.5.into())].into()),
                 2.0,
             ),
             (
-                Function::Round(vec![ExpressionToken::Literal(1.6)].into()),
+                Function::Round(vec![ExpressionToken::Literal(1.6.into())].into()),
                 2.0,
             ),
             (
-                Function::Sin(vec![ExpressionToken::Literal(1.0)].into()),
+                Function::Sin(vec![ExpressionToken::Literal(1.0.into())].into()),
                 0.84147096,
             ),
             (
-                Function::Sqrt(vec![ExpressionToken::Literal(3.0)].into()),
+                Function::Sqrt(vec![ExpressionToken::Literal(3.0.into())].into()),
                 1.7320508,
             ),
             (
-                Function::Tan(vec![ExpressionToken::Literal(1.0)].into()),
+                Function::Tan(vec![ExpressionToken::Literal(1.0.into())].into()),
                 1.5574077,
             ),
         ];
