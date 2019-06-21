@@ -4,12 +4,12 @@ use crate::{
 };
 use nom::{
     branch::alt,
-    bytes::complete::{tag, tag_no_case, take_until},
-    character::complete::{alphanumeric1, char, multispace0},
+    bytes::streaming::{tag, tag_no_case, take_until},
+    character::streaming::{char, digit1, multispace0},
     combinator::{map, map_res},
     error::{context, ParseError},
     multi::many1,
-    number::complete::recognize_float,
+    number::streaming::recognize_float,
     sequence::{delimited, preceded, separated_pair},
     IResult,
 };
@@ -201,7 +201,8 @@ mod tests {
 
     #[test]
     fn parse_numbered_parameter() -> Result<(), String> {
-        let numbered = "#123";
+        // NOTE: Streaming version requires a non-digit terminating char to finish properly
+        let numbered = "#123\n";
 
         let (remaining, result) =
             parameter::<VerboseError<&str>>(numbered).map_err(|e| match e {
@@ -209,7 +210,7 @@ mod tests {
                 e => format!("Failed to parse: {:?}", e),
             })?;
 
-        assert_eq!(remaining.len(), 0);
+        assert_eq!(remaining, "\n");
         assert_eq!(result, Parameter::Numbered(123u32));
 
         Ok(())
