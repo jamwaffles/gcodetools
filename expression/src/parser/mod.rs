@@ -1,5 +1,7 @@
 mod gcode;
 
+pub use gcode::gcode_expression;
+
 #[cfg(test)]
 mod tests {
     use super::gcode::gcode_expression;

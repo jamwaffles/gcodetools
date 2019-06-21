@@ -20,7 +20,7 @@ mod evaluator;
 pub mod parser;
 
 pub use self::evaluator::evaluate;
-
+pub use self::parser::gcode_expression;
 use std::collections::HashMap;
 use std::fmt;
 
