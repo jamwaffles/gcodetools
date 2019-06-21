@@ -103,7 +103,7 @@ fn parameter<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Paramet
                 map(delimited(char('<'), take_until(">"), char('>')), |s| {
                     Parameter::Local(String::from(s))
                 }),
-                map_res(alphanumeric1, |s| {
+                map_res(digit1, |s| {
                     String::from(s).parse::<u32>().map(Parameter::Numbered)
                 }),
             )),
