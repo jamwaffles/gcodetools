@@ -52,34 +52,43 @@ fn literal<'a, E: ParseError<&'a str>, V: FromStr>(i: &'a str) -> IResult<&'a st
 }
 
 fn operator<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, ArithmeticOperator, E> {
-    alt((
-        map(char('/'), |_| ArithmeticOperator::Div),
-        map(char('*'), |_| ArithmeticOperator::Mul),
-        map(char('+'), |_| ArithmeticOperator::Add),
-        map(char('-'), |_| ArithmeticOperator::Sub),
-        map(tag_no_case("mod"), |_| ArithmeticOperator::Mod),
-    ))(i)
+    context(
+        "operator",
+        alt((
+            map(char('/'), |_| ArithmeticOperator::Div),
+            map(char('*'), |_| ArithmeticOperator::Mul),
+            map(char('+'), |_| ArithmeticOperator::Add),
+            map(char('-'), |_| ArithmeticOperator::Sub),
+            map(tag_no_case("mod"), |_| ArithmeticOperator::Mod),
+        )),
+    )(i)
 }
 
 fn logical_operator<'a, E: ParseError<&'a str>>(
     i: &'a str,
 ) -> IResult<&'a str, LogicalOperator, E> {
-    alt((
-        map(tag("AND"), |_| LogicalOperator::And),
-        map(tag("OR"), |_| LogicalOperator::Or),
-        map(tag("NOT"), |_| LogicalOperator::Not),
-    ))(i)
+    context(
+        "logical operator",
+        alt((
+            map(tag("AND"), |_| LogicalOperator::And),
+            map(tag("OR"), |_| LogicalOperator::Or),
+            map(tag("NOT"), |_| LogicalOperator::Not),
+        )),
+    )(i)
 }
 
 fn binary_operator<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, BinaryOperator, E> {
-    alt((
-        map(tag_no_case("EQ"), |_| BinaryOperator::Equal),
-        map(tag_no_case("NE"), |_| BinaryOperator::NotEqual),
-        map(tag_no_case("GT"), |_| BinaryOperator::GreaterThan),
-        map(tag_no_case("GE"), |_| BinaryOperator::GreaterThanOrEqual),
-        map(tag_no_case("LT"), |_| BinaryOperator::LessThan),
-        map(tag_no_case("LE"), |_| BinaryOperator::LessThanOrEqual),
-    ))(i)
+    context(
+        "comparison",
+        alt((
+            map(tag_no_case("EQ"), |_| BinaryOperator::Equal),
+            map(tag_no_case("NE"), |_| BinaryOperator::NotEqual),
+            map(tag_no_case("GT"), |_| BinaryOperator::GreaterThan),
+            map(tag_no_case("GE"), |_| BinaryOperator::GreaterThanOrEqual),
+            map(tag_no_case("LT"), |_| BinaryOperator::LessThan),
+            map(tag_no_case("LE"), |_| BinaryOperator::LessThanOrEqual),
+        )),
+    )(i)
 }
 
 fn parameter<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Parameter, E> {
