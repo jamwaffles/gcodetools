@@ -17,6 +17,7 @@
 extern crate maplit;
 
 mod evaluator;
+mod macros;
 pub mod parser;
 
 pub use self::evaluator::evaluate;

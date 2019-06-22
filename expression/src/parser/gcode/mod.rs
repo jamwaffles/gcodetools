@@ -6,11 +6,11 @@ use nom::{
     branch::alt,
     bytes::streaming::{tag, tag_no_case, take_until},
     character::streaming::{char, digit1, multispace0},
-    combinator::{map, map_res},
+    combinator::{map, map_res, opt},
     error::{context, ParseError},
     multi::many1,
     number::streaming::recognize_float,
-    sequence::{delimited, preceded, separated_pair},
+    sequence::{delimited, preceded, separated_pair, terminated},
     IResult,
 };
 use std::str::FromStr;
@@ -34,13 +34,13 @@ fn expression_token<'a, E: ParseError<&'a str>, V: FromStr>(
     delimited(
         multispace0,
         alt((
+            map(literal, ExpressionToken::Literal),
             map(operator, ExpressionToken::ArithmeticOperator),
             map(logical_operator, ExpressionToken::LogicalOperator),
             map(binary_operator, ExpressionToken::BinaryOperator),
             map(function, ExpressionToken::Function),
             map(exists, ExpressionToken::Function),
             map(gcode_expression, ExpressionToken::Expression),
-            map(literal, ExpressionToken::Literal),
             map(parameter, ExpressionToken::Parameter),
         )),
         multispace0,
@@ -95,7 +95,7 @@ fn parameter<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Paramet
     context(
         "parameter",
         preceded(
-            char('#'),
+            terminated(char('#'), opt(multispace0)),
             alt((
                 map(delimited(tag("<_"), take_until(">"), char('>')), |s| {
                     Parameter::Global(String::from(s))
@@ -163,11 +163,13 @@ fn function<'a, E: ParseError<&'a str>, V: FromStr>(
                 Function::Exp,
             ),
             map(
-                preceded(tag_no_case("floor"), gcode_expression),
+                // Aka "floor"
+                preceded(tag_no_case("fix"), gcode_expression),
                 Function::Floor,
             ),
             map(
-                preceded(tag_no_case("ceil"), gcode_expression),
+                // Aka "ceil"
+                preceded(tag_no_case("fup"), gcode_expression),
                 Function::Ceil,
             ),
             map(preceded(tag_no_case("ln"), gcode_expression), Function::Ln),
@@ -194,6 +196,7 @@ fn function<'a, E: ParseError<&'a str>, V: FromStr>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{assert_parse, assert_parse_ok};
     use nom::{
         error::{convert_error, VerboseError},
         Err,
@@ -247,88 +250,26 @@ mod tests {
     }
 
     #[test]
-    fn it_parses_signed_integers_or_else() {
-        assert_eq!(
-            preceded_signed_value(span!(b"A10"), "A").unwrap().1,
-            Value::Signed(10i32)
-        );
-
-        assert_eq!(
-            preceded_signed_value(span!(b"A-10"), "A").unwrap().1,
-            Value::Signed(-10i32)
-        );
-
-        assert_eq!(
-            preceded_signed_value(span!(b"A#<test>"), "A").unwrap().1,
-            Value::Parameter(Parameter::Named("test".into()))
-        );
-
-        assert_eq!(
-            preceded_signed_value(span!(b"A[1 + 2]"), "A").unwrap().1,
-            Value::Expression(
-                vec![
-                    ExpressionToken::Literal(1.0),
-                    ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
-                    ExpressionToken::Literal(2.0),
-                ]
-                .into()
-            )
-        );
-    }
-
-    #[test]
-    fn it_parses_preceded_expressions() {
-        assert_eq!(
-            preceded_float_value(span!(b"Z[#<zscale>*10.]"), "Z")
-                .unwrap()
-                .1,
-            Value::Expression(
-                vec![
-                    ExpressionToken::Parameter(Parameter::Named("zscale".into())),
-                    ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
-                    ExpressionToken::Literal(10.0),
-                ]
-                .into()
-            )
-        );
-    }
-
-    #[test]
-    fn parse_unsigned_value() {
-        assert_parse!(
-            parser = ngc_unsigned;
-            input =
-                span!(b"100"),
-                span!(b"#<sth>")
-            ;
-            expected =
-                Value::Unsigned(100),
-                Value::Parameter(Parameter::Named("sth".into()))
-            ;
-        );
-    }
-
-    #[test]
     fn it_parses_named_parameters() {
         assert_parse!(
             parser = parameter;
-            input = span!(b"#<foo_bar>");
-            expected = Parameter::Named("foo_bar".into());
+            input = "#<foo_bar>";
+            expected = Parameter::Local("foo_bar".into());
         );
     }
 
-    #[test]
-    fn it_parses_not_numbered_parameters() {
-        assert!(not_numbered_parameter(span!(b"#<foo_bar>")).is_ok());
-        assert!(not_numbered_parameter(span!(b"#<_global>")).is_ok());
-        assert!(not_numbered_parameter(span!(b"#1234")).is_err());
-    }
+    // #[test]
+    // fn it_parses_not_numbered_parameters() {
+    //     assert!(not_numbered_parameter("#<foo_bar>").is_ok());
+    //     assert!(not_numbered_parameter("#<_global>").is_ok());
+    //     assert!(not_numbered_parameter("#1234").is_err());
+    // }
 
     #[test]
     fn it_parses_global_parameters() {
         assert_parse!(
             parser = parameter;
-            input = span!(b"#<_bar_baz>");
+            input = "#<_bar_baz>";
             expected = Parameter::Global("bar_baz".into());
         );
     }
@@ -338,26 +279,31 @@ mod tests {
         assert_parse!(
             parser = parameter;
             input =
-                span!(b"#1234"),
-                span!(b"#<foo_bar>"),
-                span!(b"#<_bar_baz>")
+                "#1234\n",
+                "#<foo_bar>",
+                "#<_bar_baz>"
             ;
             expected =
                 Parameter::Numbered(1234u32),
-                Parameter::Named("foo_bar".into()),
+                Parameter::Local("foo_bar".into()),
                 Parameter::Global("bar_baz".into())
+            ;
+            remaining =
+                "\n",
+                "",
+                ""
             ;
         );
     }
 
     #[test]
     fn it_parses_parameters_with_spaces_after_hash() {
-        assert!(parameter(span!(b"# 1234")).is_err());
+        assert!(parameter::<VerboseError<&str>>("# 1234").is_err());
 
         assert_parse!(
             parser = parameter;
-            input = span!(b"# <foo_bar>"), span!(b"# <_bar_baz>");
-            expected = Parameter::Named("foo_bar".into()), Parameter::Global("bar_baz".into());
+            input = "# <foo_bar>", "# <_bar_baz>";
+            expected = Parameter::Local("foo_bar".into()), Parameter::Global("bar_baz".into());
         );
     }
 
@@ -372,8 +318,8 @@ mod tests {
     #[test]
     fn it_parses_simple_expressions() {
         assert_parse!(
-            parser = expression;
-            input = span!(b"[1]");
+            parser = gcode_expression;
+            input = "[1]";
             expected = vec![ExpressionToken::Literal(1.0)].into()
         );
     }
@@ -381,8 +327,8 @@ mod tests {
     #[test]
     fn modulo() {
         assert_parse!(
-            parser = expression;
-            input = span!(b"[10 mod 3]");
+            parser = gcode_expression;
+            input = "[10 mod 3]";
             expected = vec![
                 ExpressionToken::Literal(10.0),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mod),
@@ -394,8 +340,8 @@ mod tests {
     #[test]
     fn it_parses_arithmetic() {
         assert_parse!(
-            parser = expression;
-            input = span!(b"[1 + 2 * 3 / 4 - 5]");
+            parser = gcode_expression;
+            input = "[1 + 2 * 3 / 4 - 5]";
             expected = vec![
                 ExpressionToken::Literal(1.0),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
@@ -413,8 +359,8 @@ mod tests {
     #[test]
     fn whitespace() {
         assert_parse!(
-            parser = expression;
-            input = span!(b"[ 1 + 2 * 3 / 4 - 5 ]");
+            parser = gcode_expression;
+            input = "[ 1 + 2 * 3 / 4 - 5 ]";
             expected = vec![
                 ExpressionToken::Literal(1.0),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
@@ -432,8 +378,8 @@ mod tests {
     #[test]
     fn it_parses_nested_expressions() {
         assert_parse!(
-            parser = expression;
-            input = span!(b"[1 + [[2 - 3] * 4]]");
+            parser = gcode_expression;
+            input = "[1 + [[2 - 3] * 4]]";
             expected = vec![
                 ExpressionToken::Literal(1.0),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
@@ -453,8 +399,8 @@ mod tests {
     #[test]
     fn it_parses_atan() {
         assert_parse!(
-            parser = expression;
-            input = span!(b"[ATAN[3 + 4]/[5]]");
+            parser = gcode_expression;
+            input = "[ATAN[3 + 4]/[5]]";
             expected =
                 vec![ExpressionToken::Function(Function::Atan((
                     vec![
@@ -470,15 +416,11 @@ mod tests {
     #[test]
     fn it_parses_a_function() {
         assert_parse!(
-            parser = expression;
+            parser = gcode_expression;
             input =
-                span!(b"[ABS[1.0]]"),
-                span!(b"ABS[1.0]")
+                "[ABS[1.0]]"
             ;
             expected =
-                vec![ExpressionToken::Function(Function::Abs(vec![
-                    ExpressionToken::Literal(1.0),
-                ].into()))].into(),
                 vec![ExpressionToken::Function(Function::Abs(vec![
                     ExpressionToken::Literal(1.0),
                 ].into()))].into()
@@ -489,21 +431,21 @@ mod tests {
     #[test]
     fn it_parses_functions() {
         assert_parse!(
-            parser = expression;
+            parser = gcode_expression;
             input =
-                span!(b"[ABS[1.0]]"),
-                span!(b"[ACOS[1.0]]"),
-                span!(b"[ASIN[1.0]]"),
-                span!(b"[COS[1.0]]"),
-                span!(b"[EXP[1.0]]"),
-                span!(b"[FIX[1.0]]"),
-                span!(b"[FUP[1.0]]"),
-                span!(b"[ROUND[1.0]]"),
-                span!(b"[LN[1.0]]"),
-                span!(b"[SIN[1.0]]"),
-                span!(b"[SQRT[1.0]]"),
-                span!(b"[TAN[1.0]]"),
-                span!(b"[EXISTS[#<named>]]")
+                "[ABS[1.0]]",
+                "[ACOS[1.0]]",
+                "[ASIN[1.0]]",
+                "[COS[1.0]]",
+                "[EXP[1.0]]",
+                "[FIX[1.0]]",
+                "[FUP[1.0]]",
+                "[ROUND[1.0]]",
+                "[LN[1.0]]",
+                "[SIN[1.0]]",
+                "[SQRT[1.0]]",
+                "[TAN[1.0]]",
+                "[EXISTS[#<named>]]"
             ;
 
             expected =
@@ -543,7 +485,7 @@ mod tests {
                 vec![ExpressionToken::Function(Function::Tan(vec![
                     ExpressionToken::Literal(1.0),
                 ].into()))].into(),
-                vec![ExpressionToken::Function(Function::Exists(Parameter::Named("named".into())))].into()
+                vec![ExpressionToken::Function(Function::Exists(Parameter::Local("named".into())))].into()
             ;
         );
     }
@@ -551,14 +493,14 @@ mod tests {
     #[test]
     fn it_parses_binary_operators() {
         assert_parse!(
-            parser = expression;
+            parser = gcode_expression;
             input =
-                span!(b"[1 EQ 2]"),
-                span!(b"[1 NE 2]"),
-                span!(b"[1 GT 2]"),
-                span!(b"[1 GE 2]"),
-                span!(b"[1 LT 2]"),
-                span!(b"[1 LE 2]")
+                "[1 EQ 2]",
+                "[1 NE 2]",
+                "[1 GT 2]",
+                "[1 GE 2]",
+                "[1 LT 2]",
+                "[1 LE 2]"
             ;
             expected =
                 vec![ExpressionToken::Literal(1.0), ExpressionToken::BinaryOperator(BinaryOperator::Equal), ExpressionToken::Literal(2.0)].into(),
@@ -574,12 +516,12 @@ mod tests {
     #[test]
     fn it_parses_logical_operators() {
         assert_parse!(
-            parser = expression;
+            parser = gcode_expression;
             input =
-                span!(b"[1 AND 2]"),
-                span!(b"[1 OR 2]"),
-                span!(b"[1 NOT 2]"),
-                span!(b"[[#<fraction> GT .99] OR [#<fraction> LT .01]]")
+                "[1 AND 2]",
+                "[1 OR 2]",
+                "[1 NOT 2]",
+                "[[#<fraction> GT .99] OR [#<fraction> LT .01]]"
             ;
             expected =
                 vec![
@@ -599,13 +541,13 @@ mod tests {
                 ].into(),
                 vec![
                     ExpressionToken::Expression(vec![
-                        ExpressionToken::Parameter(Parameter::Named("fraction".into())),
+                        ExpressionToken::Parameter(Parameter::Local("fraction".into())),
                         ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan),
                         ExpressionToken::Literal(0.99),
                     ].into()),
                     ExpressionToken::LogicalOperator(LogicalOperator::Or),
                     ExpressionToken::Expression(vec![
-                        ExpressionToken::Parameter(Parameter::Named("fraction".into())),
+                        ExpressionToken::Parameter(Parameter::Local("fraction".into())),
                         ExpressionToken::BinaryOperator(BinaryOperator::LessThan),
                         ExpressionToken::Literal(0.01),
                     ].into()),
@@ -617,8 +559,8 @@ mod tests {
     #[test]
     fn it_parses_negative_numbers_as_negative_numbers() {
         assert_parse!(
-            parser = expression;
-            input = span!(b"[-10.0*-12]");
+            parser = gcode_expression;
+            input = "[-10.0*-12]";
             expected = vec![
                 ExpressionToken::Literal(-10.0),
                 ExpressionToken::ArithmeticOperator(ArithmeticOperator::Mul),
@@ -630,23 +572,26 @@ mod tests {
     #[test]
     fn it_parses_expressions_with_parameters() {
         assert_parse_ok!(
-            parser = expression,
-            input = span!(b"[1 + #1234 * #<named_param> / #<_global_param>]")
+            parser = gcode_expression::<VerboseError<&str>, f64>,
+            input = "[1 + #1234 * #<named_param> / #<_global_param>]"
         );
     }
 
     #[test]
     fn it_parses_function_calls() {
-        assert_parse_ok!(parser = expression, input = span!(b"[SIN[10]]"));
+        assert_parse_ok!(
+            parser = gcode_expression::<VerboseError<&str>, f64>,
+            input = "[SIN[10]]"
+        );
     }
 
     #[test]
     fn it_parses_exists_calls() {
         assert_parse!(
-            parser = expression;
-            input = span!(b"[EXISTS[#<named_param>]]");
-            expected = vec![ExpressionToken::Function(Function::Exists(
-                Parameter::Named("named_param".into()),
+            parser = gcode_expression;
+            input = "[EXISTS[#<named_param>]]";
+            expected = vec![ExpressionToken::Function::<f64>(Function::Exists(
+                Parameter::Local("named_param".into()),
             ))].into();
         );
     }
