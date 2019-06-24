@@ -21,7 +21,7 @@ mod macros;
 pub mod parser;
 
 pub use self::evaluator::evaluate;
-pub use self::parser::gcode_expression;
+pub use parser::gcode;
 use std::collections::HashMap;
 use std::fmt;
 

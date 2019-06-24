@@ -1,10 +1,8 @@
-mod gcode;
-
-pub use gcode::gcode_expression;
+pub mod gcode;
 
 #[cfg(test)]
 mod tests {
-    use super::gcode::gcode_expression;
+    use super::gcode::expression;
     use crate::{ArithmeticOperator, Expression, ExpressionToken, Function};
     use nom::{
         error::{convert_error, VerboseError},
@@ -48,7 +46,7 @@ mod tests {
         ]);
 
         let (remaining, result) =
-            gcode_expression::<VerboseError<&str>, f64>(expr).map_err(|e| match e {
+            expression::<VerboseError<&str>, f64>(expr).map_err(|e| match e {
                 Err::Error(e) | Err::Failure(e) => {
                     let e = convert_error(expr, e);
                     println!("{}", e);

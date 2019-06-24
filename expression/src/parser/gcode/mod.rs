@@ -16,7 +16,7 @@ use nom::{
 use std::str::FromStr;
 
 /// Expression entry point
-pub fn gcode_expression<'a, E: ParseError<&'a str>, V: FromStr>(
+pub fn expression<'a, E: ParseError<&'a str>, V: FromStr>(
     i: &'a str,
 ) -> IResult<&'a str, Expression<V>, E> {
     context(
@@ -40,7 +40,7 @@ fn expression_token<'a, E: ParseError<&'a str>, V: FromStr>(
             map(binary_operator, ExpressionToken::BinaryOperator),
             map(function, ExpressionToken::Function),
             map(exists, ExpressionToken::Function),
-            map(gcode_expression, ExpressionToken::Expression),
+            map(expression, ExpressionToken::Expression),
             map(parameter, ExpressionToken::Parameter),
         )),
         multispace0,
@@ -91,7 +91,7 @@ fn binary_operator<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, B
     )(i)
 }
 
-fn parameter<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Parameter, E> {
+pub fn parameter<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Parameter, E> {
     context(
         "parameter",
         preceded(
@@ -135,60 +135,33 @@ fn function<'a, E: ParseError<&'a str>, V: FromStr>(
     context(
         "function",
         alt((
-            map(
-                preceded(tag_no_case("abs"), gcode_expression),
-                Function::Abs,
-            ),
-            map(
-                preceded(tag_no_case("acos"), gcode_expression),
-                Function::Acos,
-            ),
-            map(
-                preceded(tag_no_case("asin"), gcode_expression),
-                Function::Asin,
-            ),
+            map(preceded(tag_no_case("abs"), expression), Function::Abs),
+            map(preceded(tag_no_case("acos"), expression), Function::Acos),
+            map(preceded(tag_no_case("asin"), expression), Function::Asin),
             map(
                 preceded(
                     tag_no_case("atan"),
-                    separated_pair(gcode_expression, char('/'), gcode_expression),
+                    separated_pair(expression, char('/'), expression),
                 ),
                 Function::Atan,
             ),
-            map(
-                preceded(tag_no_case("cos"), gcode_expression),
-                Function::Cos,
-            ),
-            map(
-                preceded(tag_no_case("exp"), gcode_expression),
-                Function::Exp,
-            ),
+            map(preceded(tag_no_case("cos"), expression), Function::Cos),
+            map(preceded(tag_no_case("exp"), expression), Function::Exp),
             map(
                 // Aka "floor"
-                preceded(tag_no_case("fix"), gcode_expression),
+                preceded(tag_no_case("fix"), expression),
                 Function::Floor,
             ),
             map(
                 // Aka "ceil"
-                preceded(tag_no_case("fup"), gcode_expression),
+                preceded(tag_no_case("fup"), expression),
                 Function::Ceil,
             ),
-            map(preceded(tag_no_case("ln"), gcode_expression), Function::Ln),
-            map(
-                preceded(tag_no_case("round"), gcode_expression),
-                Function::Round,
-            ),
-            map(
-                preceded(tag_no_case("sin"), gcode_expression),
-                Function::Sin,
-            ),
-            map(
-                preceded(tag_no_case("sqrt"), gcode_expression),
-                Function::Sqrt,
-            ),
-            map(
-                preceded(tag_no_case("tan"), gcode_expression),
-                Function::Tan,
-            ),
+            map(preceded(tag_no_case("ln"), expression), Function::Ln),
+            map(preceded(tag_no_case("round"), expression), Function::Round),
+            map(preceded(tag_no_case("sin"), expression), Function::Sin),
+            map(preceded(tag_no_case("sqrt"), expression), Function::Sqrt),
+            map(preceded(tag_no_case("tan"), expression), Function::Tan),
         )),
     )(i)
 }
@@ -318,7 +291,7 @@ mod tests {
     #[test]
     fn it_parses_simple_expressions() {
         assert_parse!(
-            parser = gcode_expression;
+            parser = expression;
             input = "[1]";
             expected = vec![ExpressionToken::Literal(1.0)].into()
         );
@@ -327,7 +300,7 @@ mod tests {
     #[test]
     fn modulo() {
         assert_parse!(
-            parser = gcode_expression;
+            parser = expression;
             input = "[10 mod 3]";
             expected = vec![
                 ExpressionToken::Literal(10.0),
@@ -340,7 +313,7 @@ mod tests {
     #[test]
     fn it_parses_arithmetic() {
         assert_parse!(
-            parser = gcode_expression;
+            parser = expression;
             input = "[1 + 2 * 3 / 4 - 5]";
             expected = vec![
                 ExpressionToken::Literal(1.0),
@@ -359,7 +332,7 @@ mod tests {
     #[test]
     fn whitespace() {
         assert_parse!(
-            parser = gcode_expression;
+            parser = expression;
             input = "[ 1 + 2 * 3 / 4 - 5 ]";
             expected = vec![
                 ExpressionToken::Literal(1.0),
@@ -378,7 +351,7 @@ mod tests {
     #[test]
     fn it_parses_nested_expressions() {
         assert_parse!(
-            parser = gcode_expression;
+            parser = expression;
             input = "[1 + [[2 - 3] * 4]]";
             expected = vec![
                 ExpressionToken::Literal(1.0),
@@ -399,7 +372,7 @@ mod tests {
     #[test]
     fn it_parses_atan() {
         assert_parse!(
-            parser = gcode_expression;
+            parser = expression;
             input = "[ATAN[3 + 4]/[5]]";
             expected =
                 vec![ExpressionToken::Function(Function::Atan((
@@ -416,7 +389,7 @@ mod tests {
     #[test]
     fn it_parses_a_function() {
         assert_parse!(
-            parser = gcode_expression;
+            parser = expression;
             input =
                 "[ABS[1.0]]"
             ;
@@ -431,7 +404,7 @@ mod tests {
     #[test]
     fn it_parses_functions() {
         assert_parse!(
-            parser = gcode_expression;
+            parser = expression;
             input =
                 "[ABS[1.0]]",
                 "[ACOS[1.0]]",
@@ -493,7 +466,7 @@ mod tests {
     #[test]
     fn it_parses_binary_operators() {
         assert_parse!(
-            parser = gcode_expression;
+            parser = expression;
             input =
                 "[1 EQ 2]",
                 "[1 NE 2]",
@@ -516,7 +489,7 @@ mod tests {
     #[test]
     fn it_parses_logical_operators() {
         assert_parse!(
-            parser = gcode_expression;
+            parser = expression;
             input =
                 "[1 AND 2]",
                 "[1 OR 2]",
@@ -559,7 +532,7 @@ mod tests {
     #[test]
     fn it_parses_negative_numbers_as_negative_numbers() {
         assert_parse!(
-            parser = gcode_expression;
+            parser = expression;
             input = "[-10.0*-12]";
             expected = vec![
                 ExpressionToken::Literal(-10.0),
@@ -572,7 +545,7 @@ mod tests {
     #[test]
     fn it_parses_expressions_with_parameters() {
         assert_parse_ok!(
-            parser = gcode_expression::<VerboseError<&str>, f64>,
+            parser = expression::<VerboseError<&str>, f64>,
             input = "[1 + #1234 * #<named_param> / #<_global_param>]"
         );
     }
@@ -580,7 +553,7 @@ mod tests {
     #[test]
     fn it_parses_function_calls() {
         assert_parse_ok!(
-            parser = gcode_expression::<VerboseError<&str>, f64>,
+            parser = expression::<VerboseError<&str>, f64>,
             input = "[SIN[10]]"
         );
     }
@@ -588,7 +561,7 @@ mod tests {
     #[test]
     fn it_parses_exists_calls() {
         assert_parse!(
-            parser = gcode_expression;
+            parser = expression;
             input = "[EXISTS[#<named_param>]]";
             expected = vec![ExpressionToken::Function::<f64>(Function::Exists(
                 Parameter::Local("named_param".into()),
