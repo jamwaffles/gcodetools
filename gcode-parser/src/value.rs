@@ -1,8 +1,8 @@
 use nom::{
-    character::streaming::multispace0,
+    character::complete::space0,
     combinator::map,
     error::{context, ParseError},
-    number::streaming::float,
+    number::complete::float,
     sequence::separated_pair,
     IResult,
 };
@@ -23,8 +23,7 @@ pub fn preceded_value<'a, P, OP, E: ParseError<&'a str>>(
 where
     P: Fn(&'a str) -> IResult<&'a str, OP, E>,
 {
-    map(
-        separated_pair(parser, multispace0, value),
-        |(_char, value)| value,
-    )
+    map(separated_pair(parser, space0, value), |(_char, value)| {
+        value
+    })
 }
