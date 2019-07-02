@@ -74,25 +74,25 @@ macro_rules! map_code_res(
 
 #[cfg(test)]
 mod tests {
-    use common::{empty_span, span};
+    use crate::{empty_span, span};
 
     #[test]
     fn parse_integer_code() {
-        let out = code!(span!(b"G54"), "G54");
+        let out = code!("G54", "G54");
 
         assert_eq!(out, Ok((empty_span!(offset = 3), span!(b"54", offset = 1))));
     }
 
     #[test]
     fn parse_single_integer_code() {
-        let out = code!(span!(b"G0"), "G0");
+        let out = code!("G0", "G0");
 
         assert_eq!(out, Ok((empty_span!(offset = 2), span!(b"0", offset = 1))));
     }
 
     #[test]
     fn parse_decimal_code() {
-        let out = code!(span!(b"G17.1"), "G17.1");
+        let out = code!("G17.1", "G17.1");
 
         assert_eq!(
             out,
@@ -102,14 +102,14 @@ mod tests {
 
     #[test]
     fn decimal_strict_match() {
-        let out = code!(span!(b"G17.1"), "G17");
+        let out = code!("G17.1", "G17");
 
         assert!(out.is_err());
     }
 
     #[test]
     fn parse_leading_zeros() {
-        let out = code!(span!(b"G01"), "G1");
+        let out = code!("G01", "G1");
 
         assert_eq!(out, Ok((empty_span!(offset = 3), span!(b"1", offset = 2))));
     }
@@ -117,12 +117,12 @@ mod tests {
     #[test]
     fn ignore_trailing_other_chars() {
         assert_eq!(
-            code!(span!(b"G17.1 G54"), "G17.1"),
+            code!("G17.1 G54", "G17.1"),
             Ok((span!(b" G54", offset = 5), span!(b"17.1", offset = 1)))
         );
 
         assert_eq!(
-            code!(span!(b"G17.1G54"), "G17.1"),
+            code!("G17.1G54", "G17.1"),
             Ok((span!(b"G54", offset = 5), span!(b"17.1", offset = 1)))
         );
     }

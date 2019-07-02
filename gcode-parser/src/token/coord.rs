@@ -1,8 +1,18 @@
 //! Parse coordinates into a vector
 
-use common::parsing::Span;
-use expression::{parser::ngc_float_value, Value};
-use nom::*;
+use crate::value::{preceded_value, Value};
+use expression::parser::gcode;
+use nom::{
+    branch::{alt, permutation},
+    bytes::streaming::{tag, tag_no_case, take_until},
+    character::streaming::{char, digit1, multispace0, space0},
+    combinator::{map, map_opt, opt},
+    error::{context, ParseError},
+    multi::many0,
+    number::streaming::float,
+    sequence::{delimited, preceded, separated_pair, terminated},
+    IResult,
+};
 
 /// A 9 dimensional `XYZABCUVW` coordinate
 ///
@@ -58,44 +68,83 @@ static EMPTY_COORD: Coord = Coord {
     w: None,
 };
 
-named_attr!(#[doc = "Parse a coordinate"], pub coord<Span, Coord>,
-    map_opt!(
-        sep!(
-            space0,
-            permutation!(
-                preceded!(char_no_case!('X'), ngc_float_value)?,
-                preceded!(char_no_case!('Y'), ngc_float_value)?,
-                preceded!(char_no_case!('Z'), ngc_float_value)?,
-                preceded!(char_no_case!('A'), ngc_float_value)?,
-                preceded!(char_no_case!('B'), ngc_float_value)?,
-                preceded!(char_no_case!('C'), ngc_float_value)?,
-                preceded!(char_no_case!('U'), ngc_float_value)?,
-                preceded!(char_no_case!('V'), ngc_float_value)?,
-                preceded!(char_no_case!('W'), ngc_float_value)?
-            )
-        ),
-        |(x, y, z, a, b, c, u, v, w)| {
-            let coord = Coord { x, y, z, a, b, c, u, v, w };
+/// Parse a coordinate
+pub fn coord<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Coord, E> {
+    context(
+        "coordinate",
+        map_opt(
+            permutation((
+                opt(preceded_value(tag_no_case("X"))),
+                opt(preceded_value(tag_no_case("Y"))),
+                opt(preceded_value(tag_no_case("Z"))),
+                opt(preceded_value(tag_no_case("A"))),
+                opt(preceded_value(tag_no_case("B"))),
+                opt(preceded_value(tag_no_case("C"))),
+                opt(preceded_value(tag_no_case("U"))),
+                opt(preceded_value(tag_no_case("V"))),
+                opt(preceded_value(tag_no_case("W"))),
+            )),
+            |(x, y, z, a, b, c, u, v, w)| {
+                let coord = Coord {
+                    x,
+                    y,
+                    z,
+                    a,
+                    b,
+                    c,
+                    u,
+                    v,
+                    w,
+                };
 
-            if coord == EMPTY_COORD {
-                None
-            } else {
-                Some(coord)
-            }
-        }
-    )
-);
+                if coord == EMPTY_COORD {
+                    None
+                } else {
+                    Some(coord)
+                }
+            },
+        ),
+    )(i)
+}
+
+// named_attr!(#[doc = "Parse a coordinate"], pub coord<Span, Coord>,
+//     map_opt!(
+//         sep!(
+//             space0,
+//             permutation!(
+//                 preceded!(char_no_case!('X'), ngc_float_value)?,
+//                 preceded!(char_no_case!('Y'), ngc_float_value)?,
+//                 preceded!(char_no_case!('Z'), ngc_float_value)?,
+//                 preceded!(char_no_case!('A'), ngc_float_value)?,
+//                 preceded!(char_no_case!('B'), ngc_float_value)?,
+//                 preceded!(char_no_case!('C'), ngc_float_value)?,
+//                 preceded!(char_no_case!('U'), ngc_float_value)?,
+//                 preceded!(char_no_case!('V'), ngc_float_value)?,
+//                 preceded!(char_no_case!('W'), ngc_float_value)?
+//             )
+//         ),
+//         |(x, y, z, a, b, c, u, v, w)| {
+//             let coord = Coord { x, y, z, a, b, c, u, v, w };
+
+//             if coord == EMPTY_COORD {
+//                 None
+//             } else {
+//                 Some(coord)
+//             }
+//         }
+//     )
+// );
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use common::{assert_parse, span};
+    use crate::assert_parse;
 
     #[test]
     fn parse_xyz() {
         assert_parse!(
             parser = coord;
-            input = span!(b"X0.0 Y1.0 Z2.0");
+            input = "X0.0 Y1.0 Z2.0";
             expected = coord!(0.0, 1.0, 2.0)
         );
     }
@@ -104,7 +153,7 @@ mod tests {
     fn parse_lowercase() {
         assert_parse!(
             parser = coord;
-            input = span!(b"x0.0 y1.0 z2.0");
+            input = "x0.0 y1.0 z2.0";
             expected = coord!(0.0, 1.0, 2.0)
         );
     }
@@ -113,7 +162,7 @@ mod tests {
     fn parse_lowercase_integers() {
         assert_parse!(
             parser = coord;
-            input = span!(b"x12 y34 z56");
+            input = "x12 y34 z56";
             expected = coord!(12.0, 34.0, 56.0)
         );
     }
@@ -122,7 +171,7 @@ mod tests {
     fn parse_no_whitespace() {
         assert_parse!(
             parser = coord;
-            input = span!(b"x12y34z56");
+            input = "x12y34z56";
             expected = coord!(12.0, 34.0, 56.0)
         );
     }
@@ -131,13 +180,13 @@ mod tests {
     fn parse_real_world() {
         assert_parse!(
             parser = coord;
-            input = span!(b"X0 Y0 z 20");
+            input = "X0 Y0 z 20";
             expected = coord!(0.0, 0.0, 20.0)
         );
 
         assert_parse!(
             parser = coord;
-            input = span!(b"Z5.");
+            input = "Z5.";
             expected = Coord {
                 z: Some(5.0.into()),
                 ..Coord::default()

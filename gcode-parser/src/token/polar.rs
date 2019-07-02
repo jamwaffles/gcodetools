@@ -1,48 +1,70 @@
 //! Parse polar coordinates
 
-use common::parsing::Span;
-use expression::{parser::ngc_float_value, Value};
-use nom::*;
+use crate::value::{preceded_value, Value};
+use nom::{
+    branch::{alt, permutation},
+    bytes::streaming::{tag, tag_no_case, take_until},
+    character::streaming::{char, digit1, multispace0, space0},
+    combinator::{map, map_opt, opt},
+    error::{context, ParseError},
+    multi::many0,
+    number::streaming::float,
+    sequence::{delimited, preceded, separated_pair, terminated},
+    IResult,
+};
 
 /// A polar coordinate
 #[derive(Debug, PartialEq, Clone)]
 pub struct PolarCoord {
-    /// Distance from origin
+    /// Distance from origin (`@`)
     pub distance: Option<Value>,
-    /// Angle, starting at 0 on positive X axis. Positive direction is counterclockwise
+    /// Angle, starting at 0 on positive X axis. Positive direction is counterclockwise (`^`)
     pub angle: Option<Value>,
 }
 
-named_attr!(#[doc = "Parse a polar coordinate"],
-    pub polar<Span, PolarCoord>,
-    map_opt!(
-        sep!(
-            space0,
-            permutation!(
-                sep!(space0, preceded!(char_no_case!('@'), ngc_float_value))?,
-                sep!(space0, preceded!(char_no_case!('^'), ngc_float_value))?
-            )
+// named_attr!(#[doc = "Parse a polar coordinate"],
+//     pub polar<Span, PolarCoord>,
+//     map_opt!(
+//         sep!(
+//             space0,
+//             permutation!(
+//                 sep!(space0, preceded!(char_no_case!('@'), ngc_float_value))?,
+//                 sep!(space0, preceded!(char_no_case!('^'), ngc_float_value))?
+//             )
+//         ),
+//         |(distance, angle): (Option<Value>, Option<Value>)| {
+//             if distance.is_none() && angle.is_none() {
+//                 None
+//             } else {
+//                 Some(PolarCoord { distance, angle })
+//             }
+//         }
+//     )
+// );
+
+pub fn polar<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, PolarCoord, E> {
+    context(
+        "polar coordinate",
+        map(
+            permutation((
+                opt(preceded_value(tag_no_case("@"))),
+                opt(preceded_value(tag_no_case("^"))),
+            )),
+            |(distance, angle)| PolarCoord { distance, angle },
         ),
-        |(distance, angle): (Option<Value>, Option<Value>)| {
-            if distance.is_none() && angle.is_none() {
-                None
-            } else {
-                Some(PolarCoord { distance, angle })
-            }
-        }
-    )
-);
+    )(i)
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use common::{assert_parse, span};
+    use crate::assert_parse;
 
     #[test]
     fn parse_polar() {
         assert_parse!(
             parser = polar;
-            input = span!(b"@.5 ^90");
+            input = "@.5 ^90";
             expected = PolarCoord {
                 distance: Some(0.5.into()),
                 angle: Some(90.0.into())
@@ -55,8 +77,8 @@ mod tests {
         assert_parse!(
             parser = polar;
             input =
-                span!(b"@.5"),
-                span!(b"^90")
+                "@.5",
+                "^90"
             ;
             expected =
                 PolarCoord { distance: Some(0.5.into()), angle: None },

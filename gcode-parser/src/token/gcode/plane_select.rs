@@ -1,6 +1,14 @@
-use crate::map_code;
-use common::parsing::Span;
-use nom::*;
+use nom::{
+    branch::alt,
+    bytes::streaming::{tag, tag_no_case, take_until},
+    character::streaming::{char, digit1, multispace0},
+    combinator::{map, map_res, opt},
+    error::{context, ParseError},
+    multi::many1,
+    number::streaming::float,
+    sequence::{delimited, preceded, separated_pair, terminated},
+    IResult,
+};
 
 // TODO: Better name than PlaneSelectValue
 /// Which work offset to use
@@ -27,25 +35,31 @@ pub struct PlaneSelect {
     pub plane: PlaneSelectValue,
 }
 
-named!(pub plane_select<Span, PlaneSelect>,
-    alt!(
-        map_code!("G17", |_| PlaneSelect { plane: PlaneSelectValue::XY }) |
-        map_code!("G18", |_| PlaneSelect { plane: PlaneSelectValue::ZX }) |
-        map_code!("G19", |_| PlaneSelect { plane: PlaneSelectValue::YZ }) |
-        map_code!("G17.1", |_| PlaneSelect { plane: PlaneSelectValue::UV }) |
-        map_code!("G18.1", |_| PlaneSelect { plane: PlaneSelectValue::WU }) |
-        map_code!("G19.1", |_| PlaneSelect { plane: PlaneSelectValue::VW })
-    )
-);
+pub fn plane_select<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, PlaneSelect, E> {
+    context(
+        "plane select",
+        map(
+            alt((
+                map(tag_no_case("G17"), |_| PlaneSelectValue::XY),
+                map(tag_no_case("G18"), |_| PlaneSelectValue::ZX),
+                map(tag_no_case("G19"), |_| PlaneSelectValue::YZ),
+                map(tag_no_case("G17.1"), |_| PlaneSelectValue::UV),
+                map(tag_no_case("G18.1"), |_| PlaneSelectValue::WU),
+                map(tag_no_case("G19.1"), |_| PlaneSelectValue::VW),
+            )),
+            |plane| PlaneSelect { plane },
+        ),
+    )(i)
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use common::{assert_parse, span};
+    use crate::assert_parse;
 
     #[test]
     fn parse_integer_plane_select() {
-        let raw = span!(b"G17");
+        let raw = "G17";
 
         assert_parse!(
             parser = plane_select;
@@ -58,7 +72,7 @@ mod tests {
 
     #[test]
     fn parse_decimal_plane_select() {
-        let raw = span!(b"G17.1");
+        let raw = "G17.1";
 
         assert_parse!(
             parser = plane_select;

@@ -1,9 +1,15 @@
-use common::parsing::Span;
-use expression::{
-    parser::{ngc_float_value, ngc_unsigned_value},
-    Value,
+use crate::value::{preceded_value, value, Value};
+use nom::{
+    branch::{alt, permutation},
+    bytes::streaming::{tag, tag_no_case, take_until},
+    character::streaming::{char, digit1, multispace0, space0},
+    combinator::{map, map_res, opt},
+    error::{context, ParseError},
+    multi::many1,
+    number::streaming::float,
+    sequence::{delimited, preceded, separated_pair, terminated},
+    IResult,
 };
-use nom::*;
 
 /// Center format arc offsets
 ///
@@ -56,76 +62,173 @@ impl Default for CenterFormatArc {
             i: None,
             j: None,
             k: None,
-            turns: Value::Unsigned(1),
+            turns: 1.0.into(),
         }
     }
 }
 
-named_attr!(#[doc = "Parse a center format arc"], pub center_format_arc<Span, CenterFormatArc>,
-    map_opt!(
-        sep!(
-            space0,
-            permutation!(
-                preceded!(char_no_case!('X'), ngc_float_value)?,
-                preceded!(char_no_case!('Y'), ngc_float_value)?,
-                preceded!(char_no_case!('Z'), ngc_float_value)?,
-                preceded!(char_no_case!('I'), ngc_float_value)?,
-                preceded!(char_no_case!('J'), ngc_float_value)?,
-                preceded!(char_no_case!('K'), ngc_float_value)?,
-                preceded!(char_no_case!('P'), ngc_unsigned_value)?
-            )
+// named_attr!(#[doc = "Parse a center format arc"], pub center_format_arc<Span, CenterFormatArc>,
+//     map_opt!(
+//         sep!(
+//             space0,
+//             permutation!(
+//                 preceded!(char_no_case!('X'), ngc_float_value)?,
+//                 preceded!(char_no_case!('Y'), ngc_float_value)?,
+//                 preceded!(char_no_case!('Z'), ngc_float_value)?,
+//                 preceded!(char_no_case!('I'), ngc_float_value)?,
+//                 preceded!(char_no_case!('J'), ngc_float_value)?,
+//                 preceded!(char_no_case!('K'), ngc_float_value)?,
+//                 preceded!(char_no_case!('P'), ngc_unsigned_value)?
+//             )
+//         ),
+//         |(x, y, z, i, j, k, turns): (Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>)| {
+//             let arc = CenterFormatArc { x, y, z, i, j, k, turns: turns.unwrap_or(Value::Unsigned(1)) };
+
+//             // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
+//             // TODO: Return validation error instead of `None`
+//             // Require at least one offset coordinate to be present
+//             if (&arc.i, &arc.j, &arc.k) == (&None, &None, &None) {
+//                 None
+//             } else {
+//                 Some(arc)
+//             }
+//         }
+//     )
+// );
+
+/// Parse a center format arc
+pub fn center_format_arc<'a, E: ParseError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, CenterFormatArc, E> {
+    context(
+        "center format arc",
+        map_res(
+            // TODO: Needs some sort of sep() to handle whitespace
+            permutation((
+                opt(preceded_value(tag_no_case("X"))),
+                opt(preceded_value(tag_no_case("Y"))),
+                opt(preceded_value(tag_no_case("Z"))),
+                opt(preceded_value(tag_no_case("I"))),
+                opt(preceded_value(tag_no_case("J"))),
+                opt(preceded_value(tag_no_case("K"))),
+                // TODO: This must be a positive integer, not any `Value`
+                opt(preceded_value(tag_no_case("P"))),
+            )),
+            |(x, y, z, i, j, k, turns): (
+                Option<Value>,
+                Option<Value>,
+                Option<Value>,
+                Option<Value>,
+                Option<Value>,
+                Option<Value>,
+                Option<Value>,
+            )| {
+                let arc = CenterFormatArc {
+                    x,
+                    y,
+                    z,
+                    i,
+                    j,
+                    k,
+                    // TODO: Use parsed value
+                    // turns: turns.unwrap_or(Value::Unsigned(1)),
+                    turns: 1.0.into(),
+                };
+
+                // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
+                // TODO: Return validation error instead of `None`
+                // Require at least one offset coordinate to be present
+                if (&arc.i, &arc.j, &arc.k) == (&None, &None, &None) {
+                    Err("Invalid center format")
+                } else {
+                    Ok(arc)
+                }
+            },
         ),
-        |(x, y, z, i, j, k, turns): (Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>)| {
-            let arc = CenterFormatArc { x, y, z, i, j, k, turns: turns.unwrap_or(Value::Unsigned(1)) };
+    )(i)
+}
 
-            // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
-            // TODO: Return validation error instead of `None`
-            // Require at least one offset coordinate to be present
-            if (&arc.i, &arc.j, &arc.k) == (&None, &None, &None) {
-                None
-            } else {
-                Some(arc)
-            }
-        }
-    )
-);
+// named_attr!(#[doc = "Parse a radius format arc"], pub radius_format_arc<Span, RadiusFormatArc>,
+//     map_opt!(
+//         sep!(
+//             space0,
+//             permutation!(
+//                 preceded!(char_no_case!('X'), ngc_float_value)?,
+//                 preceded!(char_no_case!('Y'), ngc_float_value)?,
+//                 preceded!(char_no_case!('Z'), ngc_float_value)?,
+//                 preceded!(char_no_case!('R'), ngc_float_value),
+//                 preceded!(char_no_case!('P'), ngc_unsigned_value)?
+//             )
+//         ),
+//         |(x, y, z, radius, turns): (Option<Value>, Option<Value>, Option<Value>, Value, Option<Value>)| {
+//             let arc = RadiusFormatArc { x, y, z, radius, turns: turns.unwrap_or(Value::Unsigned(1)) };
 
-named_attr!(#[doc = "Parse a radius format arc"], pub radius_format_arc<Span, RadiusFormatArc>,
-    map_opt!(
-        sep!(
-            space0,
-            permutation!(
-                preceded!(char_no_case!('X'), ngc_float_value)?,
-                preceded!(char_no_case!('Y'), ngc_float_value)?,
-                preceded!(char_no_case!('Z'), ngc_float_value)?,
-                preceded!(char_no_case!('R'), ngc_float_value),
-                preceded!(char_no_case!('P'), ngc_unsigned_value)?
-            )
+//             // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
+//             // TODO: Return validation error instead of `None`
+//             if (&arc.x, &arc.y, &arc.z) == (&None, &None, &None) {
+//                 None
+//             } else {
+//                 Some(arc)
+//             }
+//         }
+//     )
+// );
+
+/// Parse a radius format arc
+pub fn radius_format_arc<'a, E: ParseError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, RadiusFormatArc, E> {
+    context(
+        "radius format arc",
+        map_res(
+            // TODO: Needs some sort of sep() to handle whitespace
+            permutation((
+                opt(preceded_value(tag_no_case("X"))),
+                opt(preceded_value(tag_no_case("Y"))),
+                opt(preceded_value(tag_no_case("Z"))),
+                preceded_value(tag_no_case("R")),
+                // TODO: This must be a positive integer, not any `Value`
+                opt(preceded_value(tag_no_case("P"))),
+            )),
+            |(x, y, z, radius, turns): (
+                Option<Value>,
+                Option<Value>,
+                Option<Value>,
+                Value,
+                Option<Value>,
+            )| {
+                let arc = RadiusFormatArc {
+                    x,
+                    y,
+                    z,
+                    radius,
+                    // TODO: Use parsed value as positive integer
+                    // turns: turns.unwrap_or(Value::Unsigned(1)),
+                    turns: 1.0.into(),
+                };
+
+                // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
+                // TODO: Return validation error instead of `None`
+                if (&arc.x, &arc.y, &arc.z) == (&None, &None, &None) {
+                    Err("Invalid radius format")
+                } else {
+                    Ok(arc)
+                }
+            },
         ),
-        |(x, y, z, radius, turns): (Option<Value>, Option<Value>, Option<Value>, Value, Option<Value>)| {
-            let arc = RadiusFormatArc { x, y, z, radius, turns: turns.unwrap_or(Value::Unsigned(1)) };
-
-            // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
-            // TODO: Return validation error instead of `None`
-            if (&arc.x, &arc.y, &arc.z) == (&None, &None, &None) {
-                None
-            } else {
-                Some(arc)
-            }
-        }
-    )
-);
+    )(i)
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use common::{assert_parse, span};
+    use crate::assert_parse;
 
     #[test]
     fn parse_center_format_arc() {
         assert_parse!(
             parser = center_format_arc;
-            input = span!(b"X0 Y1 I2 J3");
+            input = "X0 Y1 I2 J3";
             expected = CenterFormatArc {
                 x: Some(0.0f32.into()),
                 y: Some(1.0f32.into()),
@@ -140,13 +243,13 @@ mod tests {
     fn center_format_arc_num_turns() {
         assert_parse!(
             parser = center_format_arc;
-            input = span!(b"X0 Y1 I2 J3 P5");
+            input = "X0 Y1 I2 J3 P5";
             expected = CenterFormatArc {
                 x: Some(0.0f32.into()),
                 y: Some(1.0f32.into()),
                 i: Some(2.0f32.into()),
                 j: Some(3.0f32.into()),
-                turns: Value::Unsigned(5),
+                turns: 5.0.into(),
                 ..CenterFormatArc::default()
             }
         );
@@ -156,7 +259,7 @@ mod tests {
     fn arc_real_world() {
         assert_parse!(
             parser = center_format_arc;
-            input = span!(b"X0 Y0 z 20 I20 J0");
+            input = "X0 Y0 z 20 I20 J0";
             expected = CenterFormatArc {
                 x: Some(0.0f32.into()),
                 y: Some(0.0f32.into()),
@@ -169,7 +272,7 @@ mod tests {
 
         assert_parse!(
             parser = center_format_arc;
-            input = span!(b"X-2.4438 Y-0.2048 I-0.0766 J0.2022");
+            input = "X-2.4438 Y-0.2048 I-0.0766 J0.2022";
             expected = CenterFormatArc {
                 x: Some((-2.4438f32).into()),
                 y: Some((-0.2048f32).into()),
@@ -184,7 +287,7 @@ mod tests {
     fn backwards_center_format() {
         assert_parse!(
             parser = center_format_arc;
-            input = span!(b"I-2.070552 J-7.727407 X36.817108 Y-8.797959 Z-3.500000");
+            input = "I-2.070552 J-7.727407 X36.817108 Y-8.797959 Z-3.500000";
             expected = CenterFormatArc {
                 x: Some(36.817108f32.into()),
                 y: Some((-8.797959f32).into()),
@@ -200,7 +303,7 @@ mod tests {
     fn full_circle() {
         assert_parse!(
             parser = center_format_arc;
-            input = span!(b"I -20");
+            input = "I -20";
             expected = CenterFormatArc {
                 i: Some((-20.0f32).into()),
                 ..CenterFormatArc::default()

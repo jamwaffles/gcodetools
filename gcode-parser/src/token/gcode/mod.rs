@@ -11,9 +11,19 @@ use self::plane_select::plane_select;
 pub use self::plane_select::PlaneSelect;
 use self::work_offset::work_offset;
 pub use self::work_offset::{WorkOffset, WorkOffsetValue};
-use crate::map_code;
-use common::parsing::Span;
-use nom::*;
+use crate::value::{preceded_value, Value};
+use expression::parser::gcode;
+use nom::{
+    branch::{alt, permutation},
+    bytes::streaming::{tag, tag_no_case, take_until},
+    character::streaming::{char, digit1, multispace0, space0},
+    combinator::{map, map_opt, opt},
+    error::{context, ParseError},
+    multi::many0,
+    number::streaming::float,
+    sequence::{delimited, preceded, separated_pair, terminated},
+    IResult,
+};
 
 /// A G-code
 #[derive(Debug, PartialEq, Clone)]
@@ -52,59 +62,77 @@ pub enum GCode {
     CutterCompensation(CutterCompensation),
 }
 
-named!(pub gcode<Span, GCode>,
-    alt!(
-        map_code!("G0", |_| GCode::Rapid) |
-        map_code!("G1", |_| GCode::Feed) |
-        map_code!("G2", |_| GCode::ClockwiseArc) |
-        map_code!("G3", |_| GCode::CounterclockwiseArc) |
-        map_code!("G21", |_| GCode::UnitsMM) |
-        map_code!("G20", |_| GCode::UnitsInch) |
-        map!(work_offset, GCode::WorkOffset) |
-        map!(cutter_compensation, GCode::CutterCompensation) |
-        map!(plane_select, GCode::PlaneSelect) |
-        map!(dwell, GCode::Dwell)
-    )
-);
+// named!(pub gcode<Span, GCode>,
+//     alt!(
+//         map_code!("G0", |_| GCode::Rapid) |
+//         map_code!("G1", |_| GCode::Feed) |
+//         map_code!("G2", |_| GCode::ClockwiseArc) |
+//         map_code!("G3", |_| GCode::CounterclockwiseArc) |
+//         map_code!("G21", |_| GCode::UnitsMM) |
+//         map_code!("G20", |_| GCode::UnitsInch) |
+//         map!(work_offset, GCode::WorkOffset) |
+//         map!(cutter_compensation, GCode::CutterCompensation) |
+//         map!(plane_select, GCode::PlaneSelect) |
+//         map!(dwell, GCode::Dwell)
+//     )
+// );
+
+pub fn gcode<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, GCode, E> {
+    context(
+        "G code",
+        alt((
+            map(tag_no_case("G0"), |_| GCode::Rapid),
+            map(tag_no_case("G1"), |_| GCode::Feed),
+            map(tag_no_case("G2"), |_| GCode::ClockwiseArc),
+            map(tag_no_case("G3"), |_| GCode::CounterclockwiseArc),
+            map(tag_no_case("G21"), |_| GCode::UnitsMM),
+            map(tag_no_case("G20"), |_| GCode::UnitsInch),
+            map(work_offset, GCode::WorkOffset),
+            map(cutter_compensation, GCode::CutterCompensation),
+            map(plane_select, GCode::PlaneSelect),
+            map(dwell, GCode::Dwell),
+        )),
+    )(i)
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use common::{assert_parse, span};
+    use crate::assert_parse;
 
     #[test]
     fn parse_rapid() {
         assert_parse!(
             parser = gcode;
-            input = span!(b"G0");
+            input = "G0";
             expected = GCode::Rapid
         );
 
         assert_parse!(
             parser = gcode;
-            input = span!(b"G00");
+            input = "G00";
             expected = GCode::Rapid
         );
     }
 
     #[test]
     fn parse_feed() {
-        assert_parse!(parser = gcode; input = span!(b"G1"); expected = GCode::Feed);
+        assert_parse!(parser = gcode; input = "G1"; expected = GCode::Feed);
 
-        assert_parse!(parser = gcode; input = span!(b"G01"); expected = GCode::Feed);
+        assert_parse!(parser = gcode; input = "G01"; expected = GCode::Feed);
     }
 
     #[test]
     fn parse_arc() {
         assert_parse!(
             parser = gcode;
-            input = span!(b"G2");
+            input = "G2";
             expected = GCode::ClockwiseArc
         );
 
         assert_parse!(
             parser = gcode;
-            input = span!(b"G3");
+            input = "G3";
             expected = GCode::CounterclockwiseArc
         );
     }

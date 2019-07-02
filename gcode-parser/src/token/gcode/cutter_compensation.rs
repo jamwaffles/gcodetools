@@ -1,7 +1,16 @@
-use crate::map_code;
-use common::parsing::Span;
-use expression::{parser::ngc_float_value, Value};
+use crate::value::{preceded_value, value, Value};
 use nom::*;
+use nom::{
+    branch::alt,
+    bytes::streaming::{tag, tag_no_case, take_until},
+    character::streaming::{char, digit1, multispace0},
+    combinator::{map, map_res, opt},
+    error::{context, ParseError},
+    multi::many1,
+    number::streaming::float,
+    sequence::{pair, preceded, separated_pair, terminated},
+    IResult,
+};
 
 /// Cutter compensation type
 #[derive(Debug, PartialEq, Clone)]
@@ -16,48 +25,73 @@ pub enum CutterCompensation {
     Right(Option<Value>),
 }
 
-named!(pub cutter_compensation<Span, CutterCompensation>,
-    alt!(
-        map_code!(
-            "G40",
-            |_| CutterCompensation::Off
-        ) |
-        map_code!(
-            "G41",
-            opt!(
-                preceded!(
-                    char_no_case!('D'),
-                    ngc_float_value
-                )
+// named!(pub cutter_compensation<Span, CutterCompensation>,
+//     alt!(
+//         map_code!(
+//             "G40",
+//             |_| CutterCompensation::Off
+//         ) |
+//         map_code!(
+//             "G41",
+//             opt!(
+//                 preceded!(
+//                     char_no_case!('D'),
+//                     ngc_float_value
+//                 )
+//             ),
+//             |dia| CutterCompensation::Left(dia)
+//         ) |
+//         map_code!(
+//             "G42",
+//             opt!(
+//                 preceded!(
+//                     char_no_case!('D'),
+//                     ngc_float_value
+//                 )
+//             ),
+//             |dia| CutterCompensation::Right(dia)
+//         )
+//     )
+// );
+
+pub fn cutter_compensation<'a, E: ParseError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, CutterCompensation, E> {
+    context(
+        "cutter comp",
+        alt((
+            map(tag_no_case("g40"), |_| CutterCompensation::Off),
+            map(
+                preceded(
+                    pair(tag_no_case("g41"), multispace0),
+                    opt(preceded_value(tag_no_case("d"))),
+                ),
+                CutterCompensation::Left,
             ),
-            |dia| CutterCompensation::Left(dia)
-        ) |
-        map_code!(
-            "G42",
-            opt!(
-                preceded!(
-                    char_no_case!('D'),
-                    ngc_float_value
-                )
+            map(
+                preceded(
+                    pair(tag_no_case("g42"), multispace0),
+                    opt(preceded_value(tag_no_case("d"))),
+                ),
+                CutterCompensation::Right,
             ),
-            |dia| CutterCompensation::Right(dia)
-        )
-    )
-);
+        )),
+    )(i)
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use common::{assert_parse, span};
+    use crate::assert_parse;
 
     #[test]
     fn parse_cutter_compensation() {
         assert_parse!(
             parser = cutter_compensation;
             input =
-                span!(b"G40"),
-                span!(b"G41"),
-                span!(b"G42")
+                "G40",
+                "G41",
+                "G42"
             ;
             expected =
                 CutterCompensation::Off,
@@ -72,8 +106,8 @@ mod tests {
         assert_parse!(
             parser = cutter_compensation;
             input =
-                span!(b"G41 D5.0"),
-                span!(b"G42d10.1")
+                "G41 D5.0",
+                "G42d10.1"
             ;
             expected =
                 CutterCompensation::Left(Some(5.0.into())),

@@ -1,6 +1,14 @@
-use crate::map_code;
-use common::parsing::Span;
-use nom::*;
+use nom::{
+    branch::alt,
+    bytes::streaming::{tag, tag_no_case, take_until},
+    character::streaming::{char, digit1, multispace0},
+    combinator::{map, map_res, opt},
+    error::{context, ParseError},
+    multi::many1,
+    number::streaming::float,
+    sequence::{delimited, preceded, separated_pair, terminated},
+    IResult,
+};
 
 // TODO: Better name than WorkOffsetValue
 /// Which work offset to use
@@ -33,32 +41,36 @@ pub struct WorkOffset {
     pub offset: WorkOffsetValue,
 }
 
-named!(pub work_offset<Span, WorkOffset>,
-    alt!(
-        map_code!("G59.1", |_| WorkOffset { offset: WorkOffsetValue::G59_1 }) |
-        map_code!("G59.2", |_| WorkOffset { offset: WorkOffsetValue::G59_2 }) |
-        map_code!("G59.3", |_| WorkOffset { offset: WorkOffsetValue::G59_3 }) |
-        map_code!("G54", |_| WorkOffset { offset: WorkOffsetValue::G54 }) |
-        map_code!("G55", |_| WorkOffset { offset: WorkOffsetValue::G55 }) |
-        map_code!("G56", |_| WorkOffset { offset: WorkOffsetValue::G56 }) |
-        map_code!("G57", |_| WorkOffset { offset: WorkOffsetValue::G57 }) |
-        map_code!("G58", |_| WorkOffset { offset: WorkOffsetValue::G58 }) |
-        map_code!("G59", |_| WorkOffset { offset: WorkOffsetValue::G59 })
-    )
-);
+pub fn work_offset<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, WorkOffset, E> {
+    context(
+        "work offset",
+        map(
+            alt((
+                map(tag_no_case("G59.1"), |_| WorkOffsetValue::G59_1),
+                map(tag_no_case("G59.2"), |_| WorkOffsetValue::G59_2),
+                map(tag_no_case("G59.3"), |_| WorkOffsetValue::G59_3),
+                map(tag_no_case("G54"), |_| WorkOffsetValue::G54),
+                map(tag_no_case("G55"), |_| WorkOffsetValue::G55),
+                map(tag_no_case("G56"), |_| WorkOffsetValue::G56),
+                map(tag_no_case("G57"), |_| WorkOffsetValue::G57),
+                map(tag_no_case("G58"), |_| WorkOffsetValue::G58),
+                map(tag_no_case("G59"), |_| WorkOffsetValue::G59),
+            )),
+            |offset| WorkOffset { offset },
+        ),
+    )(i)
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use common::{assert_parse, span};
+    use crate::assert_parse;
 
     #[test]
     fn parse_integer_work_offset() {
-        let raw = span!(b"G54");
-
         assert_parse!(
             parser = work_offset;
-            input = raw;
+            input = "G54";
             expected = WorkOffset {
                 offset: WorkOffsetValue::G54
             }
@@ -67,11 +79,9 @@ mod tests {
 
     #[test]
     fn parse_decimal_work_offset() {
-        let raw = span!(b"G59.1");
-
         assert_parse!(
             parser = work_offset;
-            input = raw;
+            input = "G59.1";
             expected = WorkOffset {
                 offset: WorkOffsetValue::G59_1
             }

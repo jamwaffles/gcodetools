@@ -1,9 +1,23 @@
 use crate::line::{line, Line};
 use crate::token::{comment, Comment};
-use common::parsing::Span;
-use expression::parser::{gcode_expression, gcode_non_global_ident};
-use expression::{Expression, Parameter};
-use nom::*;
+use crate::value::{preceded_value, Value};
+// use expression::parser::{gcode_expression, gcode_non_global_ident};
+use expression::{
+    gcode::{expression, parameter},
+    Expression, Parameter,
+};
+use nom::{
+    branch::{alt, permutation},
+    bytes::streaming::{tag, tag_no_case, take_until},
+    character::streaming::{char, digit1, line_ending, multispace0, space0},
+    combinator::{map, map_opt, opt, recognize},
+    do_parse,
+    error::{context, ParseError},
+    multi::many0,
+    number::streaming::float,
+    sequence::{delimited, preceded, separated_pair, terminated, tuple},
+    Compare, IResult, InputLength, InputTake,
+};
 
 /// What type of branch this is
 #[derive(Debug, PartialEq, Clone)]
@@ -19,111 +33,213 @@ pub enum BranchType {
 }
 
 /// An if/else if/else chain
+///
+/// TODO: Fix `f32` into a generic
 #[derive(Debug, PartialEq, Clone)]
-pub struct Branch<'a> {
+pub struct Branch {
     branch_type: BranchType,
-    lines: Vec<Line<'a>>,
-    condition: Option<Expression>,
+    lines: Vec<Line>,
+    condition: Option<Expression<f32>>,
     trailing_comment: Option<Comment>,
 }
 
 /// An if/else if/else chain
 #[derive(Debug, PartialEq, Clone)]
-pub struct Conditional<'a> {
+pub struct Conditional {
     identifier: Parameter,
-    branches: Vec<Branch<'a>>,
+    branches: Vec<Branch>,
 }
 
-named_args!(elseif(ident: String)<Span, Branch>,
-    sep!(
-        space0,
-        do_parse!(
-            preceded!(char_no_case!('O'), tag_no_case!(ident.as_str())) >>
-            tag_no_case!("elseif") >>
-            condition: gcode_expression >>
-            trailing_comment: opt!(comment) >>
-            line_ending >>
-            lines: many0!(line) >>
-            ({
-                Branch {
-                    branch_type: BranchType::ElseIf,
-                    condition: Some(condition),
-                    lines,
-                    trailing_comment,
-                }
-            })
-        )
+// named_args!(elseif(ident: String)<Span, Branch>,
+//     sep!(
+//         space0,
+//         do_parse!(
+//             preceded!(char_no_case!('O'), tag_no_case!(ident.as_str())) >>
+//             tag_no_case!("elseif") >>
+//             condition: gcode_expression >>
+//             trailing_comment: opt!(comment) >>
+//             line_ending >>
+//             lines: many0!(line) >>
+//             ({
+//                 Branch {
+//                     branch_type: BranchType::ElseIf,
+//                     condition: Some(condition),
+//                     lines,
+//                     trailing_comment,
+//                 }
+//             })
+//         )
+//     )
+// );
+
+// TODO: Use conditional_block_open
+pub fn elseif_block<'a, E: ParseError<&'a str>>(
+    ident: &'a str,
+) -> impl Fn(&'a str) -> IResult<&'a str, Branch, E> {
+    context(
+        "elseif branch",
+        map(
+            tuple((
+                preceded(tag_no_case("O"), tag(ident)),
+                tag_no_case("elseif"),
+                expression,
+                opt(comment),
+                line_ending,
+                many0(line),
+            )),
+            |(_, _, condition, trailing_comment, _, lines)| Branch {
+                branch_type: BranchType::ElseIf,
+                condition: Some(condition),
+                lines,
+                trailing_comment,
+            },
+        ),
     )
-);
+}
 
-named_args!(else_block(ident: String)<Span, Branch>,
-    sep!(
-        space0,
-        do_parse!(
-            preceded!(char_no_case!('O'), tag_no_case!(ident.as_str())) >>
-            tag_no_case!("else") >>
-            trailing_comment: opt!(comment) >>
-            line_ending >>
-            lines: many0!(line) >>
-            ({
-                Branch {
-                    branch_type: BranchType::Else,
-                    condition: None,
-                    lines,
-                    trailing_comment,
-                }
-            })
-        )
+// pub fn elseif<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Branch, E> {
+
+// }
+
+// named_args!(else_block(ident: String)<Span, Branch>,
+//     sep!(
+//         space0,
+//         do_parse!(
+//             preceded!(char_no_case!('O'), tag_no_case!(ident.as_str())) >>
+//             tag_no_case!("else") >>
+//             trailing_comment: opt!(comment) >>
+//             line_ending >>
+//             lines: many0!(line) >>
+//             ({
+//                 Branch {
+//                     branch_type: BranchType::Else,
+//                     condition: None,
+//                     lines,
+//                     trailing_comment,
+//                 }
+//             })
+//         )
+//     )
+// );
+
+// TODO: Use block_open
+pub fn else_block<'a, E: ParseError<&'a str>>(
+    ident: &'a str,
+) -> impl Fn(&'a str) -> IResult<&'a str, Branch, E> {
+    context(
+        "else branch",
+        map(
+            tuple((
+                preceded(tag_no_case("O"), tag(ident)),
+                tag_no_case("else"),
+                opt(comment),
+                line_ending,
+                many0(line),
+            )),
+            |(_, _, trailing_comment, _, lines)| Branch {
+                branch_type: BranchType::Else,
+                condition: None,
+                lines,
+                trailing_comment,
+            },
+        ),
     )
-);
+}
 
-named!(pub conditional<Span, Conditional>,
-    sep!(
-        space0,
-        // TODO: Extract out into some kind of named_args macro
-        do_parse!(
-            block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
-            tag_no_case!("if") >>
-            condition: gcode_expression >>
-            trailing_comment: opt!(comment) >>
-            line_ending >>
-            lines: many0!(line) >>
-            elseifs: many0!(call!(elseif, block_ident.to_ident_string())) >>
-            else_block: opt!(call!(else_block, block_ident.to_ident_string())) >>
-            preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
-            tag_no_case!("endif") >>
-            ({
-                let mut branches = vec![Branch {
-                    branch_type: BranchType::If,
-                    condition: Some(condition),
-                    lines,
-                    trailing_comment
-                }];
+// named!(pub conditional<Span, Conditional>,
+//     sep!(
+//         space0,
+//         // TODO: Extract out into some kind of named_args macro
+//         do_parse!(
+//             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
+//             tag_no_case!("if") >>
+//             condition: gcode_expression >>
+//             trailing_comment: opt!(comment) >>
+//             line_ending >>
+//             lines: many0!(line) >>
+//             elseifs: many0!(call!(elseif, block_ident.to_ident_string())) >>
+//             else_block: opt!(call!(else_block, block_ident.to_ident_string())) >>
+//             preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
+//             tag_no_case!("endif") >>
+//             ({
+//                 let mut branches = vec![Branch {
+//                     branch_type: BranchType::If,
+//                     condition: Some(condition),
+//                     lines,
+//                     trailing_comment
+//                 }];
 
-                branches.append(&mut elseifs.clone());
+//                 branches.append(&mut elseifs.clone());
 
-                if let Some(e) = else_block {
-                    branches.push(e);
-                }
+//                 if let Some(e) = else_block {
+//                     branches.push(e);
+//                 }
 
-                Conditional { identifier: block_ident, branches }
-            })
-        )
-    )
-);
+//                 Conditional { identifier: block_ident, branches }
+//             })
+//         )
+//     )
+// );
+
+// TODO: Use conditional_block_open
+pub fn conditional<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Conditional, E> {
+    // TODO: gcode_non_global_ident instead of `parameter`. Call it `condition_ident` or `block_ident`?
+    let (i, ident) = delimited(tag_no_case("O"), recognize(parameter), tag_no_case("if"))(i)?;
+
+    // let ident_str = ident.to_string();
+
+    let (i, (if_block_condition, if_block_comment)) =
+        terminated(tuple((expression, opt(comment))), line_ending)(i)?;
+
+    let (i, if_block_lines) = many0(line)(i)?;
+
+    // TODO: DRY up `.to_string().as_str()` calls that are all over the place
+    let (i, elseifs) = many0(elseif_block(&ident))(i)?;
+
+    let (i, else_block) = opt(else_block(&ident))(i)?;
+
+    // Closing tag
+    let (i, _) = context(
+        "closing",
+        tuple((tag_no_case("O"), tag(ident), tag_no_case("endif"))),
+    )(i)?;
+
+    let mut branches = vec![Branch {
+        branch_type: BranchType::If,
+        condition: Some(if_block_condition),
+        lines: if_block_lines,
+        trailing_comment: if_block_comment,
+    }];
+
+    branches.append(&mut elseifs.clone());
+
+    if let Some(e) = else_block {
+        branches.push(e);
+    }
+
+    let (_, identifier) = parameter(ident)?;
+
+    Ok((
+        i,
+        Conditional {
+            identifier,
+            branches,
+        },
+    ))
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::assert_parse;
     use crate::token::{Comment, Feedrate, Token, TokenType};
-    use common::{assert_parse, empty_span, span};
-    use expression::{BinaryOperator, ExpressionToken, Value};
+    use expression::{BinaryOperator, ExpressionToken};
 
     #[test]
     fn trailing_comment() {
         assert_parse!(
             parser = conditional;
-            input = span!(b"o1 if [1 gt 0] ; comment here\nf500\no1 endif");
+            input = "o1 if [1 gt 0] ; comment here\nf500\no1 endif";
             expected = Conditional {
                 identifier: Parameter::Numbered(1),
                 branches: vec![
@@ -137,11 +253,9 @@ mod tests {
                         ])),
                         lines: vec![
                             Line {
-                                span: empty_span!(offset = 30, line = 2),
                                 tokens: vec![
                                     Token {
-                                        span: empty_span!(offset = 30, line = 2),
-                                        token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(500.0) })
+                                        token: TokenType::Feedrate(Feedrate { feedrate: 500.0.into() })
                                     },
                                 ],
                                 ..Line::default()
@@ -150,7 +264,6 @@ mod tests {
                     }
                 ]
             };
-            remaining = empty_span!(offset = 43, line = 3)
         );
     }
 
@@ -158,7 +271,7 @@ mod tests {
     fn parse_if() {
         assert_parse!(
             parser = conditional;
-            input = span!(b"o1 if [1 gt 0]\nf500\no1 endif");
+            input = "o1 if [1 gt 0]\nf500\no1 endif";
             expected = Conditional {
                 identifier: Parameter::Numbered(1),
                 branches: vec![
@@ -171,11 +284,9 @@ mod tests {
                             ExpressionToken::Literal(0.0),
                         ])),
                         lines: vec![Line {
-                            span: empty_span!(offset = 15, line = 2),
                             tokens: vec![
                                 Token {
-                                    span: empty_span!(offset = 15, line = 2),
-                                    token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(500.0) })
+                                    token: TokenType::Feedrate(Feedrate { feedrate: 500.0.into() })
                                 },
                             ],
                             ..Line::default()
@@ -183,7 +294,6 @@ mod tests {
                     }
                 ]
             };
-            remaining = empty_span!(offset = 28, line = 3)
         );
     }
 
@@ -191,7 +301,7 @@ mod tests {
     fn parse_if_elseif() {
         assert_parse!(
             parser = conditional;
-            input = span!(b"o1 if [1 gt 0]\nf500\no1 elseif [2 lt 3]\nf400\no1 endif");
+            input = "o1 if [1 gt 0]\nf500\no1 elseif [2 lt 3]\nf400\no1 endif";
             expected = Conditional {
                 identifier: Parameter::Numbered(1),
                 branches: vec![
@@ -204,11 +314,9 @@ mod tests {
                             ExpressionToken::Literal(0.0),
                         ])),
                         lines: vec![Line {
-                            span: empty_span!(offset = 15, line = 2),
                             tokens: vec![
                                 Token {
-                                    span: empty_span!(offset = 15, line = 2),
-                                    token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(500.0) })
+                                    token: TokenType::Feedrate(Feedrate { feedrate: 500.0.into() })
                                 },
                             ],
                             ..Line::default()
@@ -223,11 +331,9 @@ mod tests {
                             ExpressionToken::Literal(3.0),
                         ])),
                         lines: vec![Line {
-                            span: empty_span!(offset = 39, line = 4),
                             tokens: vec![
                                 Token {
-                                    span: empty_span!(offset = 39, line = 4),
-                                    token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(400.0) })
+                                    token: TokenType::Feedrate(Feedrate { feedrate: 400.0.into() })
                                 },
                             ],
                             ..Line::default()
@@ -235,7 +341,6 @@ mod tests {
                     }
                 ]
             };
-            remaining = empty_span!(offset = 52, line = 5)
         );
     }
 
@@ -243,7 +348,7 @@ mod tests {
     fn parse_if_elseif_else() {
         assert_parse!(
             parser = conditional;
-            input = span!(b"o1 if [1 gt 0]\nf500\no1 elseif [2 lt 3]\nf400\no1 else\nf200\no1 endif");
+            input = "o1 if [1 gt 0]\nf500\no1 elseif [2 lt 3]\nf400\no1 else\nf200\no1 endif";
             expected = Conditional {
                 identifier: Parameter::Numbered(1),
                 branches: vec![
@@ -256,11 +361,9 @@ mod tests {
                             ExpressionToken::Literal(0.0),
                         ])),
                         lines: vec![Line {
-                            span: empty_span!(offset = 15, line = 2),
                             tokens: vec![
                                 Token {
-                                    span: empty_span!(offset = 15, line = 2),
-                                    token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(500.0) })
+                                    token: TokenType::Feedrate(Feedrate { feedrate: 500.0.into() })
                                 },
                             ],
                             ..Line::default()
@@ -275,11 +378,9 @@ mod tests {
                             ExpressionToken::Literal(3.0),
                         ])),
                         lines: vec![Line {
-                            span: empty_span!(offset = 39, line = 4),
                             tokens: vec![
                                 Token {
-                                    span: empty_span!(offset = 39, line = 4),
-                                    token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(400.0) })
+                                    token: TokenType::Feedrate(Feedrate { feedrate: 400.0.into() })
                                 },
                             ],
                             ..Line::default()
@@ -290,11 +391,9 @@ mod tests {
                         branch_type: BranchType::Else,
                         condition: None,
                         lines: vec![Line {
-                            span: empty_span!(offset = 52, line = 6),
                             tokens: vec![
                                 Token {
-                                    span: empty_span!(offset = 52, line = 6),
-                                    token: TokenType::Feedrate(Feedrate { feedrate: Value::Float(200.0) })
+                                    token: TokenType::Feedrate(Feedrate { feedrate: 200.0.into() })
                                 },
                             ],
                             ..Line::default()
@@ -302,7 +401,6 @@ mod tests {
                     }
                 ]
             };
-            remaining = empty_span!(offset = 65, line = 7)
         );
     }
 }
