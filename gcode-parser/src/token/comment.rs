@@ -1,12 +1,10 @@
 use nom::{
-    branch::{alt, permutation},
-    bytes::streaming::{tag, tag_no_case, take_until},
-    character::streaming::{char, digit1, multispace0, space0},
-    combinator::{map, map_res, opt},
+    branch::alt,
+    bytes::streaming::take_until,
+    character::streaming::char,
+    combinator::map,
     error::{context, ParseError},
-    multi::many0,
-    number::streaming::float,
-    sequence::{delimited, preceded, separated_pair, terminated},
+    sequence::{delimited, preceded},
     IResult,
 };
 

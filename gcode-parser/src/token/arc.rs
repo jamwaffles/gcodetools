@@ -1,13 +1,9 @@
-use crate::value::{preceded_value, value, Value};
+use crate::value::{preceded_value, Value};
 use nom::{
-    branch::{alt, permutation},
-    bytes::streaming::{tag, tag_no_case, take_until},
-    character::streaming::{char, digit1, multispace0, space0},
-    combinator::{map, map_res, opt},
+    branch::permutation,
+    bytes::streaming::tag_no_case,
+    combinator::{map_res, opt},
     error::{context, ParseError},
-    multi::many1,
-    number::streaming::float,
-    sequence::{delimited, preceded, separated_pair, terminated},
     IResult,
 };
 
@@ -114,7 +110,7 @@ pub fn center_format_arc<'a, E: ParseError<&'a str>>(
                 // TODO: This must be a positive integer, not any `Value`
                 opt(preceded_value(tag_no_case("P"))),
             )),
-            |(x, y, z, i, j, k, turns): (
+            |(x, y, z, i, j, k, _turns): (
                 Option<Value>,
                 Option<Value>,
                 Option<Value>,
@@ -190,7 +186,7 @@ pub fn radius_format_arc<'a, E: ParseError<&'a str>>(
                 // TODO: This must be a positive integer, not any `Value`
                 opt(preceded_value(tag_no_case("P"))),
             )),
-            |(x, y, z, radius, turns): (
+            |(x, y, z, radius, _turns): (
                 Option<Value>,
                 Option<Value>,
                 Option<Value>,

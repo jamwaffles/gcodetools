@@ -4,21 +4,18 @@ use self::conditional::conditional;
 pub use self::conditional::{Branch, BranchType, Conditional};
 use crate::line::{line, Line};
 use crate::token::{comment, Comment};
-use crate::value::{value, Value};
 use expression::{
     gcode::{expression, parameter},
     Expression, Parameter,
 };
 use nom::{
-    branch::{alt, permutation},
+    branch::alt,
     bytes::streaming::{tag, tag_no_case},
-    character::streaming::{char, digit1, line_ending, multispace0, space0},
-    combinator::{map, map_opt, opt, recognize},
-    do_parse,
+    character::streaming::line_ending,
+    combinator::{map, opt},
     error::{context, ParseError},
     multi::many0,
-    number::streaming::float,
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
+    sequence::{delimited, preceded, terminated, tuple},
     IResult,
 };
 

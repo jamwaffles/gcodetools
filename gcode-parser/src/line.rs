@@ -1,14 +1,10 @@
 use crate::token::{block_delete, line_number, token, Token};
-use expression::{Expression, Parameter};
 use nom::{
-    branch::{alt, permutation},
-    bytes::streaming::{tag, tag_no_case, take_until},
-    character::streaming::{char, digit1, line_ending, multispace0, space0},
-    combinator::{map, map_opt, opt},
-    error::{context, ParseError},
+    character::streaming::line_ending,
+    combinator::{map, opt},
+    error::ParseError,
     multi::many0,
-    number::streaming::float,
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
+    sequence::tuple,
     IResult,
 };
 

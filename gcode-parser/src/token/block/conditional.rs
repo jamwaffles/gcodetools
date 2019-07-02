@@ -1,22 +1,17 @@
 use crate::line::{line, Line};
 use crate::token::{comment, Comment};
-use crate::value::{preceded_value, Value};
-// use expression::parser::{gcode_expression, gcode_non_global_ident};
 use expression::{
     gcode::{expression, parameter},
     Expression, Parameter,
 };
 use nom::{
-    branch::{alt, permutation},
-    bytes::streaming::{tag, tag_no_case, take_until},
-    character::streaming::{char, digit1, line_ending, multispace0, space0},
-    combinator::{map, map_opt, opt, recognize},
-    do_parse,
+    bytes::streaming::{tag, tag_no_case},
+    character::streaming::line_ending,
+    combinator::{map, opt, recognize},
     error::{context, ParseError},
     multi::many0,
-    number::streaming::float,
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
-    Compare, IResult, InputLength, InputTake,
+    sequence::{delimited, preceded, terminated, tuple},
+    IResult,
 };
 
 /// What type of branch this is

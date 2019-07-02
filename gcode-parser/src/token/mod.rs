@@ -38,17 +38,13 @@ use crate::token::othercode::raw_line_number;
 pub use crate::token::othercode::LineNumber;
 use crate::value::{value, Value};
 use nom::{
-    branch::{alt, permutation},
-    bytes::streaming::{tag, tag_no_case, take_until},
-    character::streaming::{char, digit1, multispace0, one_of, space0},
-    combinator::{map, map_opt, opt},
+    branch::alt,
+    character::streaming::{char, one_of},
+    combinator::map,
     error::{context, ParseError},
-    multi::many0,
-    number::streaming::float,
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
+    sequence::tuple,
     IResult,
 };
-use std::marker::PhantomData;
 
 /// Any possible token type recgonised by this parser
 #[derive(Debug, PartialEq, Clone)]

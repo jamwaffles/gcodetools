@@ -1,12 +1,8 @@
 use nom::{
     branch::alt,
-    bytes::streaming::{tag, tag_no_case, take_until},
-    character::streaming::{char, digit1, multispace0},
-    combinator::{map, map_res, opt},
+    bytes::streaming::tag_no_case,
+    combinator::map,
     error::{context, ParseError},
-    multi::many1,
-    number::streaming::float,
-    sequence::{delimited, preceded, separated_pair, terminated},
     IResult,
 };
 

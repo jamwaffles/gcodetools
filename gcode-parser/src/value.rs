@@ -1,13 +1,10 @@
 use nom::{
-    branch::alt,
-    bytes::streaming::{tag, tag_no_case, take_until},
-    character::streaming::{char, digit1, multispace0},
-    combinator::{map, map_res, opt},
+    character::streaming::multispace0,
+    combinator::map,
     error::{context, ParseError},
-    multi::many1,
     number::streaming::float,
-    sequence::{delimited, preceded, separated_pair, terminated},
-    AsChar, IResult, InputIter, InputLength, InputTake, InputTakeAtPosition, UnspecializedInput,
+    sequence::separated_pair,
+    IResult,
 };
 
 /// TODO: Replace with an enum that holds expressions and parameters as well as literals
@@ -28,6 +25,6 @@ where
 {
     map(
         separated_pair(parser, multispace0, value),
-        |(char, value)| value,
+        |(_char, value)| value,
     )
 }

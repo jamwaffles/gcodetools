@@ -1,14 +1,10 @@
 use crate::value::{value, Value};
 use expression::{parser::gcode, Parameter};
 use nom::{
-    branch::{alt, permutation},
-    bytes::streaming::{tag, tag_no_case, take_until},
-    character::streaming::{char, digit1, multispace0, space0},
-    combinator::{map, map_res, opt},
+    character::streaming::{char, multispace0},
+    combinator::map,
     error::{context, ParseError},
-    multi::many1,
-    number::streaming::float,
-    sequence::{delimited, preceded, separated_pair, terminated},
+    sequence::{delimited, separated_pair},
     IResult,
 };
 
@@ -54,9 +50,6 @@ pub fn assignment<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, As
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::assert_parse;
-    use expression::{ArithmeticOperator, Expression, ExpressionToken};
 
     // TODO: Make this test work again
     // #[test]

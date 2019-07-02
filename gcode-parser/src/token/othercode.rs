@@ -1,13 +1,10 @@
 use crate::value::{value, Value};
 use nom::{
-    branch::{alt, permutation},
-    bytes::streaming::{tag, tag_no_case, take_until},
-    character::streaming::{char, digit1, multispace0, space0},
-    combinator::{map, map_opt, map_res, opt},
+    bytes::streaming::tag_no_case,
+    character::streaming::digit1,
+    combinator::{map, map_res},
     error::{context, ParseError},
-    multi::many0,
-    number::streaming::float,
-    sequence::{delimited, preceded, separated_pair, terminated},
+    sequence::preceded,
     IResult,
 };
 

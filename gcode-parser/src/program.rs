@@ -1,10 +1,10 @@
 use crate::line::{line, Line};
 use crate::token::Token;
-use expression::gcode::expression;
+
 use nom::{
     character::streaming::{char, line_ending},
     combinator::opt,
-    error::{context, convert_error, ParseError, VerboseError},
+    error::{convert_error, ParseError, VerboseError},
     multi::many0,
     sequence::tuple,
     IResult,

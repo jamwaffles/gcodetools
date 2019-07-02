@@ -1,22 +1,14 @@
-use crate::line::{line, Line};
-use crate::token::Token;
 use expression::{
     gcode::{expression, parameter},
     Expression, Parameter,
 };
 use nom::{
-    branch::{alt, permutation},
-    bytes::streaming::{tag, tag_no_case, take_until},
-    character::streaming::{char, digit1, line_ending, multispace0, space0},
-    combinator::{map, map_opt, opt, recognize},
-    do_parse,
+    bytes::streaming::tag_no_case,
+    combinator::{map, opt},
     error::{context, ParseError},
-    multi::many0,
-    number::streaming::float,
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
+    sequence::{preceded, separated_pair},
     IResult,
 };
-use std::io;
 
 /// Which type of block this is
 #[derive(Debug, PartialEq, Clone)]
