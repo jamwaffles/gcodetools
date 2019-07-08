@@ -54,6 +54,14 @@ pub enum GCode {
 
     /// Cutter compensation (off, left, right)
     CutterCompensation(CutterCompensation),
+
+    /// Store predefined position in parameters 5161 - 5166
+    ///
+    /// Doc: http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g28-g28.1
+    SetPredefinedPosition,
+
+    /// Go to predefined position
+    GotoPredefinedPosition,
 }
 
 // named!(pub gcode<Span, GCode>,
@@ -77,6 +85,8 @@ pub fn gcode<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, GCode, 
         alt((
             map(tag_no_case("G21"), |_| GCode::UnitsMM),
             map(tag_no_case("G20"), |_| GCode::UnitsInch),
+            map(tag_no_case("G28.1"), |_| GCode::SetPredefinedPosition),
+            map(tag_no_case("G28"), |_| GCode::GotoPredefinedPosition),
             map(work_offset, GCode::WorkOffset),
             map(cutter_compensation, GCode::CutterCompensation),
             map(dwell, GCode::Dwell),
