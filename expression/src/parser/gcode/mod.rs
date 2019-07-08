@@ -15,6 +15,20 @@ use nom::{
 };
 use std::str::FromStr;
 
+/// Parse a result from a preceding value and zero or more spaces
+fn tag_preceded<'a, P, OP, E: ParseError<&'a str>>(
+    t: &'static str,
+    parser: P,
+) -> impl Fn(&'a str) -> IResult<&'a str, OP, E>
+where
+    P: Fn(&'a str) -> IResult<&'a str, OP, E>,
+{
+    map(
+        separated_pair(tag_no_case(t), space0, parser),
+        |(_preceding, value)| value,
+    )
+}
+
 /// Expression entry point
 pub fn expression<'a, E: ParseError<&'a str>, V: FromStr>(
     i: &'a str,
@@ -118,8 +132,8 @@ fn exists<'a, E: ParseError<&'a str>, V>(i: &'a str) -> IResult<&'a str, Functio
     context(
         "exists",
         map(
-            preceded(
-                tag_no_case("exists"),
+            tag_preceded(
+                "exists",
                 delimited(
                     char('['),
                     delimited(multispace0, parameter, multispace0),
@@ -137,34 +151,24 @@ fn function<'a, E: ParseError<&'a str>, V: FromStr>(
     context(
         "function",
         alt((
-            map(preceded(tag_no_case("abs"), expression), Function::Abs),
-            map(preceded(tag_no_case("acos"), expression), Function::Acos),
-            map(preceded(tag_no_case("asin"), expression), Function::Asin),
+            map(tag_preceded("abs", expression), Function::Abs),
+            map(tag_preceded("acos", expression), Function::Acos),
+            map(tag_preceded("asin", expression), Function::Asin),
             map(
-                separated_pair(
-                    tag_no_case("atan"),
-                    space0,
-                    separated_pair(expression, char('/'), expression),
-                ),
-                |(_, args)| Function::Atan(args),
+                tag_preceded("atan", separated_pair(expression, char('/'), expression)),
+                Function::Atan,
             ),
-            map(preceded(tag_no_case("cos"), expression), Function::Cos),
-            map(preceded(tag_no_case("exp"), expression), Function::Exp),
-            map(
-                // Aka "floor"
-                preceded(tag_no_case("fix"), expression),
-                Function::Floor,
-            ),
-            map(
-                // Aka "ceil"
-                preceded(tag_no_case("fup"), expression),
-                Function::Ceil,
-            ),
-            map(preceded(tag_no_case("ln"), expression), Function::Ln),
-            map(preceded(tag_no_case("round"), expression), Function::Round),
-            map(preceded(tag_no_case("sin"), expression), Function::Sin),
-            map(preceded(tag_no_case("sqrt"), expression), Function::Sqrt),
-            map(preceded(tag_no_case("tan"), expression), Function::Tan),
+            map(tag_preceded("cos", expression), Function::Cos),
+            map(tag_preceded("exp", expression), Function::Exp),
+            // Aka "floor"
+            map(tag_preceded("fix", expression), Function::Floor),
+            // Aka "ceil"
+            map(tag_preceded("fup", expression), Function::Ceil),
+            map(tag_preceded("ln", expression), Function::Ln),
+            map(tag_preceded("round", expression), Function::Round),
+            map(tag_preceded("sin", expression), Function::Sin),
+            map(tag_preceded("sqrt", expression), Function::Sqrt),
+            map(tag_preceded("tan", expression), Function::Tan),
         )),
     )(i)
 }
