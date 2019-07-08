@@ -13,7 +13,7 @@ use self::work_offset::work_offset;
 pub use self::work_offset::{WorkOffset, WorkOffsetValue};
 use nom::{
     branch::alt,
-    bytes::streaming::tag_no_case,
+    bytes::complete::tag_no_case,
     combinator::map,
     error::{context, ParseError},
     IResult,
@@ -75,16 +75,24 @@ pub fn gcode<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, GCode, 
     context(
         "G code",
         alt((
-            map(tag_no_case("G0"), |_| GCode::Rapid),
-            map(tag_no_case("G1"), |_| GCode::Feed),
-            map(tag_no_case("G2"), |_| GCode::ClockwiseArc),
-            map(tag_no_case("G3"), |_| GCode::CounterclockwiseArc),
             map(tag_no_case("G21"), |_| GCode::UnitsMM),
             map(tag_no_case("G20"), |_| GCode::UnitsInch),
             map(work_offset, GCode::WorkOffset),
             map(cutter_compensation, GCode::CutterCompensation),
-            map(plane_select, GCode::PlaneSelect),
             map(dwell, GCode::Dwell),
+            map(plane_select, GCode::PlaneSelect),
+            map(alt((tag_no_case("G01"), tag_no_case("G1"))), |_| {
+                GCode::Feed
+            }),
+            map(alt((tag_no_case("G02"), tag_no_case("G2"))), |_| {
+                GCode::ClockwiseArc
+            }),
+            map(alt((tag_no_case("G03"), tag_no_case("G3"))), |_| {
+                GCode::CounterclockwiseArc
+            }),
+            map(alt((tag_no_case("G00"), tag_no_case("G0"))), |_| {
+                GCode::Rapid
+            }),
         )),
     )(i)
 }

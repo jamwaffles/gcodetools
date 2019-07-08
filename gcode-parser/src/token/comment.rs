@@ -1,7 +1,7 @@
 use nom::{
     branch::alt,
-    bytes::streaming::take_until,
-    character::streaming::char,
+    bytes::complete::take_until,
+    character::complete::{char, space0},
     combinator::map,
     error::{context, ParseError},
     sequence::{delimited, preceded},
@@ -22,10 +22,13 @@ pub fn comment<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Comme
         "comment",
         map(
             map(
-                alt((
-                    delimited(char('('), take_until(")"), char(')')),
-                    preceded(char(';'), take_until("\n")),
-                )),
+                preceded(
+                    space0,
+                    alt((
+                        delimited(char('('), take_until(")"), char(')')),
+                        preceded(char(';'), take_until("\n")),
+                    )),
+                ),
                 String::from,
             ),
             |text| Comment {

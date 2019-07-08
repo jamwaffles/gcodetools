@@ -1,7 +1,8 @@
 use crate::value::{preceded_value, Value};
 use nom::{
-    bytes::streaming::tag_no_case,
-    character::streaming::multispace0,
+    branch::alt,
+    bytes::complete::tag_no_case,
+    character::complete::space0,
     combinator::map,
     error::{context, ParseError},
     sequence::{pair, preceded},
@@ -31,7 +32,8 @@ pub fn dwell<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Dwell, 
         "dwell",
         map(
             preceded(
-                pair(tag_no_case("g4"), multispace0),
+                // TODO: Parser for 0-preceded codes
+                pair(alt((tag_no_case("g4"), tag_no_case("g04"))), space0),
                 preceded_value(tag_no_case("p")),
             ),
             |time| Dwell { time },

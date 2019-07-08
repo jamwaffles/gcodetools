@@ -1,16 +1,14 @@
+use super::{block_ident, BlockIdent};
 use crate::line::{line, Line};
 use crate::token::{comment, Comment};
-use expression::{
-    gcode::{expression, parameter},
-    Expression, Parameter,
-};
+use expression::{gcode::expression, Expression};
 use nom::{
-    bytes::streaming::{tag, tag_no_case},
-    character::streaming::line_ending,
+    bytes::complete::{tag, tag_no_case},
+    character::complete::{line_ending, space1},
     combinator::{map, opt, recognize},
     error::{context, ParseError},
     multi::many0,
-    sequence::{delimited, preceded, terminated, tuple},
+    sequence::{separated_pair, terminated, tuple},
     IResult,
 };
 
@@ -41,7 +39,7 @@ pub struct Branch {
 /// An if/else if/else chain
 #[derive(Debug, PartialEq, Clone)]
 pub struct Conditional {
-    identifier: Parameter,
+    identifier: BlockIdent,
     branches: Vec<Branch>,
 }
 
@@ -75,14 +73,16 @@ pub fn elseif_block<'a, E: ParseError<&'a str>>(
         "elseif branch",
         map(
             tuple((
-                preceded(tag_no_case("O"), tag(ident)),
+                tag(ident),
+                space1,
                 tag_no_case("elseif"),
+                space1,
                 expression,
                 opt(comment),
                 line_ending,
                 many0(line),
             )),
-            |(_, _, condition, trailing_comment, _, lines)| Branch {
+            |(_, _, _, _, condition, trailing_comment, _, lines)| Branch {
                 branch_type: BranchType::ElseIf,
                 condition: Some(condition),
                 lines,
@@ -125,13 +125,14 @@ pub fn else_block<'a, E: ParseError<&'a str>>(
         "else branch",
         map(
             tuple((
-                preceded(tag_no_case("O"), tag(ident)),
+                tag(ident),
+                space1,
                 tag_no_case("else"),
                 opt(comment),
                 line_ending,
                 many0(line),
             )),
-            |(_, _, trailing_comment, _, lines)| Branch {
+            |(_, _, _, trailing_comment, _, lines)| Branch {
                 branch_type: BranchType::Else,
                 condition: None,
                 lines,
@@ -178,25 +179,24 @@ pub fn else_block<'a, E: ParseError<&'a str>>(
 
 // TODO: Use conditional_block_open
 pub fn conditional<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Conditional, E> {
-    // TODO: gcode_non_global_ident instead of `parameter`. Call it `condition_ident` or `block_ident`?
-    let (i, ident) = delimited(tag_no_case("O"), recognize(parameter), tag_no_case("if"))(i)?;
-
-    // let ident_str = ident.to_string();
+    let (i, (ident, _, _, _)) =
+        tuple((recognize(block_ident), space1, tag_no_case("if"), space1))(i)?;
 
     let (i, (if_block_condition, if_block_comment)) =
         terminated(tuple((expression, opt(comment))), line_ending)(i)?;
 
     let (i, if_block_lines) = many0(line)(i)?;
 
-    // TODO: DRY up `.to_string().as_str()` calls that are all over the place
-    let (i, elseifs) = many0(elseif_block(&ident))(i)?;
+    let (i, elseifs) = many0(elseif_block(ident))(i)?;
 
-    let (i, else_block) = opt(else_block(&ident))(i)?;
+    let (i, else_block) = opt(else_block(ident))(i)?;
+
+    println!("Close tag {:?}", format!("o{}", ident));
 
     // Closing tag
     let (i, _) = context(
-        "closing",
-        tuple((tag_no_case("O"), tag(ident), tag_no_case("endif"))),
+        "if block close",
+        separated_pair(tag(ident), space1, tag_no_case("endif")),
     )(i)?;
 
     let mut branches = vec![Branch {
@@ -212,7 +212,7 @@ pub fn conditional<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, C
         branches.push(e);
     }
 
-    let (_, identifier) = parameter(ident)?;
+    let (_, identifier) = block_ident(ident)?;
 
     Ok((
         i,
@@ -236,7 +236,7 @@ mod tests {
             parser = conditional;
             input = "o1 if [1 gt 0] ; comment here\nf500\no1 endif";
             expected = Conditional {
-                identifier: Parameter::Numbered(1),
+                identifier: BlockIdent { name: "o1".into() },
                 branches: vec![
                     Branch {
                         trailing_comment: Some(Comment { text: "comment here".into() }),
@@ -268,7 +268,7 @@ mod tests {
             parser = conditional;
             input = "o1 if [1 gt 0]\nf500\no1 endif";
             expected = Conditional {
-                identifier: Parameter::Numbered(1),
+                identifier: BlockIdent { name: "o1".into() },
                 branches: vec![
                     Branch {
                         trailing_comment: None,
@@ -298,7 +298,7 @@ mod tests {
             parser = conditional;
             input = "o1 if [1 gt 0]\nf500\no1 elseif [2 lt 3]\nf400\no1 endif";
             expected = Conditional {
-                identifier: Parameter::Numbered(1),
+                identifier: BlockIdent { name: "o1".into() },
                 branches: vec![
                     Branch {
                         trailing_comment: None,
@@ -345,7 +345,7 @@ mod tests {
             parser = conditional;
             input = "o1 if [1 gt 0]\nf500\no1 elseif [2 lt 3]\nf400\no1 else\nf200\no1 endif";
             expected = Conditional {
-                identifier: Parameter::Numbered(1),
+                identifier: BlockIdent { name: "o1".into() },
                 branches: vec![
                     Branch {
                         trailing_comment: None,

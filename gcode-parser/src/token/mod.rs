@@ -39,7 +39,7 @@ pub use crate::token::othercode::LineNumber;
 use crate::value::{value, Value};
 use nom::{
     branch::alt,
-    character::streaming::{char, one_of},
+    character::complete::{char, one_of},
     combinator::map,
     error::{context, ParseError},
     sequence::tuple,

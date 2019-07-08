@@ -23,8 +23,7 @@ name = "huge"
 harness = false
 
 [dependencies]
-nom = "5.0.0-beta2"
-nom_locate = { version = "0.3.1", features = [ "verbose-errors" ] }
+nom = { version = "5.0.0", default_features = false, features = [ "std" ] }
 expression = { path = "../expression" }
 common = { path = "../common" }
 

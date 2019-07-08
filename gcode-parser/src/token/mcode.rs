@@ -1,6 +1,6 @@
 use nom::{
     branch::alt,
-    bytes::streaming::tag_no_case,
+    bytes::complete::tag_no_case,
     combinator::map,
     error::{context, ParseError},
     IResult,
@@ -48,12 +48,14 @@ pub fn mcode<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, MCode, 
         "M code",
         alt((
             map(tag_no_case("M1"), |_| MCode::OptionalPause),
-            map(tag_no_case("M2"), |_| MCode::EndProgram),
+            map(alt((tag_no_case("M2"), tag_no_case("M02"))), |_| {
+                MCode::EndProgram
+            }),
+            map(tag_no_case("M30"), |_| MCode::EndProgramSwapPallets),
             map(tag_no_case("M3"), |_| MCode::SpindleForward),
             map(tag_no_case("M4"), |_| MCode::SpindleReverse),
             map(tag_no_case("M5"), |_| MCode::SpindleStop),
             map(tag_no_case("M6"), |_| MCode::ToolChange),
-            map(tag_no_case("M30"), |_| MCode::EndProgramSwapPallets),
         )),
     )(i)
 }
@@ -62,6 +64,27 @@ pub fn mcode<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, MCode, 
 mod tests {
     use super::*;
     use crate::assert_parse;
+
+    #[test]
+    fn parse_end_program() {
+        assert_parse!(
+            parser = mcode;
+            input = "M2";
+            expected = MCode::EndProgram
+        );
+
+        assert_parse!(
+            parser = mcode;
+            input = "M02";
+            expected = MCode::EndProgram
+        );
+
+        assert_parse!(
+            parser = mcode;
+            input = "M30";
+            expected = MCode::EndProgramSwapPallets
+        );
+    }
 
     #[test]
     fn parse_spindle_commands() {

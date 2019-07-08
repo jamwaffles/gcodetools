@@ -1,10 +1,10 @@
 use crate::token::{block_delete, line_number, token, Token};
 use nom::{
-    character::streaming::line_ending,
-    combinator::{map, opt},
+    character::complete::{line_ending, space0},
+    combinator::{complete, opt},
     error::ParseError,
-    multi::many0,
-    sequence::tuple,
+    multi::{many0, many1},
+    sequence::{delimited, terminated, tuple},
     IResult,
 };
 
@@ -52,23 +52,29 @@ impl Default for Line {
 // );
 
 pub fn line<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
-    map(
-        tuple((
-            opt(block_delete),
-            opt(line_number),
-            many0(token),
-            line_ending,
-        )),
-        |(block_delete, line_number, line_tokens, _)| {
-            let tokens: Vec<Token> = vec![block_delete, line_number]
-                .into_iter()
-                .filter_map(|t| t)
-                .chain(line_tokens.into_iter())
-                .collect();
+    // let (i, block_delete) = opt(block_delete)(i)?;
 
-            Line { tokens }
-        },
-    )(i)
+    // let (i, line_number) = opt(line_number)(i)?;
+
+    // let (i, line_tokens) = terminated(many0(terminated(token, space0)), line_ending)(i)?;
+
+    let (i, (block_delete, line_number, line_tokens)) = complete(delimited(
+        space0,
+        tuple((
+            opt(terminated(block_delete, space0)),
+            opt(terminated(line_number, space0)),
+            many0(terminated(token, space0)),
+        )),
+        line_ending,
+    ))(i)?;
+
+    let tokens: Vec<Token> = vec![block_delete, line_number]
+        .into_iter()
+        .filter_map(|t| t)
+        .chain(line_tokens.into_iter())
+        .collect();
+
+    Ok((i, Line { tokens }))
 }
 
 #[cfg(test)]
@@ -76,7 +82,8 @@ mod tests {
     use super::*;
     use crate::assert_parse;
     use crate::token::{
-        CenterFormatArc, Comment, CutterCompensation, GCode, TokenType, WorkOffset, WorkOffsetValue,
+        CenterFormatArc, Comment, CutterCompensation, GCode, MCode, TokenType, WorkOffset,
+        WorkOffsetValue,
     };
 
     #[test]
@@ -177,6 +184,22 @@ mod tests {
     }
 
     #[test]
+    fn end_program() {
+        assert_parse!(
+            parser = line;
+            input = "M2\n";
+            expected = Line {
+                tokens: vec![
+                    Token {
+                        token: TokenType::MCode(MCode::EndProgram)
+                    },
+                ],
+                ..Line::default()
+            };
+        );
+    }
+
+    #[test]
     fn consume_line_and_ending() {
         assert_parse!(
             parser = line;
@@ -189,6 +212,7 @@ mod tests {
                 }],
                 ..Line::default()
             };
+            remaining = "G55"
         );
     }
 
@@ -205,6 +229,26 @@ mod tests {
                 }],
                 ..Line::default()
             };
+            remaining = "G55"
+        );
+    }
+
+    #[test]
+    fn empty_line() {
+        assert_parse!(
+            parser = line;
+            input = "\n";
+            expected = Line::default();
+        );
+    }
+
+    #[test]
+    fn empty_lines() {
+        assert_parse!(
+            parser = line;
+            input = "\n\n";
+            expected = Line::default();
+            remaining = "\n"
         );
     }
 
@@ -221,10 +265,13 @@ mod tests {
                 }],
                 ..Line::default()
             };
+            remaining = "G55"
         );
     }
 
+    // TODO: Decide if this needs to be supported or not
     #[test]
+    #[ignore]
     fn or_eof() {
         assert_parse!(
             parser = line;

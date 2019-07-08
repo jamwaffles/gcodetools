@@ -1,8 +1,8 @@
 use crate::value::{preceded_value, Value};
 use nom::{
     branch::alt,
-    bytes::streaming::tag_no_case,
-    character::streaming::multispace0,
+    bytes::complete::tag_no_case,
+    character::complete::space0,
     combinator::{map, opt},
     error::{context, ParseError},
     sequence::{pair, preceded},
@@ -60,14 +60,14 @@ pub fn cutter_compensation<'a, E: ParseError<&'a str>>(
             map(tag_no_case("g40"), |_| CutterCompensation::Off),
             map(
                 preceded(
-                    pair(tag_no_case("g41"), multispace0),
+                    pair(tag_no_case("g41"), space0),
                     opt(preceded_value(tag_no_case("d"))),
                 ),
                 CutterCompensation::Left,
             ),
             map(
                 preceded(
-                    pair(tag_no_case("g42"), multispace0),
+                    pair(tag_no_case("g42"), space0),
                     opt(preceded_value(tag_no_case("d"))),
                 ),
                 CutterCompensation::Right,

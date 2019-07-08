@@ -1,12 +1,13 @@
 //! Parse coordinates into a vector
 
 use crate::value::{preceded_value, Value};
-
 use nom::{
     branch::permutation,
-    bytes::streaming::tag_no_case,
+    bytes::complete::tag_no_case,
+    character::complete::space0,
     combinator::{map_opt, opt},
     error::{context, ParseError},
+    sequence::terminated,
     IResult,
 };
 
@@ -70,15 +71,15 @@ pub fn coord<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Coord, 
         "coordinate",
         map_opt(
             permutation((
-                opt(preceded_value(tag_no_case("X"))),
-                opt(preceded_value(tag_no_case("Y"))),
-                opt(preceded_value(tag_no_case("Z"))),
-                opt(preceded_value(tag_no_case("A"))),
-                opt(preceded_value(tag_no_case("B"))),
-                opt(preceded_value(tag_no_case("C"))),
-                opt(preceded_value(tag_no_case("U"))),
-                opt(preceded_value(tag_no_case("V"))),
-                opt(preceded_value(tag_no_case("W"))),
+                opt(terminated(preceded_value(tag_no_case("X")), space0)),
+                opt(terminated(preceded_value(tag_no_case("Y")), space0)),
+                opt(terminated(preceded_value(tag_no_case("Z")), space0)),
+                opt(terminated(preceded_value(tag_no_case("A")), space0)),
+                opt(terminated(preceded_value(tag_no_case("B")), space0)),
+                opt(terminated(preceded_value(tag_no_case("C")), space0)),
+                opt(terminated(preceded_value(tag_no_case("U")), space0)),
+                opt(terminated(preceded_value(tag_no_case("V")), space0)),
+                opt(terminated(preceded_value(tag_no_case("W")), space0)),
             )),
             |(x, y, z, a, b, c, u, v, w)| {
                 let coord = Coord {
@@ -142,6 +143,31 @@ mod tests {
             parser = coord;
             input = "X0.0 Y1.0 Z2.0";
             expected = coord!(0.0, 1.0, 2.0)
+        );
+    }
+
+    #[test]
+    fn parse_xyz_integer() {
+        assert_parse!(
+            parser = coord;
+            input = "X0 Y1 Z2";
+            expected = coord!(0.0, 1.0, 2.0)
+        );
+    }
+
+    // TODO: Re-enable once a solution is found for <https://github.com/Geal/nom/issues/988>
+    #[test]
+    #[ignore]
+    fn parse_wbx() {
+        assert_parse!(
+            parser = coord;
+            input = "W0.0 B1.0 X2.0";
+            expected = Coord {
+                w: Some(0.0.into()),
+                b: Some(1.0.into()),
+                x: Some(2.0.into()),
+                ..EMPTY_COORD
+            }
         );
     }
 

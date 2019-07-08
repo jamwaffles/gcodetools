@@ -1,7 +1,7 @@
 use crate::value::{value, Value};
 use expression::{parser::gcode, Parameter};
 use nom::{
-    character::streaming::{char, multispace0},
+    character::complete::{char, space0},
     combinator::map,
     error::{context, ParseError},
     sequence::{delimited, separated_pair},
@@ -40,7 +40,7 @@ pub fn assignment<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, As
         map(
             separated_pair(
                 gcode::parameter,
-                delimited(multispace0, char('='), multispace0),
+                delimited(space0, char('='), space0),
                 value,
             ),
             |(lhs, rhs)| Assignment { lhs, rhs },

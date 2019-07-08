@@ -26,16 +26,18 @@ macro_rules! assert_parse {
         let comparisons = vec![$($expected),+];
 
         for (input, expected) in inputs.into_iter().zip(comparisons.into_iter()) {
-            let res = $parser(input).map_err(|e| match e {
+            let res = $parser(input);
+
+            let res = res.map_err(|e| match e {
                 nom::Err::Error(e) | nom::Err::Failure(e) => {
                     nom::error::convert_error(input, e)
                 }
-                e => format!("Failed to parse input `{}' for unknown reason: {:?}", input, e),
+                e => format!("Failed to parse input `{}' for reason: {:?}", input, e),
             });
 
             match res {
                 Ok((remaining, result)) => {
-                    assert_eq!(remaining.len(), 0);
+                    assert_eq!(remaining.len(), 0, "{} bytes remaining to consume: \"{}\"", remaining.len(), remaining);
                     assert_eq!(result, expected);
                 },
                 Err(e) => panic!("{}", e)
@@ -66,7 +68,7 @@ macro_rules! assert_parse {
                 nom::Err::Error(e) | nom::Err::Failure(e) => {
                     nom::error::convert_error(input, e)
                 }
-                e => format!("Failed to parse input `{}' for unknown reason: {:?}", input, e),
+                e => format!("Failed to parse input `{}' for reason: {:?}. Remaining: `{}'", input, e, remaining),
             });
 
             match res {

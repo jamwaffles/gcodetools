@@ -1,6 +1,6 @@
 use nom::{
     branch::alt,
-    bytes::streaming::tag_no_case,
+    bytes::complete::tag_no_case,
     combinator::map,
     error::{context, ParseError},
     IResult,

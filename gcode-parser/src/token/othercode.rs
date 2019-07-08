@@ -1,7 +1,7 @@
-use crate::value::{value, Value};
+use crate::value::{preceded_value, Value};
 use nom::{
-    bytes::streaming::tag_no_case,
-    character::streaming::digit1,
+    bytes::complete::tag_no_case,
+    character::complete::digit1,
     combinator::{map, map_res},
     error::{context, ParseError},
     sequence::preceded,
@@ -51,7 +51,7 @@ pub struct LineNumber {
 pub fn feedrate<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Feedrate, E> {
     context(
         "feed rate",
-        map(preceded(tag_no_case("F"), value), |feedrate| Feedrate {
+        map(preceded_value(tag_no_case("F")), |feedrate| Feedrate {
             feedrate,
         }),
     )(i)
@@ -70,9 +70,7 @@ pub fn feedrate<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Feed
 pub fn spindle_speed<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, SpindleSpeed, E> {
     context(
         "spindle speed",
-        map(preceded(tag_no_case("S"), value), |rpm| SpindleSpeed {
-            rpm,
-        }),
+        map(preceded_value(tag_no_case("S")), |rpm| SpindleSpeed { rpm }),
     )(i)
 }
 
@@ -90,8 +88,8 @@ pub fn tool_number<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, T
     // TODO: Parse to unsigned int
     context(
         "tool number",
-        map(preceded(tag_no_case("T"), value), |tool_number| {
-            ToolNumber { tool_number }
+        map(preceded_value(tag_no_case("T")), |tool_number| ToolNumber {
+            tool_number,
         }),
     )(i)
 }
@@ -131,11 +129,20 @@ mod tests {
     use crate::assert_parse;
 
     #[test]
-    fn parse_feedrate() {
+    fn parse_feedrate_decimal() {
         assert_parse!(
             parser = feedrate;
             input = "F500.3";
             expected = Feedrate { feedrate: 500.3.into() }
+        );
+    }
+
+    #[test]
+    fn parse_feedrate() {
+        assert_parse!(
+            parser = feedrate;
+            input = "f500";
+            expected = Feedrate { feedrate: 500.0.into() }
         );
     }
 

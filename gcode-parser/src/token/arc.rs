@@ -1,9 +1,11 @@
 use crate::value::{preceded_value, Value};
 use nom::{
     branch::permutation,
-    bytes::streaming::tag_no_case,
-    combinator::{map_res, opt},
+    bytes::complete::tag_no_case,
+    character::complete::space0,
+    combinator::{map_opt, map_res, opt},
     error::{context, ParseError},
+    sequence::terminated,
     IResult,
 };
 
@@ -98,19 +100,18 @@ pub fn center_format_arc<'a, E: ParseError<&'a str>>(
 ) -> IResult<&'a str, CenterFormatArc, E> {
     context(
         "center format arc",
-        map_res(
-            // TODO: Needs some sort of sep() to handle whitespace
+        map_opt(
             permutation((
-                opt(preceded_value(tag_no_case("X"))),
-                opt(preceded_value(tag_no_case("Y"))),
-                opt(preceded_value(tag_no_case("Z"))),
-                opt(preceded_value(tag_no_case("I"))),
-                opt(preceded_value(tag_no_case("J"))),
-                opt(preceded_value(tag_no_case("K"))),
+                opt(terminated(preceded_value(tag_no_case("X")), space0)),
+                opt(terminated(preceded_value(tag_no_case("Y")), space0)),
+                opt(terminated(preceded_value(tag_no_case("Z")), space0)),
+                opt(terminated(preceded_value(tag_no_case("I")), space0)),
+                opt(terminated(preceded_value(tag_no_case("J")), space0)),
+                opt(terminated(preceded_value(tag_no_case("K")), space0)),
                 // TODO: This must be a positive integer, not any `Value`
-                opt(preceded_value(tag_no_case("P"))),
+                opt(terminated(preceded_value(tag_no_case("P")), space0)),
             )),
-            |(x, y, z, i, j, k, _turns): (
+            |(x, y, z, i, j, k, turns): (
                 Option<Value>,
                 Option<Value>,
                 Option<Value>,
@@ -126,18 +127,18 @@ pub fn center_format_arc<'a, E: ParseError<&'a str>>(
                     i,
                     j,
                     k,
-                    // TODO: Use parsed value
-                    // turns: turns.unwrap_or(Value::Unsigned(1)),
-                    turns: 1.0.into(),
+                    // TODO: Parse into integer
+                    turns: turns.unwrap_or(1.0),
                 };
 
                 // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
                 // TODO: Return validation error instead of `None`
                 // Require at least one offset coordinate to be present
-                if (&arc.i, &arc.j, &arc.k) == (&None, &None, &None) {
-                    Err("Invalid center format")
+                if (arc.i, arc.j, arc.k) == (None, None, None) {
+                    // Err("Invalid center format arc")
+                    None
                 } else {
-                    Ok(arc)
+                    Some(arc)
                 }
             },
         ),
@@ -179,10 +180,10 @@ pub fn radius_format_arc<'a, E: ParseError<&'a str>>(
         map_res(
             // TODO: Needs some sort of sep() to handle whitespace
             permutation((
-                opt(preceded_value(tag_no_case("X"))),
-                opt(preceded_value(tag_no_case("Y"))),
-                opt(preceded_value(tag_no_case("Z"))),
-                preceded_value(tag_no_case("R")),
+                opt(terminated(preceded_value(tag_no_case("X")), space0)),
+                opt(terminated(preceded_value(tag_no_case("Y")), space0)),
+                opt(terminated(preceded_value(tag_no_case("Z")), space0)),
+                terminated(preceded_value(tag_no_case("R")), space0),
                 // TODO: This must be a positive integer, not any `Value`
                 opt(preceded_value(tag_no_case("P"))),
             )),
@@ -279,7 +280,9 @@ mod tests {
         );
     }
 
+    // TODO: Re-enable once a solution is found for <https://github.com/Geal/nom/issues/988>
     #[test]
+    #[ignore]
     fn backwards_center_format() {
         assert_parse!(
             parser = center_format_arc;

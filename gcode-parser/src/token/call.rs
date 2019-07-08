@@ -1,11 +1,12 @@
-use expression::{parser::gcode, Expression, Parameter};
+use crate::token::block::{block_ident, BlockIdent};
+use expression::{parser::gcode, Expression};
 use nom::{
-    bytes::streaming::tag_no_case,
-    character::streaming::multispace0,
+    bytes::complete::tag_no_case,
+    character::complete::space1,
     combinator::map,
     error::{context, ParseError},
     multi::many0,
-    sequence::{delimited, preceded, separated_pair},
+    sequence::{preceded, separated_pair},
     IResult,
 };
 use std::str::FromStr;
@@ -13,7 +14,7 @@ use std::str::FromStr;
 /// Which type of block this is
 #[derive(Debug, PartialEq, Clone)]
 pub struct Call<T> {
-    subroutine_ident: Parameter,
+    subroutine_ident: BlockIdent,
     arguments: Vec<Expression<T>>,
 }
 
@@ -25,12 +26,9 @@ where
         "subroutine call",
         map(
             separated_pair(
-                // TODO: Re-add `non_global_ident` function; this should only accept a non global
-                // `<identifier>` without a hash. Probably want to call it `subroutine_ident` or
-                // something.
-                preceded(tag_no_case("O"), gcode::parameter),
-                delimited(multispace0, tag_no_case("call"), multispace0),
-                many0(gcode::expression),
+                block_ident,
+                preceded(space1, tag_no_case("call")),
+                many0(preceded(space1, gcode::expression)),
             ),
             |(subroutine_ident, arguments)| Call {
                 subroutine_ident,
@@ -61,7 +59,21 @@ where
 mod tests {
     use super::*;
     use crate::assert_parse;
-    use expression::{ArithmeticOperator, Expression, ExpressionToken, Parameter};
+    use expression::{ArithmeticOperator, Expression, ExpressionToken};
+
+    #[test]
+    fn parse_call_no_args() {
+        let expd: Call<f32> = Call {
+            subroutine_ident: "o100".into(),
+            arguments: Vec::new(),
+        };
+
+        assert_parse!(
+            parser = call;
+            input = "o100 call";
+            expected = expd;
+        );
+    }
 
     #[test]
     fn parse_call() {
@@ -69,7 +81,7 @@ mod tests {
             parser = call;
             input = "o100 call [100] [1 + 2]";
             expected = Call {
-                subroutine_ident: Parameter::Numbered(100),
+                subroutine_ident: "o100".into(),
                 arguments: vec![
                     Expression::from_tokens(vec![
                         ExpressionToken::Literal(100.0)

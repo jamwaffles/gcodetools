@@ -4,20 +4,18 @@ use self::conditional::conditional;
 pub use self::conditional::{Branch, BranchType, Conditional};
 use crate::line::{line, Line};
 use crate::token::{comment, Comment};
-use expression::{
-    gcode::{expression, parameter},
-    Expression, Parameter,
-};
+use expression::{gcode::expression, Expression};
 use nom::{
     branch::alt,
-    bytes::streaming::{tag, tag_no_case},
-    character::streaming::line_ending,
-    combinator::{map, opt},
+    bytes::complete::{tag, tag_no_case},
+    character::complete::{digit1, line_ending},
+    combinator::{map, opt, recognize},
     error::{context, ParseError},
     multi::many0,
-    sequence::{delimited, preceded, terminated, tuple},
+    sequence::{preceded, terminated, tuple},
     IResult,
 };
+use std::fmt;
 
 /// A control flow block
 #[derive(Debug, PartialEq, Clone)]
@@ -38,10 +36,30 @@ pub enum Block {
     Subroutine(Subroutine),
 }
 
+/// A block identifier like `O100` or `o110`
+#[derive(Debug, PartialEq, Clone)]
+pub struct BlockIdent {
+    name: String,
+}
+
+impl From<&str> for BlockIdent {
+    fn from(name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+        }
+    }
+}
+
+impl fmt::Display for BlockIdent {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
+}
+
 /// A do-while loop
 #[derive(Debug, PartialEq, Clone)]
 pub struct DoWhile {
-    identifier: Parameter,
+    identifier: BlockIdent,
     condition: Expression<f32>,
     lines: Vec<Line>,
 }
@@ -49,7 +67,7 @@ pub struct DoWhile {
 /// A while loop
 #[derive(Debug, PartialEq, Clone)]
 pub struct While {
-    identifier: Parameter,
+    identifier: BlockIdent,
     condition: Expression<f32>,
     lines: Vec<Line>,
     trailing_comment: Option<Comment>,
@@ -58,7 +76,7 @@ pub struct While {
 /// A block that is repeated _n_ times
 #[derive(Debug, PartialEq, Clone)]
 pub struct Repeat {
-    identifier: Parameter,
+    identifier: BlockIdent,
     condition: Expression<f32>,
     lines: Vec<Line>,
     trailing_comment: Option<Comment>,
@@ -67,10 +85,19 @@ pub struct Repeat {
 /// A subroutine definition
 #[derive(Debug, PartialEq, Clone)]
 pub struct Subroutine {
-    identifier: Parameter,
+    identifier: BlockIdent,
     lines: Vec<Line>,
     trailing_comment: Option<Comment>,
     returns: Option<Expression<f32>>,
+}
+
+pub fn block_ident<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, BlockIdent, E> {
+    map(
+        recognize(preceded(tag_no_case("O"), digit1)),
+        |name: &'a str| BlockIdent {
+            name: name.to_string(),
+        },
+    )(i)
 }
 
 // named!(pub while_block<Span, While>,
@@ -94,8 +121,7 @@ pub struct Subroutine {
 // );
 
 pub fn while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, While, E> {
-    // TODO: gcode_non_global_ident instead of `parameter`. Call it `condition_ident` or `block_ident`?
-    let (i, ident) = delimited(tag_no_case("O"), parameter, tag_no_case("while"))(i)?;
+    let (i, ident) = terminated(block_ident, tag_no_case("while"))(i)?;
 
     let (i, (block_condition, block_comment)) =
         terminated(tuple((expression, opt(comment))), line_ending)(i)?;
@@ -138,8 +164,7 @@ pub fn while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, W
 // );
 
 pub fn do_while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, DoWhile, E> {
-    // TODO: gcode_non_global_ident instead of `parameter`. Call it `condition_ident` or `block_ident`?
-    let (i, ident) = delimited(tag_no_case("O"), parameter, tag_no_case("do"))(i)?;
+    let (i, ident) = terminated(block_ident, tag_no_case("do"))(i)?;
 
     let (i, block_lines) = many0(line)(i)?;
 
@@ -186,8 +211,7 @@ pub fn do_while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str
 // );
 
 pub fn repeat_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Repeat, E> {
-    // TODO: gcode_non_global_ident instead of `parameter`. Call it `condition_ident` or `block_ident`?
-    let (i, ident) = delimited(tag_no_case("O"), parameter, tag_no_case("repeat"))(i)?;
+    let (i, ident) = terminated(block_ident, tag_no_case("repeat"))(i)?;
 
     let (i, (block_condition, block_comment)) =
         terminated(tuple((expression, opt(comment))), line_ending)(i)?;
@@ -232,8 +256,7 @@ pub fn repeat_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, 
 // );
 
 pub fn subroutine<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Subroutine, E> {
-    // TODO: gcode_non_global_ident instead of `parameter`. Call it `condition_ident` or `block_ident`?
-    let (i, ident) = delimited(tag_no_case("O"), parameter, tag_no_case("sub"))(i)?;
+    let (i, ident) = terminated(block_ident, tag_no_case("sub"))(i)?;
 
     let (i, block_comment) = terminated(opt(comment), line_ending)(i)?;
 

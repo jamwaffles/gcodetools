@@ -1,12 +1,16 @@
 use crate::line::{line, Line};
+use crate::token::token;
 use crate::token::Token;
-
+use nom::character::complete::alphanumeric1;
+use nom::combinator::complete;
 use nom::{
-    character::streaming::{char, line_ending},
-    combinator::opt,
+    branch::alt,
+    bytes::complete::{tag, take_till},
+    character::complete::{char, line_ending, space0, space1},
+    combinator::{map, opt},
     error::{convert_error, ParseError, VerboseError},
-    multi::many0,
-    sequence::tuple,
+    multi::{many0, many1, separated_list},
+    sequence::{delimited, terminated, tuple},
     IResult,
 };
 use std::io;
@@ -67,7 +71,7 @@ impl Program {
                             println!("{}", e);
                             e
                         }
-                        _ => String::from("Failed to parse for unknown reason"),
+                        e => format!("Failed to parse: {:?}", e),
                     },
                 )
             })
@@ -108,12 +112,11 @@ impl Program {
 // );
 
 pub fn program<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Program, E> {
-    // TODO: `line_with` function
-    let (i, _) = opt(tuple((char('%'), line_ending)))(i)?;
-
-    let (i, lines) = many0(line)(i)?;
-
-    let (i, _) = opt(tuple((char('%'), opt(line_ending))))(i)?;
+    let (i, lines) = delimited(
+        opt(tuple((char('%'), line_ending))),
+        many1(line),
+        opt(tuple((char('%'), opt(line_ending)))),
+    )(i)?;
 
     Ok((i, Program { lines }))
 }
@@ -123,7 +126,7 @@ mod tests {
     use super::{program, Line, Program};
     use crate::assert_parse;
     use crate::coord;
-    use crate::token::{Coord, GCode, MCode, Token, TokenType};
+    use crate::token::{Coord, CutterCompensation, GCode, MCode, Token, TokenType};
 
     #[test]
     fn parse_percent_delimited_program() {
@@ -188,14 +191,6 @@ mod tests {
                         ],
                         ..Line::default()
                     },
-                    Line {
-                        tokens: vec![
-                            Token {
-                                token: TokenType::MCode(MCode::EndProgram)
-                            }
-                        ],
-                        ..Line::default()
-                    }
                 ]
             }
         );
@@ -205,7 +200,7 @@ mod tests {
     fn parse_m2_end_program() {
         assert_parse!(
             parser = program;
-            input = "G0 X0 Y0 Z0\nG1 X1 Y1 Z1\nM2";
+            input = "G0 X0 Y0 Z0\nG1 X1 Y1 Z1\nM2\n";
             expected = Program {
                 lines: vec![
                     Line {
@@ -247,7 +242,7 @@ mod tests {
     fn parse_m30_end_program() {
         assert_parse!(
             parser = program;
-            input = "G0 X0 Y0 Z0\nG1 X1 Y1 Z1\nM30";
+            input = "G0 X0 Y0 Z0\nG1 X1 Y1 Z1\nM30\n";
             expected = Program {
                 lines: vec![
                     Line {
@@ -289,9 +284,11 @@ mod tests {
     fn empty_lines() {
         assert_parse!(
             parser = program;
-            input = "\n\n\nM2";
+            input = "\n\n\nM2\n";
             expected = Program {
                 lines: vec![
+                    Line::default(),
+                    Line::default(),
                     Line::default(),
                     Line {
                         tokens: vec![Token {
@@ -308,7 +305,7 @@ mod tests {
     fn blank_lines() {
         assert_parse!(
             parser = program;
-            input = "G0\n\nG1\nM2";
+            input = "G0\nG1\n\nG41\nM2\n";
             expected = Program {
                 lines: vec![
                     Line {
@@ -320,6 +317,13 @@ mod tests {
                     Line {
                         tokens: vec![Token {
                             token: TokenType::GCode(GCode::Feed)
+                        }],
+                        ..Line::default()
+                    },
+                    Line::default(),
+                    Line {
+                        tokens: vec![Token {
+                            token: TokenType::GCode(GCode::CutterCompensation(CutterCompensation::Left(None)))
                         }],
                         ..Line::default()
                     },

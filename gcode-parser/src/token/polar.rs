@@ -3,9 +3,11 @@
 use crate::value::{preceded_value, Value};
 use nom::{
     branch::permutation,
-    bytes::streaming::tag_no_case,
-    combinator::{map, opt},
+    bytes::complete::tag_no_case,
+    character::complete::space0,
+    combinator::{map_res, opt},
     error::{context, ParseError},
+    sequence::terminated,
     IResult,
 };
 
@@ -16,6 +18,15 @@ pub struct PolarCoord {
     pub distance: Option<Value>,
     /// Angle, starting at 0 on positive X axis. Positive direction is counterclockwise (`^`)
     pub angle: Option<Value>,
+}
+
+impl Default for PolarCoord {
+    fn default() -> Self {
+        Self {
+            distance: None,
+            angle: None,
+        }
+    }
 }
 
 // named_attr!(#[doc = "Parse a polar coordinate"],
@@ -41,12 +52,20 @@ pub struct PolarCoord {
 pub fn polar<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, PolarCoord, E> {
     context(
         "polar coordinate",
-        map(
+        map_res(
             permutation((
-                opt(preceded_value(tag_no_case("@"))),
+                opt(terminated(preceded_value(tag_no_case("@")), space0)),
                 opt(preceded_value(tag_no_case("^"))),
             )),
-            |(distance, angle)| PolarCoord { distance, angle },
+            |(distance, angle)| {
+                let res = PolarCoord { distance, angle };
+
+                if res != PolarCoord::default() {
+                    Ok(res)
+                } else {
+                    Err("polar coordinate may not be empty")
+                }
+            },
         ),
     )(i)
 }
@@ -55,6 +74,14 @@ pub fn polar<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, PolarCo
 mod tests {
     use super::*;
     use crate::assert_parse;
+    use nom::error::VerboseError;
+
+    #[test]
+    fn parse_polar_empty() {
+        let res = polar::<VerboseError<&str>>("");
+
+        assert!(res.is_err());
+    }
 
     #[test]
     fn parse_polar() {
