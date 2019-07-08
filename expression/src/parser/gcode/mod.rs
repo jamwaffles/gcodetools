@@ -4,12 +4,12 @@ use crate::{
 };
 use nom::{
     branch::alt,
-    bytes::streaming::{tag, tag_no_case, take_until},
-    character::streaming::{char, digit1, multispace0},
+    bytes::complete::{tag, tag_no_case, take_until},
+    character::complete::{char, digit1, multispace0},
     combinator::{map, map_res, opt},
     error::{context, ParseError},
     multi::many1,
-    number::streaming::recognize_float,
+    number::complete::recognize_float,
     sequence::{delimited, preceded, separated_pair, terminated},
     IResult,
 };
@@ -177,7 +177,6 @@ mod tests {
 
     #[test]
     fn parse_numbered_parameter() -> Result<(), String> {
-        // NOTE: Streaming version requires a non-digit terminating char to finish properly
         let numbered = "#123\n";
 
         let (remaining, result) =
@@ -230,13 +229,6 @@ mod tests {
             expected = Parameter::Local("foo_bar".into());
         );
     }
-
-    // #[test]
-    // fn it_parses_not_numbered_parameters() {
-    //     assert!(not_numbered_parameter("#<foo_bar>").is_ok());
-    //     assert!(not_numbered_parameter("#<_global>").is_ok());
-    //     assert!(not_numbered_parameter("#1234").is_err());
-    // }
 
     #[test]
     fn it_parses_global_parameters() {
