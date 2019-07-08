@@ -5,12 +5,12 @@ use crate::{
 use nom::{
     branch::alt,
     bytes::complete::{tag, tag_no_case, take_until},
-    character::complete::{char, digit1, multispace0},
-    combinator::{map, map_res, opt},
+    character::complete::{char, digit1, multispace0, space0},
+    combinator::{map, map_res},
     error::{context, ParseError},
     multi::many1,
     number::complete::recognize_float,
-    sequence::{delimited, preceded, separated_pair, terminated},
+    sequence::{delimited, preceded, separated_pair},
     IResult,
 };
 use std::str::FromStr;
@@ -95,14 +95,16 @@ pub fn parameter<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Par
     context(
         "parameter",
         preceded(
-            terminated(char('#'), opt(multispace0)),
+            char('#'),
             alt((
-                map(delimited(tag("<_"), take_until(">"), char('>')), |s| {
-                    Parameter::Global(String::from(s))
-                }),
-                map(delimited(char('<'), take_until(">"), char('>')), |s| {
-                    Parameter::Local(String::from(s))
-                }),
+                map(
+                    preceded(space0, delimited(tag("<_"), take_until(">"), char('>'))),
+                    |s| Parameter::Global(String::from(s)),
+                ),
+                map(
+                    preceded(space0, delimited(char('<'), take_until(">"), char('>'))),
+                    |s| Parameter::Local(String::from(s)),
+                ),
                 map_res(digit1, |s| {
                     String::from(s).parse::<u32>().map(Parameter::Numbered)
                 }),
@@ -139,11 +141,12 @@ fn function<'a, E: ParseError<&'a str>, V: FromStr>(
             map(preceded(tag_no_case("acos"), expression), Function::Acos),
             map(preceded(tag_no_case("asin"), expression), Function::Asin),
             map(
-                preceded(
+                separated_pair(
                     tag_no_case("atan"),
+                    space0,
                     separated_pair(expression, char('/'), expression),
                 ),
-                Function::Atan,
+                |(_, args)| Function::Atan(args),
             ),
             map(preceded(tag_no_case("cos"), expression), Function::Cos),
             map(preceded(tag_no_case("exp"), expression), Function::Exp),
@@ -366,6 +369,23 @@ mod tests {
         assert_parse!(
             parser = expression;
             input = "[ATAN[3 + 4]/[5]]";
+            expected =
+                vec![ExpressionToken::Function(Function::Atan((
+                    vec![
+                        ExpressionToken::Literal(3.0),
+                        ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                        ExpressionToken::Literal(4.0),
+                    ].into(),
+                    vec![ExpressionToken::Literal(5.0)].into(),
+                )))].into();
+        );
+    }
+
+    #[test]
+    fn it_parses_atan_with_spaces() {
+        assert_parse!(
+            parser = expression;
+            input = "[atan [3 + 4]/[5]]";
             expected =
                 vec![ExpressionToken::Function(Function::Atan((
                     vec![
