@@ -1,16 +1,11 @@
 use crate::line::{line, Line};
-use crate::token::token;
 use crate::token::Token;
-use nom::character::complete::alphanumeric1;
-use nom::combinator::complete;
 use nom::{
-    branch::alt,
-    bytes::complete::{tag, take_till},
-    character::complete::{char, line_ending, space0, space1},
-    combinator::{map, opt},
+    character::complete::{char, line_ending},
+    combinator::opt,
     error::{convert_error, ParseError, VerboseError},
-    multi::{many0, many1, separated_list},
-    sequence::{delimited, terminated, tuple},
+    multi::{many0, many1},
+    sequence::{delimited, tuple},
     IResult,
 };
 use std::io;
@@ -77,9 +72,16 @@ impl Program {
             })
             .and_then(|(remaining, result)| {
                 if remaining.len() > 0 {
+                    let total_lines = content.lines().count();
+                    let remaining_lines = remaining.lines().count();
+
                     Err(io::Error::new(
                         io::ErrorKind::Other,
-                        format!("{} remaining bytes to parse", remaining.len()),
+                        format!(
+                            "Failed at line {} ({} remaining bytes to parse)",
+                            total_lines - remaining_lines + 1,
+                            remaining.len()
+                        ),
                     ))
                 } else {
                     Ok(result)
@@ -115,7 +117,7 @@ pub fn program<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Progr
     let (i, lines) = delimited(
         opt(tuple((char('%'), line_ending))),
         many1(line),
-        opt(tuple((char('%'), opt(line_ending)))),
+        opt(tuple((char('%'), many0(line_ending)))),
     )(i)?;
 
     Ok((i, Program { lines }))
