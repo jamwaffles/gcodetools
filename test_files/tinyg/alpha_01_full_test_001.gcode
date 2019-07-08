@@ -158,35 +158,6 @@ g4p1
 g0x50y50
 g0x0y0
 
-
-(msg**** JSON test ****)
-{"gc":"g00g17g21g40g49g80g90"}
-{"gc":"g55"}
-{"gc":"g0x0y0"}
-{"gc":"f500"}
-{"gc":"(MSGsquares)"}
-{"gc":"g0x20"}
-{"gc":"y20"}
-{"gc":"x0"}
-{"gc":"y0"}
-{"gc":"g1x10"}
-{"gc":"y10"}
-{"gc":"x0"}
-{"gc":"y0"}
-{"gc":"(MSGcircles)"}
-{"gc":"g2x10y-10i10"}
-{"gc":"g0x0y0"}
-{"gc":"g3x10y-10i10"}
-{"gc":"g0x0y0"}
-{"gc":"g2x20y0i10"}
-{"gc":"g0x0y0"}
-{"gc":"g3x20y0i10"}
-{"gc":"g0x0y0"}
-{"gc":"g2x0y0i10"}
-{"gc":"g3x0y0i10"}
-{"gc":"g54"}
-{"gc":"g0x0y0"}
-
 (msg**** Braid test ****)
 N1 T1M6
 N2 G17
