@@ -84,9 +84,9 @@ fn logical_operator<'a, E: ParseError<&'a str>>(
     context(
         "logical operator",
         alt((
-            map(tag("AND"), |_| LogicalOperator::And),
-            map(tag("OR"), |_| LogicalOperator::Or),
-            map(tag("NOT"), |_| LogicalOperator::Not),
+            map(tag_no_case("AND"), |_| LogicalOperator::And),
+            map(tag_no_case("OR"), |_| LogicalOperator::Or),
+            map(tag_no_case("NOT"), |_| LogicalOperator::Not),
         )),
     )(i)
 }
