@@ -93,7 +93,7 @@ o<qpocket>  sub
            #<zincr> = [0 - #<zincr>]
 
 g40             ; make sure cutter radius compensation off at start
-g64 p #<g64tol> ; path tolerance
+g64 p#<g64tol> ; path tolerance
 
 o<if10> if [#<scale> EQ 0]
           (print, qpocket: zero scale #<scale> - EXITING)
