@@ -61,6 +61,7 @@ fn expression_token<'a, E: ParseError<&'a str>, V: FromStr>(
     )(i)
 }
 
+// TODO: Optimise a bit? Just us `float`?
 fn literal<'a, E: ParseError<&'a str>, V: FromStr>(i: &'a str) -> IResult<&'a str, V, E> {
     map_res(recognize_float, |s| String::from(s).parse::<V>())(i)
 }
@@ -145,7 +146,7 @@ fn exists<'a, E: ParseError<&'a str>, V>(i: &'a str) -> IResult<&'a str, Functio
     )(i)
 }
 
-fn function<'a, E: ParseError<&'a str>, V: FromStr>(
+pub fn function<'a, E: ParseError<&'a str>, V: FromStr>(
     i: &'a str,
 ) -> IResult<&'a str, Function<V>, E> {
     context(
