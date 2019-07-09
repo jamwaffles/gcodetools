@@ -36,7 +36,7 @@ use self::return_stmt::return_stmt;
 pub use self::return_stmt::Return;
 use crate::token::othercode::raw_line_number;
 pub use crate::token::othercode::LineNumber;
-use crate::value::{value, Value};
+use crate::value::{decimal_value, Value};
 use nom::{
     branch::alt,
     character::complete::{char, one_of},
@@ -140,7 +140,7 @@ pub fn unknown<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Unkno
         map(
             tuple((
                 one_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"),
-                value,
+                decimal_value,
             )),
             |(code_letter, code_number)| Unknown {
                 code_letter,
@@ -232,4 +232,25 @@ pub fn line_number<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, T
     map(raw_line_number, |n| Token {
         token: TokenType::LineNumber(n),
     })(i)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unknown_code() {
+        assert_parse!(
+            parser = token_type;
+            input = "M61", "g33";
+            expected = TokenType::Unknown(Unknown {
+                code_letter: 'M',
+                code_number: Value::Literal(61.0)
+            }),
+            TokenType::Unknown(Unknown {
+                code_letter: 'g',
+                code_number: Value::Literal(33.0)
+            })
+        );
+    }
 }

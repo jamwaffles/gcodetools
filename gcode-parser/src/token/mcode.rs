@@ -1,6 +1,6 @@
+use crate::word::word;
 use nom::{
     branch::alt,
-    bytes::complete::tag_no_case,
     combinator::map,
     error::{context, ParseError},
     IResult,
@@ -47,15 +47,13 @@ pub fn mcode<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, MCode, 
     context(
         "M code",
         alt((
-            map(tag_no_case("M1"), |_| MCode::OptionalPause),
-            map(alt((tag_no_case("M2"), tag_no_case("M02"))), |_| {
-                MCode::EndProgram
-            }),
-            map(tag_no_case("M30"), |_| MCode::EndProgramSwapPallets),
-            map(tag_no_case("M3"), |_| MCode::SpindleForward),
-            map(tag_no_case("M4"), |_| MCode::SpindleReverse),
-            map(tag_no_case("M5"), |_| MCode::SpindleStop),
-            map(tag_no_case("M6"), |_| MCode::ToolChange),
+            map(word("M1"), |_| MCode::OptionalPause),
+            map(word("M2"), |_| MCode::EndProgram),
+            map(word("M30"), |_| MCode::EndProgramSwapPallets),
+            map(word("M3"), |_| MCode::SpindleForward),
+            map(word("M4"), |_| MCode::SpindleReverse),
+            map(word("M5"), |_| MCode::SpindleStop),
+            map(word("M6"), |_| MCode::ToolChange),
         )),
     )(i)
 }

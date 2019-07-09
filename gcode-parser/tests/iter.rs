@@ -4,7 +4,8 @@ use gcode_parser::{token::Token, Program};
 fn flat_iterator() {
     let program = r#"G0 X0 Y0 Z0
 G1 X1 Y1 Z1
-M2"#;
+M2
+"#;
 
     let parsed = Program::from_str(program).unwrap();
 

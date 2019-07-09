@@ -1,6 +1,6 @@
-use crate::value::{preceded_value, Value};
+use crate::value::{preceded_decimal_value, Value};
+use crate::word::word;
 use nom::{
-    branch::alt,
     bytes::complete::tag_no_case,
     character::complete::space0,
     combinator::map,
@@ -32,9 +32,8 @@ pub fn dwell<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Dwell, 
         "dwell",
         map(
             preceded(
-                // TODO: Parser for 0-preceded codes
-                pair(alt((tag_no_case("g4"), tag_no_case("g04"))), space0),
-                preceded_value(tag_no_case("p")),
+                pair(word("g4"), space0),
+                preceded_decimal_value(tag_no_case("p")),
             ),
             |time| Dwell { time },
         ),

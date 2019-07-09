@@ -1,4 +1,5 @@
-use crate::value::{preceded_value, Value};
+use crate::value::{preceded_decimal_value, Value};
+use crate::word::word;
 use nom::{
     branch::alt,
     bytes::complete::tag_no_case,
@@ -57,18 +58,18 @@ pub fn cutter_compensation<'a, E: ParseError<&'a str>>(
     context(
         "cutter comp",
         alt((
-            map(tag_no_case("g40"), |_| CutterCompensation::Off),
+            map(word("g40"), |_| CutterCompensation::Off),
             map(
                 preceded(
-                    pair(tag_no_case("g41"), space0),
-                    opt(preceded_value(tag_no_case("d"))),
+                    pair(word("g41"), space0),
+                    opt(preceded_decimal_value(tag_no_case("d"))),
                 ),
                 CutterCompensation::Left,
             ),
             map(
                 preceded(
-                    pair(tag_no_case("g42"), space0),
-                    opt(preceded_value(tag_no_case("d"))),
+                    pair(word("g42"), space0),
+                    opt(preceded_decimal_value(tag_no_case("d"))),
                 ),
                 CutterCompensation::Right,
             ),

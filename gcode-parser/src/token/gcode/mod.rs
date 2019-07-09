@@ -11,9 +11,9 @@ use self::plane_select::plane_select;
 pub use self::plane_select::PlaneSelect;
 use self::work_offset::work_offset;
 pub use self::work_offset::{WorkOffset, WorkOffsetValue};
+use crate::word::word;
 use nom::{
     branch::alt,
-    bytes::complete::tag_no_case,
     combinator::map,
     error::{context, ParseError},
     IResult,
@@ -83,26 +83,18 @@ pub fn gcode<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, GCode, 
     context(
         "G code",
         alt((
-            map(tag_no_case("G21"), |_| GCode::UnitsMM),
-            map(tag_no_case("G20"), |_| GCode::UnitsInch),
-            map(tag_no_case("G28.1"), |_| GCode::SetPredefinedPosition),
-            map(tag_no_case("G28"), |_| GCode::GotoPredefinedPosition),
+            map(word("G1"), |_| GCode::Feed),
+            map(word("G2"), |_| GCode::ClockwiseArc),
+            map(word("G3"), |_| GCode::CounterclockwiseArc),
+            map(word("G0"), |_| GCode::Rapid),
+            map(word("G21"), |_| GCode::UnitsMM),
+            map(word("G20"), |_| GCode::UnitsInch),
+            map(word("G28.1"), |_| GCode::SetPredefinedPosition),
+            map(word("G28"), |_| GCode::GotoPredefinedPosition),
             map(work_offset, GCode::WorkOffset),
             map(cutter_compensation, GCode::CutterCompensation),
             map(dwell, GCode::Dwell),
             map(plane_select, GCode::PlaneSelect),
-            map(alt((tag_no_case("G01"), tag_no_case("G1"))), |_| {
-                GCode::Feed
-            }),
-            map(alt((tag_no_case("G02"), tag_no_case("G2"))), |_| {
-                GCode::ClockwiseArc
-            }),
-            map(alt((tag_no_case("G03"), tag_no_case("G3"))), |_| {
-                GCode::CounterclockwiseArc
-            }),
-            map(alt((tag_no_case("G00"), tag_no_case("G0"))), |_| {
-                GCode::Rapid
-            }),
         )),
     )(i)
 }

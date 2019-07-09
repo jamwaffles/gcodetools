@@ -4,7 +4,8 @@ use gcode_parser::Program;
 fn test_10_xyz_rapids() {
     let program = r#"G0 X0 Y0 Z0
 G1 X1 Y1 Z1
-M2"#;
+M2
+"#;
 
     let _parsed = Program::from_str(program).unwrap();
 }
@@ -27,7 +28,8 @@ fn comments() {
 ; line comment
 ;line comment
 G1 X1 Y1 Z1
-M2"#;
+M2
+"#;
 
     let _parsed = Program::from_str(program).unwrap();
 }
@@ -35,7 +37,8 @@ M2"#;
 #[test]
 fn test_counterclockwise_arc() {
     let program = r#"G3 X-2.4438 Y-0.2048 I-0.0766 J0.2022
-M2"#;
+M2
+"#;
 
     let _parsed = Program::from_str(program);
 

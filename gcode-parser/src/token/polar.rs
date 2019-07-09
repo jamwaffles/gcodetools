@@ -1,6 +1,6 @@
 //! Parse polar coordinates
 
-use crate::value::{preceded_value, Value};
+use crate::value::{preceded_decimal_value, Value};
 use nom::{
     branch::permutation,
     bytes::complete::tag_no_case,
@@ -54,8 +54,8 @@ pub fn polar<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, PolarCo
         "polar coordinate",
         map_res(
             permutation((
-                opt(terminated(preceded_value(tag_no_case("@")), space0)),
-                opt(preceded_value(tag_no_case("^"))),
+                opt(terminated(preceded_decimal_value(tag_no_case("@")), space0)),
+                opt(preceded_decimal_value(tag_no_case("^"))),
             )),
             |(distance, angle)| {
                 let res = PolarCoord { distance, angle };

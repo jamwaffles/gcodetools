@@ -1,6 +1,6 @@
+use crate::word::word;
 use nom::{
     branch::alt,
-    bytes::complete::tag_no_case,
     combinator::map,
     error::{context, ParseError},
     IResult,
@@ -36,12 +36,12 @@ pub fn plane_select<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, 
         "plane select",
         map(
             alt((
-                map(tag_no_case("G17.1"), |_| PlaneSelectValue::UV),
-                map(tag_no_case("G18.1"), |_| PlaneSelectValue::WU),
-                map(tag_no_case("G19.1"), |_| PlaneSelectValue::VW),
-                map(tag_no_case("G17"), |_| PlaneSelectValue::XY),
-                map(tag_no_case("G18"), |_| PlaneSelectValue::ZX),
-                map(tag_no_case("G19"), |_| PlaneSelectValue::YZ),
+                map(word("G17"), |_| PlaneSelectValue::XY),
+                map(word("G18"), |_| PlaneSelectValue::ZX),
+                map(word("G19"), |_| PlaneSelectValue::YZ),
+                map(word("G17.1"), |_| PlaneSelectValue::UV),
+                map(word("G18.1"), |_| PlaneSelectValue::WU),
+                map(word("G19.1"), |_| PlaneSelectValue::VW),
             )),
             |plane| PlaneSelect { plane },
         ),

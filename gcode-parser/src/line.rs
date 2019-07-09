@@ -3,7 +3,7 @@ use nom::{
     character::complete::{line_ending, space0},
     combinator::{complete, opt},
     error::ParseError,
-    multi::{many0, many1},
+    multi::many0,
     sequence::{delimited, terminated, tuple},
     IResult,
 };
@@ -52,12 +52,6 @@ impl Default for Line {
 // );
 
 pub fn line<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
-    // let (i, block_delete) = opt(block_delete)(i)?;
-
-    // let (i, line_number) = opt(line_number)(i)?;
-
-    // let (i, line_tokens) = terminated(many0(terminated(token, space0)), line_ending)(i)?;
-
     let (i, (block_delete, line_number, line_tokens)) = complete(delimited(
         space0,
         tuple((

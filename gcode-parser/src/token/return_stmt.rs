@@ -59,7 +59,7 @@ mod tests {
             parser = return_stmt;
             input = "o100 return [1 + 2]";
             expected = Return {
-                ident: "o100".into(),
+                ident: 100.into(),
                 value: Some(Expression::from_tokens(vec![
                     ExpressionToken::Literal(1.0),
                     ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
@@ -75,7 +75,7 @@ mod tests {
             parser = return_stmt;
             input = "o100 return";
             expected = Return {
-                ident: "o100".into(),
+                ident: 100.into(),
                 value: None
             };
         );

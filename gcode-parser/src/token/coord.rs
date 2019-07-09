@@ -1,6 +1,6 @@
 //! Parse coordinates into a vector
 
-use crate::value::{preceded_value, Value};
+use crate::value::{preceded_decimal_value, Value};
 use nom::{
     branch::permutation,
     bytes::complete::tag_no_case,
@@ -71,15 +71,15 @@ pub fn coord<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Coord, 
         "coordinate",
         map_opt(
             permutation((
-                opt(terminated(preceded_value(tag_no_case("X")), space0)),
-                opt(terminated(preceded_value(tag_no_case("Y")), space0)),
-                opt(terminated(preceded_value(tag_no_case("Z")), space0)),
-                opt(terminated(preceded_value(tag_no_case("A")), space0)),
-                opt(terminated(preceded_value(tag_no_case("B")), space0)),
-                opt(terminated(preceded_value(tag_no_case("C")), space0)),
-                opt(terminated(preceded_value(tag_no_case("U")), space0)),
-                opt(terminated(preceded_value(tag_no_case("V")), space0)),
-                opt(terminated(preceded_value(tag_no_case("W")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("X")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("Y")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("Z")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("A")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("B")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("C")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("U")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("V")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("W")), space0)),
             )),
             |(x, y, z, a, b, c, u, v, w)| {
                 let coord = Coord {
@@ -136,6 +136,19 @@ pub fn coord<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Coord, 
 mod tests {
     use super::*;
     use crate::assert_parse;
+    use expression::Parameter;
+
+    #[test]
+    fn parse_var() {
+        assert_parse!(
+            parser = coord;
+            input = "X#3";
+            expected = Coord {
+                x: Some(Parameter::Numbered(3).into()),
+                ..EMPTY_COORD.clone()
+            }
+        );
+    }
 
     #[test]
     fn parse_xyz() {
@@ -166,7 +179,7 @@ mod tests {
                 w: Some(0.0.into()),
                 b: Some(1.0.into()),
                 x: Some(2.0.into()),
-                ..EMPTY_COORD
+                ..EMPTY_COORD.clone()
             }
         );
     }

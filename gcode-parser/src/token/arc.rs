@@ -1,4 +1,4 @@
-use crate::value::{preceded_value, Value};
+use crate::value::{preceded_decimal_value, preceded_unsigned_value, UnsignedValue, Value};
 use nom::{
     branch::permutation,
     bytes::complete::tag_no_case,
@@ -29,7 +29,7 @@ pub struct CenterFormatArc {
     /// Number of turns
     ///
     /// Defaults to `1`, a full circle
-    pub turns: Value,
+    pub turns: UnsignedValue,
 }
 
 /// Radius format arc
@@ -60,7 +60,7 @@ impl Default for CenterFormatArc {
             i: None,
             j: None,
             k: None,
-            turns: 1.0.into(),
+            turns: 1.into(),
         }
     }
 }
@@ -102,14 +102,17 @@ pub fn center_format_arc<'a, E: ParseError<&'a str>>(
         "center format arc",
         map_opt(
             permutation((
-                opt(terminated(preceded_value(tag_no_case("X")), space0)),
-                opt(terminated(preceded_value(tag_no_case("Y")), space0)),
-                opt(terminated(preceded_value(tag_no_case("Z")), space0)),
-                opt(terminated(preceded_value(tag_no_case("I")), space0)),
-                opt(terminated(preceded_value(tag_no_case("J")), space0)),
-                opt(terminated(preceded_value(tag_no_case("K")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("X")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("Y")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("Z")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("I")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("J")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("K")), space0)),
                 // TODO: This must be a positive integer, not any `Value`
-                opt(terminated(preceded_value(tag_no_case("P")), space0)),
+                opt(terminated(
+                    preceded_unsigned_value(tag_no_case("P")),
+                    space0,
+                )),
             )),
             |(x, y, z, i, j, k, turns): (
                 Option<Value>,
@@ -118,7 +121,7 @@ pub fn center_format_arc<'a, E: ParseError<&'a str>>(
                 Option<Value>,
                 Option<Value>,
                 Option<Value>,
-                Option<Value>,
+                Option<UnsignedValue>,
             )| {
                 let arc = CenterFormatArc {
                     x,
@@ -128,13 +131,13 @@ pub fn center_format_arc<'a, E: ParseError<&'a str>>(
                     j,
                     k,
                     // TODO: Parse into integer
-                    turns: turns.unwrap_or(1.0),
+                    turns: turns.unwrap_or(1.into()),
                 };
 
                 // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
                 // TODO: Return validation error instead of `None`
                 // Require at least one offset coordinate to be present
-                if (arc.i, arc.j, arc.k) == (None, None, None) {
+                if (&arc.i, &arc.j, &arc.k) == (&None, &None, &None) {
                     // Err("Invalid center format arc")
                     None
                 } else {
@@ -180,12 +183,12 @@ pub fn radius_format_arc<'a, E: ParseError<&'a str>>(
         map_res(
             // TODO: Needs some sort of sep() to handle whitespace
             permutation((
-                opt(terminated(preceded_value(tag_no_case("X")), space0)),
-                opt(terminated(preceded_value(tag_no_case("Y")), space0)),
-                opt(terminated(preceded_value(tag_no_case("Z")), space0)),
-                terminated(preceded_value(tag_no_case("R")), space0),
+                opt(terminated(preceded_decimal_value(tag_no_case("X")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("Y")), space0)),
+                opt(terminated(preceded_decimal_value(tag_no_case("Z")), space0)),
+                terminated(preceded_decimal_value(tag_no_case("R")), space0),
                 // TODO: This must be a positive integer, not any `Value`
-                opt(preceded_value(tag_no_case("P"))),
+                opt(preceded_decimal_value(tag_no_case("P"))),
             )),
             |(x, y, z, radius, _turns): (
                 Option<Value>,
@@ -246,7 +249,7 @@ mod tests {
                 y: Some(1.0f32.into()),
                 i: Some(2.0f32.into()),
                 j: Some(3.0f32.into()),
-                turns: 5.0.into(),
+                turns: 5.into(),
                 ..CenterFormatArc::default()
             }
         );

@@ -7,12 +7,12 @@ use crate::token::{comment, Comment};
 use expression::{gcode::expression, Expression};
 use nom::{
     branch::alt,
-    bytes::complete::{tag, tag_no_case},
-    character::complete::{digit1, line_ending},
-    combinator::{map, opt, recognize},
+    bytes::complete::{tag_no_case, take_until},
+    character::complete::{char, digit1, line_ending, space0, space1},
+    combinator::{map, opt},
     error::{context, ParseError},
-    multi::many0,
-    sequence::{preceded, terminated, tuple},
+    multi::{many0, many1},
+    sequence::{delimited, pair, preceded, separated_pair, terminated},
     IResult,
 };
 use std::fmt;
@@ -36,23 +36,62 @@ pub enum Block {
     Subroutine(Subroutine),
 }
 
-/// A block identifier like `O100` or `o110`
+/// The type of identifier
+#[derive(Debug, PartialEq, Clone)]
+pub enum IdentType {
+    /// A number like `o100`
+    Numbered(u16),
+
+    /// Named like `o<touchoff>`
+    Named(String),
+}
+
+impl From<&str> for IdentType {
+    fn from(ident: &str) -> Self {
+        IdentType::Named(ident.to_string())
+    }
+}
+
+impl From<u16> for IdentType {
+    fn from(num: u16) -> Self {
+        IdentType::Numbered(num)
+    }
+}
+
+impl fmt::Display for IdentType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            IdentType::Numbered(n) => write!(f, "O{}", n),
+            IdentType::Named(n) => write!(f, "O<{}>", n),
+        }
+    }
+}
+
+/// A block identifier like `O100`, `o110` or `o<touchoff>`
 #[derive(Debug, PartialEq, Clone)]
 pub struct BlockIdent {
-    name: String,
+    ident: IdentType,
 }
 
 impl From<&str> for BlockIdent {
-    fn from(name: &str) -> Self {
+    fn from(ident: &str) -> Self {
         Self {
-            name: name.to_string(),
+            ident: ident.into(),
+        }
+    }
+}
+
+impl From<u16> for BlockIdent {
+    fn from(ident: u16) -> Self {
+        Self {
+            ident: ident.into(),
         }
     }
 }
 
 impl fmt::Display for BlockIdent {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.name)
+        write!(f, "{}", self.ident)
     }
 }
 
@@ -91,12 +130,24 @@ pub struct Subroutine {
     returns: Option<Expression<f32>>,
 }
 
+// TODO: Use general purpose `numbered_ident` and `local_ident` or whatever methods
 pub fn block_ident<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, BlockIdent, E> {
-    map(
-        recognize(preceded(tag_no_case("O"), digit1)),
-        |name: &'a str| BlockIdent {
-            name: name.to_string(),
-        },
+    preceded(
+        tag_no_case("O"),
+        alt((
+            map(digit1, |ident: &'a str| {
+                BlockIdent {
+                    // TODO: Handle errors
+                    ident: IdentType::Numbered(ident.parse::<u16>().unwrap()),
+                }
+            }),
+            map(
+                delimited(char('<'), take_until(">"), char('>')),
+                |ident: &'a str| BlockIdent {
+                    ident: IdentType::Named(ident.to_string()),
+                },
+            ),
+        )),
     )(i)
 }
 
@@ -121,18 +172,24 @@ pub fn block_ident<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, B
 // );
 
 pub fn while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, While, E> {
-    let (i, ident) = terminated(block_ident, tag_no_case("while"))(i)?;
+    let (i, ident) = delimited(
+        space0,
+        block_ident,
+        delimited(space0, tag_no_case("while"), space1),
+    )(i)?;
 
-    let (i, (block_condition, block_comment)) =
-        terminated(tuple((expression, opt(comment))), line_ending)(i)?;
+    let (i, (block_condition, block_comment)) = terminated(
+        pair(expression, preceded(space0, opt(comment))),
+        line_ending,
+    )(i)?;
 
-    let (i, block_lines) = many0(line)(i)?;
+    let (i, block_lines) = many1(line)(i)?;
 
-    tuple((
-        tag_no_case("O"),
-        tag(ident.to_string().as_str()),
+    let (i, _) = separated_pair(
+        preceded(space0, tag_no_case(ident.to_string().as_str())),
+        space0,
         tag_no_case("endwhile"),
-    ))(i)?;
+    )(i)?;
 
     Ok((
         i,
@@ -158,26 +215,29 @@ pub fn while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, W
 //             condition: gcode_expression >>
 //             ({
 //                 DoWhile { identifier: block_ident, condition, lines }
-//             })
+//             })Yeah
 //         )
 //     )
 // );
 
 pub fn do_while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, DoWhile, E> {
-    let (i, ident) = terminated(block_ident, tag_no_case("do"))(i)?;
+    let (i, ident) = terminated(delimited(space0, block_ident, space0), tag_no_case("do"))(i)?;
+
+    let (i, _block_comment) = terminated(opt(comment), line_ending)(i)?;
 
     let (i, block_lines) = many0(line)(i)?;
 
-    // let (i, (block_condition, block_comment)) =
-    //     terminated(tuple((expression, opt(comment))), line_ending)(i)?;
-
-    let (i, block_condition) = preceded(
-        tuple((
-            tag_no_case("O"),
-            tag(ident.to_string().as_str()),
-            tag_no_case("while"),
-        )),
-        expression,
+    let (i, (_, block_condition)) = preceded(
+        space0,
+        separated_pair(
+            separated_pair(
+                tag_no_case(ident.to_string().as_str()),
+                space0,
+                tag_no_case("while"),
+            ),
+            space0,
+            expression,
+        ),
     )(i)?;
 
     Ok((
@@ -211,18 +271,27 @@ pub fn do_while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str
 // );
 
 pub fn repeat_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Repeat, E> {
-    let (i, ident) = terminated(block_ident, tag_no_case("repeat"))(i)?;
+    let (i, ident) = delimited(
+        space0,
+        block_ident,
+        delimited(space0, tag_no_case("repeat"), space1),
+    )(i)?;
 
-    let (i, (block_condition, block_comment)) =
-        terminated(tuple((expression, opt(comment))), line_ending)(i)?;
+    let (i, (block_condition, block_comment)) = terminated(
+        pair(expression, preceded(space0, opt(comment))),
+        line_ending,
+    )(i)?;
 
     let (i, block_lines) = many0(line)(i)?;
 
-    tuple((
-        tag_no_case("O"),
-        tag(ident.to_string().as_str()),
-        tag_no_case("endrepeat"),
-    ))(i)?;
+    let (i, _) = preceded(
+        space0,
+        separated_pair(
+            tag_no_case(ident.to_string().as_str()),
+            space0,
+            tag_no_case("endrepeat"),
+        ),
+    )(i)?;
 
     Ok((
         i,
@@ -256,19 +325,21 @@ pub fn repeat_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, 
 // );
 
 pub fn subroutine<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Subroutine, E> {
-    let (i, ident) = terminated(block_ident, tag_no_case("sub"))(i)?;
+    let (i, (ident, _)) =
+        separated_pair(preceded(space0, block_ident), space0, tag_no_case("sub"))(i)?;
 
-    let (i, block_comment) = terminated(opt(comment), line_ending)(i)?;
+    let (i, block_comment) = delimited(space0, opt(comment), line_ending)(i)?;
 
     let (i, block_lines) = many0(line)(i)?;
 
-    tuple((
-        tag_no_case("O"),
-        tag(ident.to_string().as_str()),
+    let (i, _) = separated_pair(
+        tag_no_case(ident.to_string().as_str()),
+        space0,
         tag_no_case("endsub"),
-    ))(i)?;
+    )(i)?;
 
-    let (i, returns) = opt(expression)(i)?;
+    // Optional return value
+    let (i, returns) = opt(preceded(space0, expression))(i)?;
 
     Ok((
         i,
@@ -295,11 +366,128 @@ pub fn block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Block, 
     context(
         "block",
         alt((
+            map(do_while_block, Block::DoWhile),
             map(conditional, Block::Conditional),
             map(while_block, Block::While),
-            map(do_while_block, Block::DoWhile),
             map(repeat_block, Block::Repeat),
             map(subroutine, Block::Subroutine),
         )),
     )(i)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::token::*;
+    use expression::{BinaryOperator, ExpressionToken, Parameter};
+
+    #[test]
+    fn repeat() {
+        assert_parse!(
+            parser = repeat_block;
+            input = "o100 repeat [800]\ng91 g1 @-.0025 ^4.5\no100 endrepeat";
+            expected = Repeat {
+                identifier: BlockIdent { ident: 100.into() },
+                condition: Expression::from_tokens(vec![
+                    ExpressionToken::Literal(800.0),
+                ]),
+                lines: vec![Line {
+                    tokens: vec![
+                        Token {
+                            token: TokenType::Unknown(Unknown {
+                                code_letter: 'g',
+                                code_number: 91.0.into(),
+                            }),
+                        },
+                        Token {
+                            token: TokenType::GCode(GCode::Feed),
+                        },
+                        Token {
+                            token: TokenType::PolarCoord(PolarCoord {
+                                distance: Some(Value::Literal(-0.0025)),
+                                angle: Some(4.5.into()),
+                            }),
+                        },
+                    ],
+                }],
+                trailing_comment: None,
+            };
+        );
+    }
+
+    #[test]
+    fn test_while() {
+        assert_parse!(
+            parser = while_block;
+            input = "o101 while [#8 GT #4]\ng0\no101 endwhile";
+            expected = While {
+                identifier: BlockIdent { ident: 101.into() },
+                condition: Expression::from_tokens(vec![
+                    ExpressionToken::Parameter(Parameter::Numbered(8)),
+                    ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan),
+                    ExpressionToken::Parameter(Parameter::Numbered(4)),
+                ]),
+                lines: vec![Line {
+                    tokens: vec![
+                        Token {
+                            token: TokenType::GCode(GCode::Rapid),
+                        },
+                    ],
+                }],
+                trailing_comment: None,
+            };
+        );
+    }
+
+    #[test]
+    fn while_indented() {
+        assert_parse!(
+            parser = while_block;
+            input = "    o101 while [#8 GT #4]\n        g0\n    o101 endwhile";
+            expected = While {
+                identifier: BlockIdent { ident: 101.into() },
+                condition: Expression::from_tokens(vec![
+                    ExpressionToken::Parameter(Parameter::Numbered(8)),
+                    ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan),
+                    ExpressionToken::Parameter(Parameter::Numbered(4)),
+                ]),
+                lines: vec![Line { tokens: vec![Token { token: TokenType::GCode(GCode::Rapid) }] }],
+                trailing_comment: None,
+            };
+        );
+    }
+
+    #[test]
+    fn no_spaces() {
+        assert_parse!(
+            parser = do_while_block;
+            input = "o<ident>do\ng0\no<ident>while [#8 GT #4]";
+            expected = DoWhile {
+                identifier: BlockIdent { ident: "ident".into() },
+                condition: Expression::from_tokens(vec![
+                    ExpressionToken::Parameter(Parameter::Numbered(8)),
+                    ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan),
+                    ExpressionToken::Parameter(Parameter::Numbered(4)),
+                ]),
+                lines: vec![Line { tokens: vec![Token { token: TokenType::GCode(GCode::Rapid) }] }],
+            };
+        );
+    }
+
+    #[test]
+    fn offsets_ngc() {
+        assert_parse!(
+            parser = do_while_block;
+            input = "o10 do\ng0\no10 while [5 gt 2]";
+            expected = DoWhile {
+                identifier: BlockIdent { ident: 10.into() },
+                condition: Expression::from_tokens(vec![
+                    ExpressionToken::Literal(5.0),
+                    ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan),
+                    ExpressionToken::Literal(2.0),
+                ]),
+                lines: vec![Line { tokens: vec![Token { token: TokenType::GCode(GCode::Rapid) }] }],
+            };
+        );
+    }
 }

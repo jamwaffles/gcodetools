@@ -4,11 +4,11 @@ use crate::token::{comment, Comment};
 use expression::{gcode::expression, Expression};
 use nom::{
     bytes::complete::{tag, tag_no_case},
-    character::complete::{line_ending, space1},
+    character::complete::{line_ending, space0, space1},
     combinator::{map, opt, recognize},
     error::{context, ParseError},
     multi::many0,
-    sequence::{separated_pair, terminated, tuple},
+    sequence::{delimited, pair, preceded, separated_pair, terminated, tuple},
     IResult,
 };
 
@@ -73,7 +73,7 @@ pub fn elseif_block<'a, E: ParseError<&'a str>>(
         "elseif branch",
         map(
             tuple((
-                tag(ident),
+                preceded(space0, tag(ident)),
                 space1,
                 tag_no_case("elseif"),
                 space1,
@@ -125,10 +125,11 @@ pub fn else_block<'a, E: ParseError<&'a str>>(
         "else branch",
         map(
             tuple((
-                tag(ident),
+                preceded(space0, tag(ident)),
                 space1,
                 tag_no_case("else"),
-                opt(comment),
+                // TODO: Support trailing whitespace on all keywordy things
+                preceded(space0, opt(comment)),
                 line_ending,
                 many0(line),
             )),
@@ -179,11 +180,18 @@ pub fn else_block<'a, E: ParseError<&'a str>>(
 
 // TODO: Use conditional_block_open
 pub fn conditional<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Conditional, E> {
-    let (i, (ident, _, _, _)) =
-        tuple((recognize(block_ident), space1, tag_no_case("if"), space1))(i)?;
+    let (i, (ident, _, _)) = delimited(
+        space0,
+        tuple((
+            preceded(space0, recognize(block_ident)),
+            space1,
+            tag_no_case("if"),
+        )),
+        space1,
+    )(i)?;
 
     let (i, (if_block_condition, if_block_comment)) =
-        terminated(tuple((expression, opt(comment))), line_ending)(i)?;
+        terminated(pair(expression, opt(comment)), line_ending)(i)?;
 
     let (i, if_block_lines) = many0(line)(i)?;
 
@@ -191,12 +199,13 @@ pub fn conditional<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, C
 
     let (i, else_block) = opt(else_block(ident))(i)?;
 
-    println!("Close tag {:?}", format!("o{}", ident));
-
     // Closing tag
     let (i, _) = context(
         "if block close",
-        separated_pair(tag(ident), space1, tag_no_case("endif")),
+        preceded(
+            space0,
+            separated_pair(tag(ident), space1, tag_no_case("endif")),
+        ),
     )(i)?;
 
     let mut branches = vec![Branch {
@@ -236,7 +245,7 @@ mod tests {
             parser = conditional;
             input = "o1 if [1 gt 0] ; comment here\nf500\no1 endif";
             expected = Conditional {
-                identifier: BlockIdent { name: "o1".into() },
+                identifier: BlockIdent { ident: 1.into() },
                 branches: vec![
                     Branch {
                         trailing_comment: Some(Comment { text: "comment here".into() }),
@@ -268,7 +277,7 @@ mod tests {
             parser = conditional;
             input = "o1 if [1 gt 0]\nf500\no1 endif";
             expected = Conditional {
-                identifier: BlockIdent { name: "o1".into() },
+                identifier: BlockIdent { ident: 1.into() },
                 branches: vec![
                     Branch {
                         trailing_comment: None,
@@ -293,12 +302,85 @@ mod tests {
     }
 
     #[test]
+    fn parse_indented_if() {
+        assert_parse!(
+            parser = conditional;
+            input = "    o1 if [1 gt 0]\n        f500\n    o1 endif";
+            expected = Conditional {
+                identifier: BlockIdent { ident: 1.into() },
+                branches: vec![
+                    Branch {
+                        trailing_comment: None,
+                        branch_type: BranchType::If,
+                        condition: Some(Expression::from_tokens(vec![
+                            ExpressionToken::Literal(1.0),
+                            ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan),
+                            ExpressionToken::Literal(0.0),
+                        ])),
+                        lines: vec![Line {
+                            tokens: vec![
+                                Token {
+                                    token: TokenType::Feedrate(Feedrate { feedrate: 500.0.into() })
+                                },
+                            ],
+                            ..Line::default()
+                        }]
+                    }
+                ]
+            };
+        );
+    }
+
+    #[test]
+    fn parse_if_else() {
+        assert_parse!(
+            parser = conditional;
+            input = "o1 if [1 gt 0]\nf500\no1 else\nf400\no1 endif";
+            expected = Conditional {
+                identifier: BlockIdent { ident: 1.into() },
+                branches: vec![
+                    Branch {
+                        trailing_comment: None,
+                        branch_type: BranchType::If,
+                        condition: Some(Expression::from_tokens(vec![
+                            ExpressionToken::Literal(1.0),
+                            ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan),
+                            ExpressionToken::Literal(0.0),
+                        ])),
+                        lines: vec![Line {
+                            tokens: vec![
+                                Token {
+                                    token: TokenType::Feedrate(Feedrate { feedrate: 500.0.into() })
+                                },
+                            ],
+                            ..Line::default()
+                        }]
+                    },
+                    Branch {
+                        trailing_comment: None,
+                        branch_type: BranchType::Else,
+                        condition: None,
+                        lines: vec![Line {
+                            tokens: vec![
+                                Token {
+                                    token: TokenType::Feedrate(Feedrate { feedrate: 400.0.into() })
+                                },
+                            ],
+                            ..Line::default()
+                        }]
+                    }
+                ]
+            };
+        );
+    }
+
+    #[test]
     fn parse_if_elseif() {
         assert_parse!(
             parser = conditional;
             input = "o1 if [1 gt 0]\nf500\no1 elseif [2 lt 3]\nf400\no1 endif";
             expected = Conditional {
-                identifier: BlockIdent { name: "o1".into() },
+                identifier: BlockIdent { ident: 1.into() },
                 branches: vec![
                     Branch {
                         trailing_comment: None,
@@ -345,7 +427,7 @@ mod tests {
             parser = conditional;
             input = "o1 if [1 gt 0]\nf500\no1 elseif [2 lt 3]\nf400\no1 else\nf200\no1 endif";
             expected = Conditional {
-                identifier: BlockIdent { name: "o1".into() },
+                identifier: BlockIdent { ident: 1.into() },
                 branches: vec![
                     Branch {
                         trailing_comment: None,

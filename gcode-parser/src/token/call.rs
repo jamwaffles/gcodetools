@@ -2,7 +2,7 @@ use crate::token::block::{block_ident, BlockIdent};
 use expression::{parser::gcode, Expression};
 use nom::{
     bytes::complete::tag_no_case,
-    character::complete::space1,
+    character::complete::space0,
     combinator::map,
     error::{context, ParseError},
     multi::many0,
@@ -27,8 +27,8 @@ where
         map(
             separated_pair(
                 block_ident,
-                preceded(space1, tag_no_case("call")),
-                many0(preceded(space1, gcode::expression)),
+                preceded(space0, tag_no_case("call")),
+                many0(preceded(space0, gcode::expression)),
             ),
             |(subroutine_ident, arguments)| Call {
                 subroutine_ident,
@@ -64,7 +64,7 @@ mod tests {
     #[test]
     fn parse_call_no_args() {
         let expd: Call<f32> = Call {
-            subroutine_ident: "o100".into(),
+            subroutine_ident: 100.into(),
             arguments: Vec::new(),
         };
 
@@ -75,13 +75,55 @@ mod tests {
         );
     }
 
+    // From `x-trim.ngc`
+    #[test]
+    fn realworld() {
+        let expd: Call<f32> = Call {
+            subroutine_ident: "touchoff".into(),
+            arguments: vec![
+                Expression::from_tokens(vec![ExpressionToken::Literal(0.1)]),
+                Expression::from_tokens(vec![ExpressionToken::Literal(0.0)]),
+                Expression::from_tokens(vec![ExpressionToken::Literal(0.08)]),
+            ],
+        };
+
+        assert_parse!(
+            parser = call;
+            input = "o<touchoff> call [0.100] [0] [0.08] (Touchoff and start cutting)";
+            expected = expd;
+            // Comments are ignored
+            remaining = " (Touchoff and start cutting)"
+        );
+    }
+
     #[test]
     fn parse_call() {
         assert_parse!(
             parser = call;
             input = "o100 call [100] [1 + 2]";
             expected = Call {
-                subroutine_ident: "o100".into(),
+                subroutine_ident: 100.into(),
+                arguments: vec![
+                    Expression::from_tokens(vec![
+                        ExpressionToken::Literal(100.0)
+                    ]),
+                    Expression::from_tokens(vec![
+                        ExpressionToken::Literal(1.0),
+                        ExpressionToken::ArithmeticOperator(ArithmeticOperator::Add),
+                        ExpressionToken::Literal(2.0),
+                    ])
+                ]
+            };
+        );
+    }
+
+    #[test]
+    fn parse_call_no_spaces() {
+        assert_parse!(
+            parser = call;
+            input = "o<arc2>call[100][1 + 2]";
+            expected = Call {
+                subroutine_ident: "arc2".into(),
                 arguments: vec![
                     Expression::from_tokens(vec![
                         ExpressionToken::Literal(100.0)

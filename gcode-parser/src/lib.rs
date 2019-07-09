@@ -23,6 +23,7 @@ mod line;
 mod program;
 pub mod token;
 mod value;
+mod word;
 
 pub use crate::program::Program;
 

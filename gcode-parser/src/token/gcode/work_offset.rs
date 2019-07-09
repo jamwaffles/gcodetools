@@ -1,6 +1,6 @@
+use crate::word::word;
 use nom::{
     branch::alt,
-    bytes::complete::tag_no_case,
     combinator::map,
     error::{context, ParseError},
     IResult,
@@ -42,15 +42,15 @@ pub fn work_offset<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, W
         "work offset",
         map(
             alt((
-                map(tag_no_case("G59.1"), |_| WorkOffsetValue::G59_1),
-                map(tag_no_case("G59.2"), |_| WorkOffsetValue::G59_2),
-                map(tag_no_case("G59.3"), |_| WorkOffsetValue::G59_3),
-                map(tag_no_case("G54"), |_| WorkOffsetValue::G54),
-                map(tag_no_case("G55"), |_| WorkOffsetValue::G55),
-                map(tag_no_case("G56"), |_| WorkOffsetValue::G56),
-                map(tag_no_case("G57"), |_| WorkOffsetValue::G57),
-                map(tag_no_case("G58"), |_| WorkOffsetValue::G58),
-                map(tag_no_case("G59"), |_| WorkOffsetValue::G59),
+                map(word("G54"), |_| WorkOffsetValue::G54),
+                map(word("G55"), |_| WorkOffsetValue::G55),
+                map(word("G56"), |_| WorkOffsetValue::G56),
+                map(word("G57"), |_| WorkOffsetValue::G57),
+                map(word("G58"), |_| WorkOffsetValue::G58),
+                map(word("G59"), |_| WorkOffsetValue::G59),
+                map(word("G59.1"), |_| WorkOffsetValue::G59_1),
+                map(word("G59.2"), |_| WorkOffsetValue::G59_2),
+                map(word("G59.3"), |_| WorkOffsetValue::G59_3),
             )),
             |offset| WorkOffset { offset },
         ),
