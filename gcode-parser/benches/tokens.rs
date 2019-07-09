@@ -1,9 +1,7 @@
 extern crate criterion;
 
-use crate::parsing::Span;
 use criterion::*;
 use gcode_parser::dev::{center_format_arc, coord};
-use nom::types::CompleteByteSlice;
 use std::time::Duration;
 
 fn token_coord(c: &mut Criterion) {
@@ -11,7 +9,7 @@ fn token_coord(c: &mut Criterion) {
         "coordinate",
         |b, input| {
             b.iter(|| {
-                coord(Span::new(CompleteByteSlice(input.as_bytes()))).unwrap();
+                coord::<()>(input).unwrap();
             })
         },
         vec![
@@ -31,7 +29,7 @@ fn token_center_format_arc(c: &mut Criterion) {
         "center format arc",
         |b, input| {
             b.iter(|| {
-                center_format_arc(Span::new(CompleteByteSlice(input.as_bytes()))).unwrap();
+                center_format_arc::<()>(input).unwrap();
             })
         },
         vec![
