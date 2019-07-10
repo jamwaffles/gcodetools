@@ -1,4 +1,3 @@
-use crate::parsers::char_no_case;
 use expression::{gcode, Expression, Parameter};
 use nom::{
     branch::alt,
@@ -24,6 +23,18 @@ pub enum Value {
 
     /// A parameter like `#3`
     Parameter(Parameter),
+}
+
+impl Value {
+    /// Convert value to an f64. If `self` is not a `Value`, this method will panic
+    ///
+    /// This is mostly for testing and should not be used in critical code
+    pub fn as_f64_unchecked(&self) -> f64 {
+        match self {
+            Value::Literal(v) => *v as f64,
+            _ => panic!("Value must be a literal"),
+        }
+    }
 }
 
 impl FromStr for Value {
@@ -159,6 +170,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::parsers::char_no_case;
 
     #[test]
     fn float_trailing_spaces() {
