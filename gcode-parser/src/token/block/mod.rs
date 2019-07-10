@@ -10,7 +10,7 @@ use nom::{
     branch::alt,
     bytes::complete::{tag, tag_no_case, take_until},
     character::complete::{char, digit1, line_ending, multispace0, space0, space1},
-    combinator::{map, map_res, opt},
+    combinator::{map, map_opt, map_res, opt},
     error::{context, ParseError},
     sequence::{delimited, pair, preceded, separated_pair, terminated, tuple},
     IResult,
@@ -154,12 +154,11 @@ pub fn block_ident<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, B
     )(i)
 }
 
-pub fn block_open<'a, TP, TOP, V, E: ParseError<&'a str>>(
+pub fn block_open<'a, TP, TOP, E: ParseError<&'a str>>(
     tag_parser: TP,
-) -> impl Fn(&'a str) -> IResult<&'a str, (BlockIdent, Expression<V>, Option<Comment>), E>
+) -> impl Fn(&'a str) -> IResult<&'a str, (BlockIdent, Option<Comment>), E>
 where
     TP: Fn(&'a str) -> IResult<&'a str, TOP, E>,
-    V: FromStr,
 {
     map(
         tuple((
@@ -168,12 +167,10 @@ where
             space0,
             tag_parser,
             space0,
-            expression,
-            space0,
             opt(comment),
             line_ending,
         )),
-        |(_, ident, _, _, _, condition, _, comment, _)| (ident, condition, comment),
+        |(_, ident, _, _, _, comment, _)| (ident, comment),
     )
 }
 
@@ -198,8 +195,56 @@ where
     )
 }
 
+pub fn block_open_expr<'a, TP, TOP, V, E: ParseError<&'a str>>(
+    tag_parser: TP,
+) -> impl Fn(&'a str) -> IResult<&'a str, (BlockIdent, Expression<V>, Option<Comment>), E>
+where
+    TP: Fn(&'a str) -> IResult<&'a str, TOP, E>,
+    V: FromStr,
+{
+    map(
+        tuple((
+            space0,
+            block_ident,
+            space0,
+            tag_parser,
+            space0,
+            expression,
+            space0,
+            opt(comment),
+            line_ending,
+        )),
+        |(_, ident, _, _, _, condition, _, comment, _)| (ident, condition, comment),
+    )
+}
+
+pub fn block_close_expr<'a, IP, TP, EP, IOP, TOP, EOP, E: ParseError<&'a str>>(
+    block_ident: IP,
+    tag_parser: TP,
+    expression_parser: EP,
+) -> impl Fn(&'a str) -> IResult<&'a str, (EOP, Option<Comment>), E>
+where
+    TP: Fn(&'a str) -> IResult<&'a str, TOP, E>,
+    IP: Fn(&'a str) -> IResult<&'a str, IOP, E>,
+    EP: Fn(&'a str) -> IResult<&'a str, EOP, E>,
+{
+    map(
+        tuple((
+            space0,
+            block_ident,
+            space0,
+            tag_parser,
+            space0,
+            expression_parser,
+            space0,
+            opt(comment),
+        )),
+        |(_, _, _, _, _, condition, _, comment)| (condition, comment),
+    )
+}
+
 pub fn while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, While, E> {
-    let (i, (ident, block_condition, block_comment)) = block_open(tag("while"))(i)?;
+    let (i, (ident, block_condition, block_comment)) = block_open_expr(tag("while"))(i)?;
 
     let (i, block_lines) = lines_with_newline(i)?;
 
@@ -217,19 +262,15 @@ pub fn while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, W
 }
 
 pub fn do_while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, DoWhile, E> {
-    let (i, ident) = terminated(delimited(space0, block_ident, space0), tag("do"))(i)?;
-
-    let (i, _block_comment) = terminated(opt(comment), line_ending)(i)?;
+    let (i, (ident, _comment)) = block_open(tag("do"))(i)?;
 
     let (i, block_lines) = lines_with_newline(i)?;
 
-    let (i, (_, _, _, _, block_condition)) = tuple((
+    let (i, (block_condition, _comment)) = block_close_expr(
         tag_no_case(ident.to_string().as_str()),
-        space0,
         tag("while"),
-        space0,
         expression,
-    ))(i)?;
+    )(i)?;
 
     Ok((
         i,
@@ -242,7 +283,7 @@ pub fn do_while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str
 }
 
 pub fn repeat_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Repeat, E> {
-    let (i, (ident, block_condition, block_comment)) = block_open(tag("repeat"))(i)?;
+    let (i, (ident, block_condition, block_comment)) = block_open_expr(tag("repeat"))(i)?;
 
     let (i, block_lines) = lines_with_newline(i)?;
 
@@ -260,20 +301,15 @@ pub fn repeat_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, 
 }
 
 pub fn subroutine<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Subroutine, E> {
-    let (i, (ident, _)) = separated_pair(preceded(space0, block_ident), space0, tag("sub"))(i)?;
-
-    let (i, block_comment) = delimited(space0, opt(comment), line_ending)(i)?;
+    let (i, (ident, block_comment)) = block_open(tag("sub"))(i)?;
 
     let (i, block_lines) = lines_with_newline(i)?;
 
-    let (i, _) = separated_pair(
+    let (i, (returns, _)) = block_close_expr(
         tag_no_case(ident.to_string().as_str()),
-        space0,
         tag("endsub"),
+        opt(expression),
     )(i)?;
-
-    // Optional return value
-    let (i, returns) = opt(preceded(space0, expression))(i)?;
 
     Ok((
         i,
