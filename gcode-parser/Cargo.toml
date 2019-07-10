@@ -22,6 +22,9 @@ harness = false
 name = "huge"
 harness = false
 
+[lib]
+bench = false
+
 [dependencies]
 nom = { version = "5.0.0", default_features = false, features = [ "std" ] }
 expression = { path = "../expression" }
