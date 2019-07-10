@@ -43,28 +43,6 @@ pub struct Conditional {
     branches: Vec<Branch>,
 }
 
-// named_args!(elseif(ident: String)<Span, Branch>,
-//     sep!(
-//         space0,
-//         do_parse!(
-//             preceded!(char_no_case!('O'), tag_no_case!(ident.as_str())) >>
-//             tag_no_case!("elseif") >>
-//             condition: gcode_expression >>
-//             trailing_comment: opt!(comment) >>
-//             line_ending >>
-//             lines: many0!(line) >>
-//             ({
-//                 Branch {
-//                     branch_type: BranchType::ElseIf,
-//                     condition: Some(condition),
-//                     lines,
-//                     trailing_comment,
-//                 }
-//             })
-//         )
-//     )
-// );
-
 // TODO: Use conditional_block_open
 pub fn elseif_block<'a, E: ParseError<&'a str>>(
     ident: &'a str,
@@ -92,31 +70,6 @@ pub fn elseif_block<'a, E: ParseError<&'a str>>(
     )
 }
 
-// pub fn elseif<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Branch, E> {
-
-// }
-
-// named_args!(else_block(ident: String)<Span, Branch>,
-//     sep!(
-//         space0,
-//         do_parse!(
-//             preceded!(char_no_case!('O'), tag_no_case!(ident.as_str())) >>
-//             tag_no_case!("else") >>
-//             trailing_comment: opt!(comment) >>
-//             line_ending >>
-//             lines: many0!(line) >>
-//             ({
-//                 Branch {
-//                     branch_type: BranchType::Else,
-//                     condition: None,
-//                     lines,
-//                     trailing_comment,
-//                 }
-//             })
-//         )
-//     )
-// );
-
 // TODO: Use block_open
 pub fn else_block<'a, E: ParseError<&'a str>>(
     ident: &'a str,
@@ -142,41 +95,6 @@ pub fn else_block<'a, E: ParseError<&'a str>>(
         ),
     )
 }
-
-// named!(pub conditional<Span, Conditional>,
-//     sep!(
-//         space0,
-//         // TODO: Extract out into some kind of named_args macro
-//         do_parse!(
-//             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
-//             tag_no_case!("if") >>
-//             condition: gcode_expression >>
-//             trailing_comment: opt!(comment) >>
-//             line_ending >>
-//             lines: many0!(line) >>
-//             elseifs: many0!(call!(elseif, block_ident.to_ident_string())) >>
-//             else_block: opt!(call!(else_block, block_ident.to_ident_string())) >>
-//             preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
-//             tag_no_case!("endif") >>
-//             ({
-//                 let mut branches = vec![Branch {
-//                     branch_type: BranchType::If,
-//                     condition: Some(condition),
-//                     lines,
-//                     trailing_comment
-//                 }];
-
-//                 branches.append(&mut elseifs.clone());
-
-//                 if let Some(e) = else_block {
-//                     branches.push(e);
-//                 }
-
-//                 Conditional { identifier: block_ident, branches }
-//             })
-//         )
-//     )
-// );
 
 // TODO: Use conditional_block_open
 pub fn conditional<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Conditional, E> {
