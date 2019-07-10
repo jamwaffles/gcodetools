@@ -10,7 +10,7 @@ use nom::{
     branch::alt,
     bytes::complete::{tag_no_case, take_until},
     character::complete::{char, digit1, line_ending, multispace0, space0, space1},
-    combinator::{map, opt},
+    combinator::{map, map_res, opt},
     error::{context, ParseError},
     sequence::{delimited, pair, preceded, separated_pair, terminated, tuple},
     IResult,
@@ -135,11 +135,13 @@ pub fn block_ident<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, B
     preceded(
         char_no_case('O'),
         alt((
-            map(digit1, |ident: &'a str| {
-                BlockIdent {
-                    // TODO: Handle errors
-                    ident: IdentType::Numbered(ident.parse::<u16>().unwrap()),
-                }
+            map_res(digit1, |ident: &'a str| {
+                ident
+                    .parse::<u16>()
+                    .map_err(|_| "Failed to parse numeric identifier")
+                    .map(|ident| BlockIdent {
+                        ident: IdentType::Numbered(ident),
+                    })
             }),
             map(
                 delimited(char('<'), take_until(">"), char('>')),
