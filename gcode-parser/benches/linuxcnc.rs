@@ -27,5 +27,22 @@ fn linuxcnc_b_index_ngc(c: &mut Criterion) {
     );
 }
 
-criterion_group!(linuxcnc, linuxcnc_skeleton_ngc, linuxcnc_b_index_ngc);
+fn linuxcnc_smartprobe(c: &mut Criterion) {
+    let program = include_str!("../../test_files/linuxcnc/nc_files/smartprobe.ngc");
+
+    c.bench(
+        "linuxcnc",
+        Benchmark::new("smartprobe.ngc", move |b| {
+            b.iter(|| Program::from_str(program))
+        })
+        .throughput(Throughput::Bytes(program.len() as u32)),
+    );
+}
+
+criterion_group!(
+    linuxcnc,
+    linuxcnc_skeleton_ngc,
+    linuxcnc_b_index_ngc,
+    linuxcnc_smartprobe
+);
 criterion_main!(linuxcnc);
