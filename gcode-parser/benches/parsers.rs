@@ -2,10 +2,10 @@
 extern crate criterion;
 
 use criterion::{Criterion, ParameterizedBenchmark};
-use gcode_parser::dev::char_no_case;
+use gcode_parser::dev::{char_no_case, word};
 use nom::bytes::complete::tag_no_case;
 
-fn bench_fibs(c: &mut Criterion) {
+fn bench_char_no_case(c: &mut Criterion) {
     c.bench(
         "single char tag",
         ParameterizedBenchmark::new(
@@ -19,5 +19,16 @@ fn bench_fibs(c: &mut Criterion) {
     );
 }
 
-criterion_group!(benches, bench_fibs);
+fn bench_word(c: &mut Criterion) {
+    c.bench(
+        "word",
+        ParameterizedBenchmark::new(
+            "word",
+            |b, i| b.iter(|| word::<()>("g43")(*i)),
+            vec!["G43", "g61.5", "m30"],
+        ),
+    );
+}
+
+criterion_group!(benches, bench_char_no_case, bench_word);
 criterion_main!(benches);

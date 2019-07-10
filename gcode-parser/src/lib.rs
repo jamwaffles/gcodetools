@@ -33,4 +33,5 @@ pub mod dev {
     pub use crate::parsers::char_no_case;
     pub use crate::token::arc::center_format_arc;
     pub use crate::token::coord::coord;
+    pub use crate::word::word;
 }
