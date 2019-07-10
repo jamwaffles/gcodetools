@@ -1,11 +1,11 @@
 use crate::line::{line, Line};
 use crate::token::Token;
 use nom::{
-    character::complete::{char, line_ending},
+    character::complete::{char, line_ending, multispace0},
     combinator::opt,
     error::{convert_error, ParseError, VerboseError},
-    multi::{many0, many1},
-    sequence::{delimited, tuple},
+    multi::many1,
+    sequence::{delimited, pair},
     IResult,
 };
 use std::io;
@@ -115,9 +115,9 @@ impl Program {
 
 pub fn program<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Program, E> {
     let (i, lines) = delimited(
-        opt(tuple((char('%'), line_ending))),
+        opt(pair(char('%'), line_ending)),
         many1(line),
-        opt(tuple((char('%'), many0(line_ending)))),
+        opt(pair(char('%'), multispace0)),
     )(i)?;
 
     Ok((i, Program { lines }))
