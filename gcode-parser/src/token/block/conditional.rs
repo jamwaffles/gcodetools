@@ -1,5 +1,5 @@
 use super::{block_ident, BlockIdent};
-use crate::line::{line, Line};
+use crate::line::{lines_with_newline, Line};
 use crate::token::{comment, Comment};
 use expression::{gcode::expression, Expression};
 use nom::{
@@ -58,7 +58,7 @@ pub fn elseif_block<'a, E: ParseError<&'a str>>(
                 expression,
                 opt(comment),
                 line_ending,
-                many0(line),
+                lines_with_newline,
             )),
             |(_, _, _, _, condition, trailing_comment, _, lines)| Branch {
                 branch_type: BranchType::ElseIf,
@@ -84,7 +84,7 @@ pub fn else_block<'a, E: ParseError<&'a str>>(
                 // TODO: Support trailing whitespace on all keywordy things
                 preceded(space0, opt(comment)),
                 line_ending,
-                many0(line),
+                lines_with_newline,
             )),
             |(_, _, _, trailing_comment, _, lines)| Branch {
                 branch_type: BranchType::Else,
@@ -111,7 +111,7 @@ pub fn conditional<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, C
     let (i, (if_block_condition, if_block_comment)) =
         terminated(pair(expression, opt(comment)), line_ending)(i)?;
 
-    let (i, if_block_lines) = many0(line)(i)?;
+    let (i, if_block_lines) = lines_with_newline(i)?;
 
     let (i, elseifs) = many0(elseif_block(ident))(i)?;
 

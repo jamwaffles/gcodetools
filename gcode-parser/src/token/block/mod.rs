@@ -2,18 +2,17 @@ mod conditional;
 
 use self::conditional::conditional;
 pub use self::conditional::{Branch, BranchType, Conditional};
-use crate::line::{line, Line};
+use crate::line::{lines_with_newline, Line};
 use crate::parsers::char_no_case;
 use crate::token::{comment, Comment};
 use expression::{gcode::expression, Expression};
 use nom::{
     branch::alt,
     bytes::complete::{tag_no_case, take_until},
-    character::complete::{char, digit1, line_ending, space0, space1},
+    character::complete::{char, digit1, line_ending, multispace0, space0, space1},
     combinator::{map, opt},
     error::{context, ParseError},
-    multi::{many0, many1},
-    sequence::{delimited, pair, preceded, separated_pair, terminated},
+    sequence::{delimited, pair, preceded, separated_pair, terminated, tuple},
     IResult,
 };
 use std::fmt;
@@ -164,10 +163,10 @@ pub fn while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, W
         line_ending,
     )(i)?;
 
-    let (i, block_lines) = many1(line)(i)?;
+    let (i, block_lines) = lines_with_newline(i)?;
 
     let (i, _) = separated_pair(
-        preceded(space0, tag_no_case(ident.to_string().as_str())),
+        preceded(multispace0, tag_no_case(ident.to_string().as_str())),
         space0,
         tag_no_case("endwhile"),
     )(i)?;
@@ -188,20 +187,15 @@ pub fn do_while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str
 
     let (i, _block_comment) = terminated(opt(comment), line_ending)(i)?;
 
-    let (i, block_lines) = many0(line)(i)?;
+    let (i, block_lines) = lines_with_newline(i)?;
 
-    let (i, (_, block_condition)) = preceded(
+    let (i, (_, _, _, _, block_condition)) = tuple((
+        tag_no_case(ident.to_string().as_str()),
         space0,
-        separated_pair(
-            separated_pair(
-                tag_no_case(ident.to_string().as_str()),
-                space0,
-                tag_no_case("while"),
-            ),
-            space0,
-            expression,
-        ),
-    )(i)?;
+        tag_no_case("while"),
+        space0,
+        expression,
+    ))(i)?;
 
     Ok((
         i,
@@ -225,7 +219,7 @@ pub fn repeat_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, 
         line_ending,
     )(i)?;
 
-    let (i, block_lines) = many0(line)(i)?;
+    let (i, block_lines) = lines_with_newline(i)?;
 
     let (i, _) = preceded(
         space0,
@@ -253,7 +247,7 @@ pub fn subroutine<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Su
 
     let (i, block_comment) = delimited(space0, opt(comment), line_ending)(i)?;
 
-    let (i, block_lines) = many0(line)(i)?;
+    let (i, block_lines) = lines_with_newline(i)?;
 
     let (i, _) = separated_pair(
         tag_no_case(ident.to_string().as_str()),

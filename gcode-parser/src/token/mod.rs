@@ -100,6 +100,9 @@ pub enum TokenType {
 
     /// Block delete (`/` character at beginning of line)
     BlockDelete,
+
+    /// Program delimiter (`%` character literal)
+    ProgramDelimiter,
 }
 
 /// An unknown token
@@ -187,6 +190,7 @@ pub fn token_type<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, To
         map(call, TokenType::Call),
         map(return_stmt, TokenType::Return),
         map(polar, TokenType::PolarCoord),
+        map(char('%'), |_| TokenType::ProgramDelimiter),
         map(unknown, TokenType::Unknown),
     ))(i)
 }

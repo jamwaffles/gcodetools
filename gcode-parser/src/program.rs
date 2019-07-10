@@ -1,11 +1,7 @@
-use crate::line::{line, Line};
+use crate::line::{lines, Line};
 use crate::token::Token;
 use nom::{
-    character::complete::{char, line_ending, multispace0},
-    combinator::opt,
-    error::{convert_error, ParseError, VerboseError},
-    multi::many1,
-    sequence::{delimited, pair},
+    error::{context, convert_error, ParseError, VerboseError},
     IResult,
 };
 use std::io;
@@ -114,11 +110,7 @@ impl Program {
 // );
 
 pub fn program<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Program, E> {
-    let (i, lines) = delimited(
-        opt(pair(char('%'), line_ending)),
-        many1(line),
-        opt(pair(char('%'), multispace0)),
-    )(i)?;
+    let (i, lines) = context("program", lines)(i)?;
 
     Ok((i, Program { lines }))
 }
@@ -140,6 +132,14 @@ mod tests {
                     Line {
                         tokens: vec![
                             Token {
+                                token: TokenType::ProgramDelimiter
+                            },
+                        ],
+                        ..Line::default()
+                    },
+                    Line {
+                        tokens: vec![
+                            Token {
                                 token: TokenType::GCode(GCode::Rapid)
                             },
                             Token {
@@ -158,7 +158,15 @@ mod tests {
                             }
                         ],
                         ..Line::default()
-                    }
+                    },
+                    Line {
+                        tokens: vec![
+                            Token {
+                                token: TokenType::ProgramDelimiter
+                            },
+                        ],
+                        ..Line::default()
+                    },
                 ]
             };
         );
@@ -193,6 +201,14 @@ mod tests {
                         ],
                         ..Line::default()
                     },
+                    Line {
+                        tokens: vec![
+                            Token {
+                                token: TokenType::ProgramDelimiter
+                            },
+                        ],
+                        ..Line::default()
+                    },
                 ]
             }
         );
@@ -202,7 +218,7 @@ mod tests {
     fn parse_m2_end_program() {
         assert_parse!(
             parser = program;
-            input = "G0 X0 Y0 Z0\nG1 X1 Y1 Z1\nM2\n";
+            input = "G0 X0 Y0 Z0\nG1 X1 Y1 Z1\nM2";
             expected = Program {
                 lines: vec![
                     Line {
@@ -276,7 +292,8 @@ mod tests {
                             }
                         ],
                         ..Line::default()
-                    }
+                    },
+                    Line::default()
                 ]
             };
         );
@@ -298,6 +315,7 @@ mod tests {
                         }],
                         ..Line::default()
                     },
+                    Line::default()
                 ]
             };
         );
@@ -307,7 +325,7 @@ mod tests {
     fn blank_lines() {
         assert_parse!(
             parser = program;
-            input = "G0\nG1\n\nG41\nM2\n";
+            input = "G0\nG1\n\nG41\nM2";
             expected = Program {
                 lines: vec![
                     Line {

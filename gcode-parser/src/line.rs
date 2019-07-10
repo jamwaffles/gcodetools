@@ -1,10 +1,10 @@
 use crate::token::{block_delete, line_number, token, Token};
 use nom::{
     character::complete::{line_ending, space0},
-    combinator::{complete, opt},
-    error::ParseError,
+    combinator::{complete, map, opt},
+    error::{context, ParseError},
     multi::many0,
-    sequence::{delimited, terminated, tuple},
+    sequence::{delimited, pair, terminated, tuple},
     IResult,
 };
 
@@ -52,15 +52,18 @@ impl Default for Line {
 // );
 
 pub fn line<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
-    let (i, (block_delete, line_number, line_tokens)) = complete(delimited(
-        space0,
-        tuple((
-            opt(terminated(block_delete, space0)),
-            opt(terminated(line_number, space0)),
-            many0(terminated(token, space0)),
+    let (i, (block_delete, line_number, line_tokens)) = context(
+        "line",
+        complete(delimited(
+            space0,
+            tuple((
+                opt(terminated(block_delete, space0)),
+                opt(terminated(line_number, space0)),
+                many0(terminated(token, space0)),
+            )),
+            space0,
         )),
-        line_ending,
-    ))(i)?;
+    )(i)?;
 
     let tokens: Vec<Token> = vec![block_delete, line_number]
         .into_iter()
@@ -69,6 +72,22 @@ pub fn line<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E>
         .collect();
 
     Ok((i, Line { tokens }))
+}
+
+/// A list of newline-separated token lists without trailing newline
+pub fn lines<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Vec<Line>, E> {
+    map(pair(lines_with_newline, line), |(mut lines, last)| {
+        lines.push(last);
+
+        lines
+    })(i)
+}
+
+/// Like `line`, but requires a trailing newline
+pub fn lines_with_newline<'a, E: ParseError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, Vec<Line>, E> {
+    many0(terminated(line, line_ending))(i)
 }
 
 #[cfg(test)]
@@ -116,6 +135,10 @@ mod tests {
                     ..Line::default()
                 }
             ;
+            remaining =
+                "\n",
+                "\n"
+            ;
         );
     }
 
@@ -149,6 +172,7 @@ mod tests {
                 ],
                 ..Line::default()
             };
+            remaining = "\n"
         );
     }
 
@@ -174,6 +198,7 @@ mod tests {
                 ],
                 ..Line::default()
             };
+            remaining = "\n"
         );
     }
 
@@ -190,25 +215,27 @@ mod tests {
                 ],
                 ..Line::default()
             };
+            remaining = "\n"
         );
     }
 
-    #[test]
-    fn consume_line_and_ending() {
-        assert_parse!(
-            parser = line;
-            input = "G54\nG55";
-            expected = Line {
-                tokens: vec![Token {
-                    token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-                        offset: WorkOffsetValue::G54,
-                    }))
-                }],
-                ..Line::default()
-            };
-            remaining = "G55"
-        );
-    }
+    // TODO: Delete. Line func doesn't consume ending anymore
+    // #[test]
+    // fn consume_line_and_ending() {
+    //     assert_parse!(
+    //         parser = line;
+    //         input = "G54\nG55";
+    //         expected = Line {
+    //             tokens: vec![Token {
+    //                 token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
+    //                     offset: WorkOffsetValue::G54,
+    //                 }))
+    //             }],
+    //             ..Line::default()
+    //         };
+    //         remaining = "G55"
+    //     );
+    // }
 
     #[test]
     fn ignore_surrounding_whitespace() {
@@ -223,7 +250,7 @@ mod tests {
                 }],
                 ..Line::default()
             };
-            remaining = "G55"
+            remaining = "\nG55"
         );
     }
 
@@ -233,6 +260,7 @@ mod tests {
             parser = line;
             input = "\n";
             expected = Line::default();
+            remaining = "\n"
         );
     }
 
@@ -242,7 +270,7 @@ mod tests {
             parser = line;
             input = "\n\n";
             expected = Line::default();
-            remaining = "\n"
+            remaining = "\n\n"
         );
     }
 
@@ -259,7 +287,7 @@ mod tests {
                 }],
                 ..Line::default()
             };
-            remaining = "G55"
+            remaining = "\nG55"
         );
     }
 
@@ -296,6 +324,7 @@ mod tests {
                 }],
                 ..Line::default()
             };
+            remaining = "\r\n"
         );
     }
 }
