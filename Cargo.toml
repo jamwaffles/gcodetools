@@ -3,8 +3,7 @@
 members = [
     "gcode-parser",
     "expression",
-    "trajectory-planner",
-    "common"
+    "trajectory-planner"
 ]
 
 [profile.test]

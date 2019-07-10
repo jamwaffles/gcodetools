@@ -31,7 +31,6 @@ bench = false
 [dependencies]
 nom = { version = "5.0.0", default_features = false, features = [ "std" ] }
 expression = { path = "../expression" }
-common = { path = "../common" }
 
 [dev-dependencies]
 criterion = "0.2.11"
