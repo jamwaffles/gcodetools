@@ -1,7 +1,7 @@
+use crate::parsers::char_no_case;
 use crate::value::{preceded_decimal_value, Value};
 use crate::word::word;
 use nom::{
-    bytes::complete::tag_no_case,
     character::complete::space0,
     combinator::map,
     error::{context, ParseError},
@@ -33,7 +33,7 @@ pub fn dwell<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Dwell, 
         map(
             preceded(
                 pair(word("g4"), space0),
-                preceded_decimal_value(tag_no_case("p")),
+                preceded_decimal_value(char_no_case('p')),
             ),
             |time| Dwell { time },
         ),

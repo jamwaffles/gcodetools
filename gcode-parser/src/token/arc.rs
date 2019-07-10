@@ -1,7 +1,7 @@
+use crate::parsers::char_no_case;
 use crate::value::{preceded_decimal_value, preceded_unsigned_value, UnsignedValue, Value};
 use nom::{
     branch::permutation,
-    bytes::complete::tag_no_case,
     character::complete::space0,
     combinator::{map_opt, map_res, opt},
     error::{context, ParseError},
@@ -102,15 +102,33 @@ pub fn center_format_arc<'a, E: ParseError<&'a str>>(
         "center format arc",
         map_opt(
             permutation((
-                opt(terminated(preceded_decimal_value(tag_no_case("X")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("Y")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("Z")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("I")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("J")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("K")), space0)),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('X')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('Y')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('Z')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('I')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('J')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('K')),
+                    space0,
+                )),
                 // TODO: This must be a positive integer, not any `Value`
                 opt(terminated(
-                    preceded_unsigned_value(tag_no_case("P")),
+                    preceded_unsigned_value(char_no_case('P')),
                     space0,
                 )),
             )),
@@ -183,12 +201,21 @@ pub fn radius_format_arc<'a, E: ParseError<&'a str>>(
         map_res(
             // TODO: Needs some sort of sep() to handle whitespace
             permutation((
-                opt(terminated(preceded_decimal_value(tag_no_case("X")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("Y")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("Z")), space0)),
-                terminated(preceded_decimal_value(tag_no_case("R")), space0),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('X')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('Y')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('Z')),
+                    space0,
+                )),
+                terminated(preceded_decimal_value(char_no_case('R')), space0),
                 // TODO: This must be a positive integer, not any `Value`
-                opt(preceded_decimal_value(tag_no_case("P"))),
+                opt(preceded_decimal_value(char_no_case('P'))),
             )),
             |(x, y, z, radius, _turns): (
                 Option<Value>,

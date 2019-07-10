@@ -1,3 +1,4 @@
+use crate::parsers::char_no_case;
 use expression::{gcode, Expression, Parameter};
 use nom::{
     branch::alt,
@@ -158,7 +159,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nom::bytes::complete::tag_no_case;
 
     #[test]
     fn float_trailing_spaces() {
@@ -172,7 +172,7 @@ mod tests {
 
     #[test]
     fn preceded_decimal_value_spaces() {
-        let p = preceded_decimal_value(tag_no_case("G"));
+        let p = preceded_decimal_value(char_no_case('G'));
 
         assert_parse!(
             parser = p;
@@ -184,7 +184,7 @@ mod tests {
 
     #[test]
     fn preceded_decimal_value_parameter() {
-        let p = preceded_decimal_value(tag_no_case("P"));
+        let p = preceded_decimal_value(char_no_case('P'));
 
         assert_parse!(
             parser = p;

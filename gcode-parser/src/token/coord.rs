@@ -1,9 +1,9 @@
 //! Parse coordinates into a vector
 
+use crate::parsers::char_no_case;
 use crate::value::{preceded_decimal_value, Value};
 use nom::{
     branch::permutation,
-    bytes::complete::tag_no_case,
     character::complete::space0,
     combinator::{map_opt, opt},
     error::{context, ParseError},
@@ -71,15 +71,42 @@ pub fn coord<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Coord, 
         "coordinate",
         map_opt(
             permutation((
-                opt(terminated(preceded_decimal_value(tag_no_case("X")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("Y")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("Z")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("A")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("B")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("C")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("U")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("V")), space0)),
-                opt(terminated(preceded_decimal_value(tag_no_case("W")), space0)),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('X')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('Y')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('Z')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('A')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('B')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('C')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('U')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('V')),
+                    space0,
+                )),
+                opt(terminated(
+                    preceded_decimal_value(char_no_case('W')),
+                    space0,
+                )),
             )),
             |(x, y, z, a, b, c, u, v, w)| {
                 let coord = Coord {

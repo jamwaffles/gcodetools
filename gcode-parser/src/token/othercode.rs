@@ -1,6 +1,6 @@
+use crate::parsers::char_no_case;
 use crate::value::{preceded_decimal_value, Value};
 use nom::{
-    bytes::complete::tag_no_case,
     character::complete::digit1,
     combinator::{map, map_res},
     error::{context, ParseError},
@@ -51,7 +51,7 @@ pub struct LineNumber {
 pub fn feedrate<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Feedrate, E> {
     context(
         "feed rate",
-        map(preceded_decimal_value(tag_no_case("F")), |feedrate| {
+        map(preceded_decimal_value(char_no_case('F')), |feedrate| {
             Feedrate { feedrate }
         }),
     )(i)
@@ -70,7 +70,7 @@ pub fn feedrate<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Feed
 pub fn spindle_speed<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, SpindleSpeed, E> {
     context(
         "spindle speed",
-        map(preceded_decimal_value(tag_no_case("S")), |rpm| {
+        map(preceded_decimal_value(char_no_case('S')), |rpm| {
             SpindleSpeed { rpm }
         }),
     )(i)
@@ -90,7 +90,7 @@ pub fn tool_number<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, T
     // TODO: Parse to unsigned int
     context(
         "tool number",
-        map(preceded_decimal_value(tag_no_case("T")), |tool_number| {
+        map(preceded_decimal_value(char_no_case('T')), |tool_number| {
             ToolNumber { tool_number }
         }),
     )(i)
@@ -117,7 +117,7 @@ pub fn raw_line_number<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a st
         "line number",
         map(
             preceded(
-                tag_no_case("N"),
+                char_no_case('N'),
                 map_res(digit1, |n: &'a str| n.parse::<u32>()),
             ),
             |line_number| LineNumber { line_number },

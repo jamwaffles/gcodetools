@@ -3,6 +3,7 @@ mod conditional;
 use self::conditional::conditional;
 pub use self::conditional::{Branch, BranchType, Conditional};
 use crate::line::{line, Line};
+use crate::parsers::char_no_case;
 use crate::token::{comment, Comment};
 use expression::{gcode::expression, Expression};
 use nom::{
@@ -133,7 +134,7 @@ pub struct Subroutine {
 // TODO: Use general purpose `numbered_ident` and `local_ident` or whatever methods
 pub fn block_ident<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, BlockIdent, E> {
     preceded(
-        tag_no_case("O"),
+        char_no_case('O'),
         alt((
             map(digit1, |ident: &'a str| {
                 BlockIdent {
