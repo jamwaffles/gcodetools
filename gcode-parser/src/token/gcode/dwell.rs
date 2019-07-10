@@ -5,7 +5,7 @@ use nom::{
     character::complete::space0,
     combinator::map,
     error::{context, ParseError},
-    sequence::{pair, preceded},
+    sequence::{pair, preceded, separated_pair},
     IResult,
 };
 
@@ -31,11 +31,12 @@ pub fn dwell<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Dwell, 
     context(
         "dwell",
         map(
-            preceded(
-                pair(word("g4"), space0),
+            separated_pair(
+                word("g4"),
+                space0,
                 preceded_decimal_value(char_no_case('p')),
             ),
-            |time| Dwell { time },
+            |(_, time)| Dwell { time },
         ),
     )(i)
 }

@@ -6,7 +6,7 @@ use nom::{
     character::complete::space0,
     combinator::{map, opt},
     error::{context, ParseError},
-    sequence::{pair, preceded},
+    sequence::{pair, preceded, separated_pair},
     IResult,
 };
 
@@ -60,18 +60,20 @@ pub fn cutter_compensation<'a, E: ParseError<&'a str>>(
         alt((
             map(word("g40"), |_| CutterCompensation::Off),
             map(
-                preceded(
-                    pair(word("g41"), space0),
+                separated_pair(
+                    word("g41"),
+                    space0,
                     opt(preceded_decimal_value(char_no_case('d'))),
                 ),
-                CutterCompensation::Left,
+                |(_, d)| CutterCompensation::Left(d),
             ),
             map(
-                preceded(
-                    pair(word("g42"), space0),
+                separated_pair(
+                    word("g42"),
+                    space0,
                     opt(preceded_decimal_value(char_no_case('d'))),
                 ),
-                CutterCompensation::Right,
+                |(_, d)| CutterCompensation::Right(d),
             ),
         )),
     )(i)
