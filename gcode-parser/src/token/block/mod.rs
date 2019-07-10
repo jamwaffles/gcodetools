@@ -151,26 +151,6 @@ pub fn block_ident<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, B
     )(i)
 }
 
-// named!(pub while_block<Span, While>,
-//     sep!(
-//         space0,
-//         // TODO: Extract out into some kind of named_args macro
-//         do_parse!(
-//             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
-//             tag_no_case!("while") >>
-//             condition: gcode_expression >>
-//             trailing_comment: opt!(comment) >>
-//             line_ending >>
-//             lines: many0!(line) >>
-//             preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
-//             tag_no_case!("endwhile") >>
-//             ({
-//                 While { identifier: block_ident, condition, lines, trailing_comment }
-//             })
-//         )
-//     )
-// );
-
 pub fn while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, While, E> {
     let (i, ident) = delimited(
         space0,
@@ -202,24 +182,6 @@ pub fn while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, W
     ))
 }
 
-// named!(pub do_while_block<Span, DoWhile>,
-//     sep!(
-//         space0,
-//         // TODO: Extract out into some kind of named_args macro
-//         do_parse!(
-//             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
-//             tag_no_case!("do") >>
-//             lines: many0!(line) >>
-//             preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
-//             tag_no_case!("while") >>
-//             condition: gcode_expression >>
-//             ({
-//                 DoWhile { identifier: block_ident, condition, lines }
-//             })Yeah
-//         )
-//     )
-// );
-
 pub fn do_while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, DoWhile, E> {
     let (i, ident) = terminated(delimited(space0, block_ident, space0), tag_no_case("do"))(i)?;
 
@@ -249,26 +211,6 @@ pub fn do_while_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str
         },
     ))
 }
-
-// named!(pub repeat_block<Span, Repeat>,
-//     sep!(
-//         space0,
-//         // TODO: Extract out into some kind of named_args macro
-//         do_parse!(
-//             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
-//             tag_no_case!("repeat") >>
-//             condition: gcode_expression >>
-//             trailing_comment: opt!(comment) >>
-//             line_ending >>
-//             lines: many0!(line) >>
-//             preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
-//             tag_no_case!("endrepeat") >>
-//             ({
-//                 Repeat { identifier: block_ident, condition, lines, trailing_comment }
-//             })
-//         )
-//     )
-// );
 
 pub fn repeat_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Repeat, E> {
     let (i, ident) = delimited(
@@ -304,26 +246,6 @@ pub fn repeat_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, 
     ))
 }
 
-// named!(pub subroutine<Span, Subroutine>,
-//     sep!(
-//         space0,
-//         // TODO: Extract out into some kind of named_args macro
-//         do_parse!(
-//             block_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
-//             tag_no_case!("sub") >>
-//             trailing_comment: opt!(comment) >>
-//             line_ending >>
-//             lines: many0!(line) >>
-//             preceded!(char_no_case!('O'), tag_no_case!(block_ident.to_ident_string().as_str())) >>
-//             tag_no_case!("endsub") >>
-//             returns: opt!(gcode_expression) >>
-//             ({
-//                 Subroutine { identifier: block_ident, lines, returns, trailing_comment }
-//             })
-//         )
-//     )
-// );
-
 pub fn subroutine<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Subroutine, E> {
     let (i, (ident, _)) =
         separated_pair(preceded(space0, block_ident), space0, tag_no_case("sub"))(i)?;
@@ -351,16 +273,6 @@ pub fn subroutine<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Su
         },
     ))
 }
-
-// named!(pub block<Span, Block>,
-//     alt!(
-//         map!(conditional, |conditional| Block::Conditional(conditional)) |
-//         map!(while_block, |while_block| Block::While(while_block)) |
-//         map!(do_while_block, |do_while_block| Block::DoWhile(do_while_block)) |
-//         map!(repeat_block, |repeat_block| Block::Repeat(repeat_block)) |
-//         map!(subroutine, |subroutine| Block::Subroutine(subroutine))
-//     )
-// );
 
 pub fn block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Block, E> {
     context(
