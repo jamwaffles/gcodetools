@@ -97,7 +97,6 @@ pub fn center_format_arc<'a, E: ParseError<&'a str>>(
                     preceded_decimal_value(char_no_case('K')),
                     space0,
                 )),
-                // TODO: This must be a positive integer, not any `Value`
                 opt(terminated(
                     preceded_unsigned_value(char_no_case('P')),
                     space0,

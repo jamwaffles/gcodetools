@@ -2,7 +2,7 @@ use expression::{gcode, Expression, ExpressionToken, Parameter};
 use nom::{
     branch::alt,
     character::complete::{digit1, space0},
-    combinator::{map, map_res},
+    combinator::{map, map_res, verify},
     error::{context, ParseError},
     number::complete::float,
     sequence::separated_pair,
@@ -68,6 +68,9 @@ pub enum UnsignedValue {
 
     /// A GCode expression
     Expression(Expression<u32>),
+
+    /// A parameter (variable)
+    Parameter(Parameter),
 }
 
 impl From<u32> for UnsignedValue {
@@ -76,8 +79,6 @@ impl From<u32> for UnsignedValue {
     }
 }
 
-/// TODO: Parse expressions and parameters (not surrounded by `[]`) along with literals into an enum
-/// TODO: Decide whether to just use `float` from Nom or aim for parity with LinuxCNC's subset
 pub fn decimal_value<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Value, E> {
     context(
         "decimal value",
@@ -92,20 +93,39 @@ pub fn decimal_value<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str,
     )(i)
 }
 
-pub fn unsigned_value<'a, E: ParseError<&'a str>, V>(i: &'a str) -> IResult<&'a str, V, E>
-where
-    V: From<u32>,
-{
+pub fn positive_decimal_value<'a, E: ParseError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, Value, E> {
     context(
-        "unsigned value",
-        map_res::<_, _, _, _, String, _, _>(digit1, |n: &'a str| {
-            Ok(V::from(n.parse::<u32>().map_err(|e| e.to_string())?))
+        "positive-only decimal value",
+        verify(decimal_value, |v| match v {
+            Value::Literal(n) => *n >= 0.0,
+            _ => true,
         }),
     )(i)
 }
 
-// TODO: any_value where the value can be floating, integer or an expr
-// TODO: integer_value where value can only be integer or expr
+pub fn unsigned_value<'a, E: ParseError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, UnsignedValue, E> {
+    context(
+        "unsigned value",
+        alt((
+            map_res::<_, _, _, _, String, _, _>(digit1, |n: &'a str| {
+                Ok(UnsignedValue::Literal(
+                    n.parse::<u32>().map_err(|e| e.to_string())?,
+                ))
+            }),
+            map(gcode::parameter, |p| UnsignedValue::Parameter(p)),
+            map(gcode::expression, |e| UnsignedValue::Expression(e)),
+            map(gcode::function, |f| {
+                UnsignedValue::Expression(Expression::from_tokens(vec![ExpressionToken::Function(
+                    f,
+                )]))
+            }),
+        )),
+    )(i)
+}
 
 /// Parse a value after a preceding parser, separated by 0 or more spaces
 pub fn preceded_decimal_value<'a, P, OP, E: ParseError<&'a str>>(
@@ -114,25 +134,30 @@ pub fn preceded_decimal_value<'a, P, OP, E: ParseError<&'a str>>(
 where
     P: Fn(&'a str) -> IResult<&'a str, OP, E>,
 {
-    // TODO: Benchmark against impl below
-    // map(preceded(terminated(parser, space0), value), |value| value)
-
     map(
         separated_pair(parser, space0, decimal_value),
         |(_char, value)| value,
     )
 }
 
-pub fn preceded_unsigned_value<'a, P, OP, E: ParseError<&'a str>, V>(
+pub fn preceded_positive_decimal_value<'a, P, OP, E: ParseError<&'a str>>(
     parser: P,
-) -> impl Fn(&'a str) -> IResult<&'a str, V, E>
+) -> impl Fn(&'a str) -> IResult<&'a str, Value, E>
 where
     P: Fn(&'a str) -> IResult<&'a str, OP, E>,
-    V: From<u32>,
 {
-    // TODO: Benchmark against impl below
-    // map(preceded(terminated(parser, space0), value), |value| value)
+    map(
+        separated_pair(parser, space0, positive_decimal_value),
+        |(_char, value)| value,
+    )
+}
 
+pub fn preceded_unsigned_value<'a, P, OP, E: ParseError<&'a str>>(
+    parser: P,
+) -> impl Fn(&'a str) -> IResult<&'a str, UnsignedValue, E>
+where
+    P: Fn(&'a str) -> IResult<&'a str, OP, E>,
+{
     map(
         separated_pair(parser, space0, unsigned_value),
         |(_char, value)| value,

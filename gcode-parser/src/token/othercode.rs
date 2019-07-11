@@ -1,5 +1,7 @@
 use crate::parsers::char_no_case;
-use crate::value::{preceded_decimal_value, Value};
+use crate::value::{
+    preceded_positive_decimal_value, preceded_unsigned_value, UnsignedValue, Value,
+};
 use nom::{
     character::complete::digit1,
     combinator::{map, map_res},
@@ -28,7 +30,7 @@ pub struct SpindleSpeed {
 #[derive(Debug, PartialEq, Clone)]
 pub struct ToolNumber {
     /// Positive integer tool number
-    pub tool_number: Value,
+    pub tool_number: UnsignedValue,
 }
 
 /// Line number `Nn`
@@ -41,26 +43,26 @@ pub struct LineNumber {
 pub fn feedrate<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Feedrate, E> {
     context(
         "feed rate",
-        map(preceded_decimal_value(char_no_case('F')), |feedrate| {
-            Feedrate { feedrate }
-        }),
+        map(
+            preceded_positive_decimal_value(char_no_case('F')),
+            |feedrate| Feedrate { feedrate },
+        ),
     )(i)
 }
 
 pub fn spindle_speed<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, SpindleSpeed, E> {
     context(
         "spindle speed",
-        map(preceded_decimal_value(char_no_case('S')), |rpm| {
+        map(preceded_positive_decimal_value(char_no_case('S')), |rpm| {
             SpindleSpeed { rpm }
         }),
     )(i)
 }
 
 pub fn tool_number<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, ToolNumber, E> {
-    // TODO: Parse to unsigned int
     context(
         "tool number",
-        map(preceded_decimal_value(char_no_case('T')), |tool_number| {
+        map(preceded_unsigned_value(char_no_case('T')), |tool_number| {
             ToolNumber { tool_number }
         }),
     )(i)
@@ -83,6 +85,7 @@ pub fn raw_line_number<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a st
 mod tests {
     use super::*;
     use crate::assert_parse;
+    use expression::Parameter;
 
     #[test]
     fn parse_feedrate_decimal() {
@@ -107,13 +110,13 @@ mod tests {
         assert_parse!(
             parser = spindle_speed;
             input = "S1000";
-            expected = SpindleSpeed { rpm: 1000.0.into() }
+            expected = SpindleSpeed { rpm: Value::Literal(1000.0.into()) }
         );
 
         assert_parse!(
             parser = spindle_speed;
             input = "S1234.5678";
-            expected = SpindleSpeed { rpm: 1234.5678.into() }
+            expected = SpindleSpeed { rpm: Value::Literal(1234.5678).into() }
         );
     }
 
@@ -122,8 +125,7 @@ mod tests {
         assert_parse!(
             parser = tool_number;
             input = "T32";
-            // TODO: Parse to unsigned int
-            expected = ToolNumber { tool_number: 32.0.into() }
+            expected = ToolNumber { tool_number: 32.into() }
         );
     }
 
@@ -147,13 +149,22 @@ mod tests {
         );
     }
 
-    // TODO: Re-enable
-    // #[test]
-    // fn parse_space_sep() {
-    //     assert_parse!(
-    //         parser = feedrate;
-    //         input = "f #<feedrate>";
-    //         expected = Feedrate { feedrate: Value::Parameter(Parameter::Named("feedrate".to_string())) }
-    //     );
-    // }
+    #[test]
+    fn parse_space_sep_spindle() {
+        assert_parse!(
+            parser = spindle_speed;
+            input = "s #<rpm> m3 (spindle cw)";
+            expected = SpindleSpeed { rpm: Value::Parameter(Parameter::Local("rpm".to_string())) };
+            remaining = " m3 (spindle cw)"
+        );
+    }
+
+    #[test]
+    fn parse_space_sep() {
+        assert_parse!(
+            parser = feedrate;
+            input = "f #<feedrate>";
+            expected = Feedrate { feedrate: Value::Parameter(Parameter::Local("feedrate".to_string())) }
+        );
+    }
 }

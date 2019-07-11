@@ -1,5 +1,5 @@
 use crate::parsers::char_no_case;
-use crate::value::{preceded_decimal_value, Value};
+use crate::value::{preceded_positive_decimal_value, Value};
 use crate::word::word;
 use nom::{
     character::complete::space0,
@@ -23,7 +23,7 @@ pub fn dwell<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Dwell, 
             separated_pair(
                 word("g4"),
                 space0,
-                preceded_decimal_value(char_no_case('p')),
+                preceded_positive_decimal_value(char_no_case('p')),
             ),
             |(_, time)| Dwell { time },
         ),
@@ -59,6 +59,16 @@ mod tests {
         assert_parse!(
             parser = dwell;
             input = "G4 P3";
+            expected = Dwell { time: 3.0.into() }
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn positive_only() {
+        assert_parse!(
+            parser = dwell;
+            input = "G4 P-3";
             expected = Dwell { time: 3.0.into() }
         );
     }

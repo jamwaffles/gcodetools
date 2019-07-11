@@ -47,7 +47,6 @@ mod tests {
             )),
         ]);
 
-        // TODO: Format error helper function to move into common crate
         let (remaining, result) =
             expression::<VerboseError<&str>, f64>(expr).map_err(|e| match e {
                 Err::Error(e) | Err::Failure(e) => {
@@ -82,7 +81,6 @@ mod tests {
             ])),
         ]);
 
-        // TODO: Format error helper function to move into common crate
         let (remaining, result) =
             expression::<VerboseError<&str>, f64>(expr).map_err(|e| match e {
                 Err::Error(e) | Err::Failure(e) => {
