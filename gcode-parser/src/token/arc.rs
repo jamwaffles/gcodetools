@@ -247,9 +247,8 @@ mod tests {
         );
     }
 
-    // TODO: Re-enable once a solution is found for <https://github.com/Geal/nom/issues/988>
     #[test]
-    #[ignore]
+    #[should_panic]
     fn backwards_center_format() {
         assert_parse!(
             parser = center_format_arc;
