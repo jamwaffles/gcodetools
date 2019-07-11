@@ -1,4 +1,5 @@
 #[macro_export]
+#[doc(hidden)]
 macro_rules! assert_parse {
     (parser = $parser:ident; input = $($input:expr),+; expected = $($expected:expr),+ $(;)*) => {
         let inputs = vec![$($input),+];
@@ -60,6 +61,7 @@ macro_rules! assert_parse {
 }
 
 #[macro_export]
+#[doc(hidden)]
 macro_rules! assert_parse_ok {
     (parser = $parser:expr, input = $input:expr) => {
         assert!($parser($input).is_ok());

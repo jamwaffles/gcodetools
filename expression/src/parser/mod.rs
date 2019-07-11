@@ -1,3 +1,5 @@
+//! Parse expression strings into expression token lists
+
 pub mod gcode;
 
 #[cfg(test)]

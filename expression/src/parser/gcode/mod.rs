@@ -1,3 +1,6 @@
+//! Parse expressions written in the LinuxCNC gcode
+//! [expression](http://linuxcnc.org/docs/html/gcode/overview.html#gcode:expressions) dialect
+
 use crate::{
     ArithmeticOperator, BinaryOperator, Expression, ExpressionToken, Function, LogicalOperator,
     Parameter,
@@ -106,6 +109,7 @@ fn binary_operator<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, B
     )(i)
 }
 
+/// Parse a parameter like `#<_global>`, `#<local>`, `#110`
 pub fn parameter<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Parameter, E> {
     context(
         "parameter",
@@ -146,6 +150,7 @@ fn exists<'a, E: ParseError<&'a str>, V>(i: &'a str) -> IResult<&'a str, Functio
     )(i)
 }
 
+/// Parse a function like `sin[1.234]` or `cos[1 * 2]`
 pub fn function<'a, E: ParseError<&'a str>, V: FromStr>(
     i: &'a str,
 ) -> IResult<&'a str, Function<V>, E> {

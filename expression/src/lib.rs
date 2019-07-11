@@ -1,8 +1,7 @@
 //! Expression parser
 
 #![deny(
-    // TODO: Turn back on
-    // missing_docs,
+    missing_docs,
     missing_debug_implementations,
     trivial_casts,
     trivial_numeric_casts,
