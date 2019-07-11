@@ -38,23 +38,6 @@ where
     )(i)
 }
 
-// named!(pub call<Span, Call>,
-//     sep!(
-//         space0,
-//         do_parse!(
-//             subroutine_ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
-//             tag_no_case!("call") >>
-//             arguments: many0!(gcode_expression) >>
-//             ({
-//                 Call {
-//                     subroutine_ident,
-//                     arguments
-//                 }
-//             })
-//         )
-//     )
-// );
-
 #[cfg(test)]
 mod tests {
     use super::*;

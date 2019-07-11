@@ -21,20 +21,6 @@ pub struct Assignment {
     rhs: Value,
 }
 
-// named!(pub assignment<Span, Assignment>,
-//     map!(
-//         sep!(
-//             space0,
-//             separated_pair!(
-//                 gcode_parameter,
-//                 char!('='),
-//                 ngc_float_value
-//             )
-//         ),
-//         |(lhs, rhs)| Assignment { lhs, rhs }
-//     )
-// );
-
 pub fn assignment<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Assignment, E> {
     context(
         "assignment",

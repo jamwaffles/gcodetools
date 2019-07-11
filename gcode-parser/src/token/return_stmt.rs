@@ -16,23 +16,6 @@ pub struct Return {
     value: Option<Expression<f32>>,
 }
 
-// named!(pub return_stmt<Span, Return>,
-//     sep!(
-//         space0,
-//         do_parse!(
-//             ident: preceded!(char_no_case!('O'), gcode_non_global_ident) >>
-//             tag_no_case!("return") >>
-//             value: opt!(gcode_expression) >>
-//             ({
-//                 Return {
-//                     ident,
-//                     value
-//                 }
-//             })
-//         )
-//     )
-// );
-
 pub fn return_stmt<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Return, E> {
     context(
         "return stmt",

@@ -6,7 +6,7 @@ use nom::{
     character::complete::space0,
     combinator::{map, opt},
     error::{context, ParseError},
-    sequence::{pair, preceded, separated_pair},
+    sequence::separated_pair,
     IResult,
 };
 
@@ -22,35 +22,6 @@ pub enum CutterCompensation {
     /// Offset the tool to the right of the path (G42)
     Right(Option<Value>),
 }
-
-// named!(pub cutter_compensation<Span, CutterCompensation>,
-//     alt!(
-//         map_code!(
-//             "G40",
-//             |_| CutterCompensation::Off
-//         ) |
-//         map_code!(
-//             "G41",
-//             opt!(
-//                 preceded!(
-//                     char_no_case!('D'),
-//                     ngc_float_value
-//                 )
-//             ),
-//             |dia| CutterCompensation::Left(dia)
-//         ) |
-//         map_code!(
-//             "G42",
-//             opt!(
-//                 preceded!(
-//                     char_no_case!('D'),
-//                     ngc_float_value
-//                 )
-//             ),
-//             |dia| CutterCompensation::Right(dia)
-//         )
-//     )
-// );
 
 pub fn cutter_compensation<'a, E: ParseError<&'a str>>(
     i: &'a str,

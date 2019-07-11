@@ -5,7 +5,7 @@ use nom::{
     character::complete::space0,
     combinator::map,
     error::{context, ParseError},
-    sequence::{pair, preceded, separated_pair},
+    sequence::separated_pair,
     IResult,
 };
 
@@ -15,17 +15,6 @@ pub struct Dwell {
     /// The length of time in seconds to dwell for
     pub time: Value,
 }
-
-// named!(pub dwell<Span, Dwell>,
-//     map_code!(
-//         "G4",
-//         preceded!(
-//             char_no_case!('P'),
-//             ngc_float_value
-//         ),
-//         |time| Dwell { time }
-//     )
-// );
 
 pub fn dwell<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Dwell, E> {
     context(

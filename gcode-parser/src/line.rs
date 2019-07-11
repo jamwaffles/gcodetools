@@ -22,34 +22,9 @@ impl Line {
 
 impl Default for Line {
     fn default() -> Self {
-        Self {
-            // span: Span::new(CompleteByteSlice(b"")),
-            tokens: Vec::new(),
-        }
+        Self { tokens: Vec::new() }
     }
 }
-
-// named!(pub line<Span, Line>,
-//     sep!(
-//         space0,
-//         do_parse!(
-//             span: position!() >>
-//             block_delete: opt!(block_delete) >>
-//             line_number: opt!(line_number) >>
-//             line_tokens: many0!(token) >>
-//             alt!(line_ending | eof!()) >>
-//             ({
-//                 let pre: Vec<Token> = vec![block_delete, line_number]
-//                     .into_iter()
-//                     .filter_map(|t| t)
-//                     .chain(line_tokens.into_iter())
-//                     .collect();
-
-//                 Line { tokens: pre, span }
-//             })
-//         )
-//     )
-// );
 
 pub fn line<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
     let (i, (block_delete, line_number, line_tokens)) = context(

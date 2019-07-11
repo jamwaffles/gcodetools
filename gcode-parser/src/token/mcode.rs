@@ -31,18 +31,6 @@ pub enum MCode {
     OptionalPause,
 }
 
-// named!(pub mcode<Span, MCode>,
-//     alt!(
-//         map_code!("M1", |_| MCode::OptionalPause) |
-//         map_code!("M2", |_| MCode::EndProgram) |
-//         map_code!("M3", |_| MCode::SpindleForward) |
-//         map_code!("M4", |_| MCode::SpindleReverse) |
-//         map_code!("M5", |_| MCode::SpindleStop) |
-//         map_code!("M6", |_| MCode::ToolChange) |
-//         map_code!("M30", |_| MCode::EndProgramSwapPallets)
-//     )
-// );
-
 pub fn mcode<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, MCode, E> {
     context(
         "M code",

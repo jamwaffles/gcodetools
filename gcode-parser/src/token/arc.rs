@@ -65,35 +65,6 @@ impl Default for CenterFormatArc {
     }
 }
 
-// named_attr!(#[doc = "Parse a center format arc"], pub center_format_arc<Span, CenterFormatArc>,
-//     map_opt!(
-//         sep!(
-//             space0,
-//             permutation!(
-//                 preceded!(char_no_case!('X'), ngc_float_value)?,
-//                 preceded!(char_no_case!('Y'), ngc_float_value)?,
-//                 preceded!(char_no_case!('Z'), ngc_float_value)?,
-//                 preceded!(char_no_case!('I'), ngc_float_value)?,
-//                 preceded!(char_no_case!('J'), ngc_float_value)?,
-//                 preceded!(char_no_case!('K'), ngc_float_value)?,
-//                 preceded!(char_no_case!('P'), ngc_unsigned_value)?
-//             )
-//         ),
-//         |(x, y, z, i, j, k, turns): (Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>, Option<Value>)| {
-//             let arc = CenterFormatArc { x, y, z, i, j, k, turns: turns.unwrap_or(Value::Unsigned(1)) };
-
-//             // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
-//             // TODO: Return validation error instead of `None`
-//             // Require at least one offset coordinate to be present
-//             if (&arc.i, &arc.j, &arc.k) == (&None, &None, &None) {
-//                 None
-//             } else {
-//                 Some(arc)
-//             }
-//         }
-//     )
-// );
-
 /// Parse a center format arc
 pub fn center_format_arc<'a, E: ParseError<&'a str>>(
     i: &'a str,
@@ -165,32 +136,6 @@ pub fn center_format_arc<'a, E: ParseError<&'a str>>(
         ),
     )(i)
 }
-
-// named_attr!(#[doc = "Parse a radius format arc"], pub radius_format_arc<Span, RadiusFormatArc>,
-//     map_opt!(
-//         sep!(
-//             space0,
-//             permutation!(
-//                 preceded!(char_no_case!('X'), ngc_float_value)?,
-//                 preceded!(char_no_case!('Y'), ngc_float_value)?,
-//                 preceded!(char_no_case!('Z'), ngc_float_value)?,
-//                 preceded!(char_no_case!('R'), ngc_float_value),
-//                 preceded!(char_no_case!('P'), ngc_unsigned_value)?
-//             )
-//         ),
-//         |(x, y, z, radius, turns): (Option<Value>, Option<Value>, Option<Value>, Value, Option<Value>)| {
-//             let arc = RadiusFormatArc { x, y, z, radius, turns: turns.unwrap_or(Value::Unsigned(1)) };
-
-//             // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
-//             // TODO: Return validation error instead of `None`
-//             if (&arc.x, &arc.y, &arc.z) == (&None, &None, &None) {
-//                 None
-//             } else {
-//                 Some(arc)
-//             }
-//         }
-//     )
-// );
 
 /// Parse a radius format arc
 pub fn radius_format_arc<'a, E: ParseError<&'a str>>(

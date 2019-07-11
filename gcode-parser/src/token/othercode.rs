@@ -38,16 +38,6 @@ pub struct LineNumber {
     pub line_number: u32,
 }
 
-// named!(pub(crate) feedrate<Span, Feedrate>,
-//     map!(
-//         sep!(
-//             space0,
-//             preceded!(char_no_case!('F'), ngc_float_value)
-//         ),
-//         |feedrate| Feedrate { feedrate }
-//     )
-// );
-
 pub fn feedrate<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Feedrate, E> {
     context(
         "feed rate",
@@ -56,16 +46,6 @@ pub fn feedrate<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Feed
         }),
     )(i)
 }
-
-// named!(pub(crate) spindle_speed<Span, SpindleSpeed>,
-//     map!(
-//         sep!(
-//             space0,
-//             preceded!(char_no_case!('S'), ngc_float_value)
-//         ),
-//         |rpm| SpindleSpeed { rpm }
-//     )
-// );
 
 pub fn spindle_speed<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, SpindleSpeed, E> {
     context(
@@ -76,16 +56,6 @@ pub fn spindle_speed<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str,
     )(i)
 }
 
-// named!(pub tool_number<Span, ToolNumber>,
-//     map!(
-//         sep!(
-//             space0,
-//             preceded!(char_no_case!('T'), ngc_unsigned_value)
-//         ),
-//         |tool_number| ToolNumber { tool_number }
-//     )
-// );
-
 pub fn tool_number<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, ToolNumber, E> {
     // TODO: Parse to unsigned int
     context(
@@ -95,22 +65,6 @@ pub fn tool_number<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, T
         }),
     )(i)
 }
-
-// named!(pub raw_line_number<Span, LineNumber>,
-//     map!(
-//         sep!(
-//             space0,
-//             preceded!(
-//                 char_no_case!('N'),
-//                 flat_map!(
-//                     digit1,
-//                     parse_to!(u32)
-//                 )
-//             )
-//         ),
-//         |line_number| LineNumber { line_number }
-//     )
-// );
 
 pub fn raw_line_number<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, LineNumber, E> {
     context(

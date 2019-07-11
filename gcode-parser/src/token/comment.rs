@@ -38,26 +38,6 @@ pub fn comment<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Comme
     )(i)
 }
 
-// named!(pub(crate) comment<Span, Comment>,
-//     map!(
-//         flat_map!(
-//             alt!(
-//                 delimited!(
-//                     char!('('),
-//                     take_until!(")"),
-//                     char!(')')
-//                 ) |
-//                 preceded!(
-//                     char!(';'),
-//                     alt!(take_until!("\r\n") | take_until!("\n"))
-//                 )
-//             ),
-//             parse_to!(String)
-//         ),
-//         |text| Comment { text: text.trim().to_string() }
-//     )
-// );
-
 #[cfg(test)]
 mod tests {
     use super::*;

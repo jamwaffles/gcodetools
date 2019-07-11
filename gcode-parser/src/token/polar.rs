@@ -29,26 +29,6 @@ impl Default for PolarCoord {
     }
 }
 
-// named_attr!(#[doc = "Parse a polar coordinate"],
-//     pub polar<Span, PolarCoord>,
-//     map_opt!(
-//         sep!(
-//             space0,
-//             permutation!(
-//                 sep!(space0, preceded!(char_no_case!('@'), ngc_float_value))?,
-//                 sep!(space0, preceded!(char_no_case!('^'), ngc_float_value))?
-//             )
-//         ),
-//         |(distance, angle): (Option<Value>, Option<Value>)| {
-//             if distance.is_none() && angle.is_none() {
-//                 None
-//             } else {
-//                 Some(PolarCoord { distance, angle })
-//             }
-//         }
-//     )
-// );
-
 pub fn polar<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, PolarCoord, E> {
     context(
         "polar coordinate",

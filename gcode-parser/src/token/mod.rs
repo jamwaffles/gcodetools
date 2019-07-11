@@ -126,16 +126,6 @@ pub struct Token {
     pub token: TokenType,
 }
 
-// named!(unknown<Span, Unknown>,
-//     map!(
-//         sep!(
-//             space0,
-//             tuple!(one_of!("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), ngc_float_value)
-//         ),
-//         |(code_letter, code_number)| Unknown { code_letter, code_number }
-//     )
-// );
-
 /// Parse an unknown token into its letter and numeric code parts
 pub fn unknown<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Unknown, E> {
     context(
@@ -152,26 +142,6 @@ pub fn unknown<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Unkno
         ),
     )(i)
 }
-
-// named!(token_type<Span, TokenType>,
-//     alt!(
-//         map!(center_format_arc, TokenType::CenterFormatArc) |
-//         map!(radius_format_arc, TokenType::RadiusFormatArc) |
-//         map!(coord, TokenType::Coord) |
-//         map!(gcode, TokenType::GCode) |
-//         map!(mcode, TokenType::MCode) |
-//         map!(feedrate, TokenType::Feedrate) |
-//         map!(spindle_speed, TokenType::SpindleSpeed) |
-//         map!(tool_number, TokenType::ToolNumber) |
-//         map!(comment, TokenType::Comment) |
-//         map!(assignment, TokenType::Assignment) |
-//         map!(block, TokenType::Block) |
-//         map!(call, TokenType::Call) |
-//         map!(return_stmt, TokenType::Return) |
-//         map!(polar, TokenType::PolarCoord) |
-//         map!(unknown, TokenType::Unknown)
-//     )
-// );
 
 /// Parse a token into a `TokenType` enum
 pub fn token_type<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, TokenType, E> {
@@ -195,26 +165,10 @@ pub fn token_type<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, To
     ))(i)
 }
 
-// named!(pub(crate) token<Span, Token>,
-//     do_parse!(
-//         span: position!() >>
-//         token: token_type >>
-//         (Token { span, token })
-//     )
-// );
-
 /// Parse a token
 pub fn token<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Token, E> {
     map(token_type, |token| Token { token })(i)
 }
-
-// named!(pub(crate) block_delete<Span, Token>,
-//     do_parse!(
-//         span: position!() >>
-//         token: map!(char!('/'), |_| TokenType::BlockDelete) >>
-//         (Token { span, token })
-//     )
-// );
 
 /// Parse block delete
 pub fn block_delete<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Token, E> {
@@ -222,14 +176,6 @@ pub fn block_delete<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, 
         token: TokenType::BlockDelete,
     })(i)
 }
-
-// named!(pub(crate) line_number<Span, Token>,
-//     do_parse!(
-//         span: position!() >>
-//         token: map!(raw_line_number, |n| TokenType::LineNumber(n)) >>
-//         (Token { span, token })
-//     )
-// );
 
 /// Parse a line number
 pub fn line_number<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Token, E> {

@@ -20,37 +20,6 @@ impl Program {
     // TODO: Return a custom parse error type
     /// Parse a GCode program from a given string
     pub fn from_str(content: &str) -> Result<Self, io::Error> {
-        // let input = Span::new(CompleteByteSlice(content.as_bytes()));
-
-        // let (remaining, program) = program(input).map_err(|e| {
-        //     let message = match e {
-        //         Err::Error(Context::Code(remaining, _inner_e)) => format_parse_error!(
-        //             remaining,
-        //             inner_e,
-        //             Span::new(CompleteByteSlice(content.as_bytes()))
-        //         ),
-        //         _ => format!("Parse execution failed: {:?}", e.into_error_kind()),
-        //     };
-
-        //     io::Error::new(io::ErrorKind::Other, message)
-        // })?;
-
-        // if remaining.input_len() > 0 {
-        //     Err(io::Error::new(
-        //         io::ErrorKind::Other,
-        //         format_parse_error!(
-        //             remaining,
-        //             io::Error::new(
-        //                 io::ErrorKind::Other,
-        //                 "Could not parse complete program".to_string()
-        //             ),
-        //             input
-        //         ),
-        //     ))
-        // } else {
-        //     Ok(program)
-        // }
-
         // TODO: Format error helper function to move into common crate
         program::<VerboseError<&str>>(content)
             .map_err(|e| {
@@ -90,24 +59,6 @@ impl Program {
         self.lines.iter().flat_map(|line| line.iter())
     }
 }
-
-// named!(pub program<Span, Program>,
-//     do_parse!(
-//         start: position!() >>
-//         opt!(line_with!(char!('%'))) >>
-//         lines: many0!(line) >>
-//         opt!(line_with!(char!('%'))) >>
-//         multispace0 >>
-//         end: position!() >>
-//         ({
-//             Program {
-//                 start,
-//                 end,
-//                 lines
-//             }
-//         })
-//     )
-// );
 
 pub fn program<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Program, E> {
     let (i, lines) = context("program", lines)(i)?;

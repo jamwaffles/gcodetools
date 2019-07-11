@@ -64,21 +64,6 @@ pub enum GCode {
     GotoPredefinedPosition,
 }
 
-// named!(pub gcode<Span, GCode>,
-//     alt!(
-//         map_code!("G0", |_| GCode::Rapid) |
-//         map_code!("G1", |_| GCode::Feed) |
-//         map_code!("G2", |_| GCode::ClockwiseArc) |
-//         map_code!("G3", |_| GCode::CounterclockwiseArc) |
-//         map_code!("G21", |_| GCode::UnitsMM) |
-//         map_code!("G20", |_| GCode::UnitsInch) |
-//         map!(work_offset, GCode::WorkOffset) |
-//         map!(cutter_compensation, GCode::CutterCompensation) |
-//         map!(plane_select, GCode::PlaneSelect) |
-//         map!(dwell, GCode::Dwell)
-//     )
-// );
-
 pub fn gcode<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, GCode, E> {
     context(
         "G code",

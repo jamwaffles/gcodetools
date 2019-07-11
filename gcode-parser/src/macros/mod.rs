@@ -1,87 +1,83 @@
-#[cfg(test)]
-#[macro_use]
-mod test_helpers;
-
-/// Wrap a parser to return a start position with it as a tuple of `(position, result)`
-// TODO: Move to parsers/
+/// Create a coordinate with only some fields populated
 #[macro_export]
-macro_rules! positioned(
-    ($i:expr, $submac:ident!( $($args:tt)* ), $map:expr) => ({
-        use nom_locate::position;
-        use nom::{map, tuple};
-
-        map!(
-            $i,
-            tuple!(
-                position!(),
-                $submac!($($args)*)
-            ),
-            $map
-        )
-    });
-    ($i:expr, $f:expr) => (
-        opt!($i, call!($f));
-    );
-);
-
-/// As `positioned!()` but allows returning the parse result in a `Result`
-// TODO: Move to parsers/
-#[macro_export]
-macro_rules! positioned_res(
-    ($i:expr, $submac:ident!( $($args:tt)* ), $map:expr) => ({
-        map_res!(
-            $i,
-            tuple!(
-                position!(),
-                $submac!($($args)*)
-            ),
-            $map
-        )
-    });
-    ($i:expr, $submac:expr) => (
-        positioned_res!($i, call!($code, $following));
-    );
-);
-
-/// Match a single character using `.eq_ignore_ascii_case()`
-// TODO: Move to parsers/
-#[macro_export]
-macro_rules! char_no_case (
-    ($i:expr, $c: expr) => ({
-        use nom::Slice;
-        use nom::AsChar;
-        use nom::InputIter;
-        use nom::Err;
-        use nom::ErrorKind;
-        use nom::Context;
-        use nom::need_more;
-
-        match ($i).iter_elements().next().map(|c| {
-            c.as_char().eq_ignore_ascii_case(&$c)
-        }) {
-            None        => need_more($i, Needed::Size(1)),
-            Some(false) => {
-                let e: ErrorKind<u32> = nom::ErrorKind::Char;
-
-                Err(Err::Error(Context::Code($i, e)))
-            },
-            Some(true)  => Ok(( $i.slice($c.len()..), $i.iter_elements().next().unwrap().as_char() ))
+macro_rules! coord {
+    ($x:expr, $y:expr, $z:expr) => {
+        Coord {
+            x: Some(($x).into()),
+            y: Some(($y).into()),
+            z: Some(($z).into()),
+            ..Coord::default()
         }
-    });
-);
+    };
+    ($x:expr, $y:expr) => {
+        Coord {
+            x: Some(($x).into()),
+            y: Some(($y).into()),
+            ..Coord::default()
+        }
+    }; // TODO: Other permutations of args
+}
 
-/// Parse a single line with a given parser
-// TODO: Move to parsers/
+/// Check a test result
 #[macro_export]
-macro_rules! line_with (
-    ($i:expr, $submac:ident!( $($args:tt)* )) => ({
-        terminated!(
-            $i,
-            $submac!($($args)*),
-            alt!(line_ending | eof!())
-        )
-    });
-    ($i:expr, $submac:expr) => (
-        line_with!($i, call!($submac));
-    );
-);
+macro_rules! assert_parse {
+    (parser = $parser:ident; input = $($input:expr),+; expected = $($expected:expr),+ $(;)*) => {
+        let inputs = vec![$($input),+];
+        let comparisons = vec![$($expected),+];
+
+        for (input, expected) in inputs.into_iter().zip(comparisons.into_iter()) {
+            let res = $parser(input);
+
+            let res = res.map_err(|e| match e {
+                nom::Err::Error(e) | nom::Err::Failure(e) => {
+                    nom::error::convert_error(input, e)
+                }
+                e => format!("Failed to parse input `{}' for reason: {:?}", input, e),
+            });
+
+            match res {
+                Ok((remaining, result)) => {
+                    assert_eq!(remaining.len(), 0, "{} bytes remaining to consume: \"{}\"", remaining.len(), remaining);
+                    assert_eq!(result, expected);
+                },
+                Err(e) => panic!("{}", e)
+            }
+        }
+    };
+
+    (parser = $parser:ident( $($parse_args:tt)* ); expected = $expected:expr $(;)*) => {
+        match $parser($($parse_args)*) {
+            Ok(result) => assert_eq!(
+                result.1,
+                $expected
+            ),
+            Err(nom::Err::Error(nom::Context::Code(_remaining, e))) => {
+                panic!("Parse failed: {:?}", e)
+            }
+            Err(e) => panic!("Parse execution failed: {:?}", e),
+        }
+    };
+
+    (parser = $parser:ident; input = $($input:expr),+; expected = $($expected:expr),+; remaining = $($remaining:expr),+ $(;)*) => {
+        let inputs = vec![$($input),+];
+        let comparisons = vec![$($expected),+];
+        let remaining = vec![$($remaining),+];
+
+        for ((input, expected), remaining) in inputs.into_iter().zip(comparisons.into_iter()).zip(remaining.into_iter()) {
+            let res = $parser(input).map_err(|e| match e {
+                nom::Err::Error(e) | nom::Err::Failure(e) => {
+                    nom::error::convert_error(input, e)
+                }
+                e => format!("Failed to parse input `{}' for reason: {:?}. Remaining: `{}'", input, e, remaining),
+            });
+
+            match res {
+                Ok((result_remaining, result)) => {
+                    assert_eq!(result_remaining, remaining);
+                    assert_eq!(result, expected);
+                },
+                Err(e) => panic!("{}", e)
+            }
+        }
+    };
+}

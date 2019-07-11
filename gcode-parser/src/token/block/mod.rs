@@ -9,10 +9,10 @@ use expression::{gcode::expression, Expression};
 use nom::{
     branch::alt,
     bytes::complete::{tag, tag_no_case, take_until},
-    character::complete::{char, digit1, line_ending, multispace0, space0, space1},
-    combinator::{map, map_opt, map_res, opt},
+    character::complete::{char, digit1, line_ending, space0},
+    combinator::{map, map_res, opt},
     error::{context, ParseError},
-    sequence::{delimited, pair, preceded, separated_pair, terminated, tuple},
+    sequence::{delimited, preceded, tuple},
     IResult,
 };
 use std::fmt;
