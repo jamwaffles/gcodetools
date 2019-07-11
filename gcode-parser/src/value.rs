@@ -78,7 +78,6 @@ impl From<u32> for UnsignedValue {
 
 /// TODO: Parse expressions and parameters (not surrounded by `[]`) along with literals into an enum
 /// TODO: Decide whether to just use `float` from Nom or aim for parity with LinuxCNC's subset
-/// TODO: Bench with `lexical` feature on or off
 pub fn decimal_value<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Value, E> {
     context(
         "decimal value",

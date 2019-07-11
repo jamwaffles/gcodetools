@@ -29,7 +29,7 @@ harness = false
 bench = false
 
 [dependencies]
-nom = { version = "5.0.0", default_features = false, features = [ "std" ] }
+nom = "5.0.0"
 expression = { path = "../expression" }
 
 [dev-dependencies]
