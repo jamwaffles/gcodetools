@@ -25,7 +25,7 @@ pub use self::comment::Comment;
 use self::coord::coord;
 pub use self::coord::Coord;
 use self::gcode::gcode;
-pub use self::gcode::{CutterCompensation, GCode, WorkOffset, WorkOffsetValue};
+pub use self::gcode::{CutterCompensation, GCode, WorkOffset};
 use self::mcode::mcode;
 pub use self::mcode::MCode;
 use self::othercode::{feedrate, spindle_speed, tool_number};

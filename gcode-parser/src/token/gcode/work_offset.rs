@@ -6,10 +6,9 @@ use nom::{
     IResult,
 };
 
-// TODO: Better name than WorkOffsetValue
-/// Which work offset to use
+/// Work offset
 #[derive(Debug, PartialEq, Clone)]
-pub enum WorkOffsetValue {
+pub enum WorkOffset {
     /// Offset 0, `G54`
     G54 = 0,
     /// Offset 1, `G55`
@@ -30,30 +29,20 @@ pub enum WorkOffsetValue {
     G59_3 = 8,
 }
 
-/// Work offset
-#[derive(Debug, PartialEq, Clone)]
-pub struct WorkOffset {
-    /// The type of work offset (`G54`, `G59.1`, etc)
-    pub offset: WorkOffsetValue,
-}
-
 pub fn work_offset<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, WorkOffset, E> {
     context(
         "work offset",
-        map(
-            alt((
-                map(word("G54"), |_| WorkOffsetValue::G54),
-                map(word("G55"), |_| WorkOffsetValue::G55),
-                map(word("G56"), |_| WorkOffsetValue::G56),
-                map(word("G57"), |_| WorkOffsetValue::G57),
-                map(word("G58"), |_| WorkOffsetValue::G58),
-                map(word("G59"), |_| WorkOffsetValue::G59),
-                map(word("G59.1"), |_| WorkOffsetValue::G59_1),
-                map(word("G59.2"), |_| WorkOffsetValue::G59_2),
-                map(word("G59.3"), |_| WorkOffsetValue::G59_3),
-            )),
-            |offset| WorkOffset { offset },
-        ),
+        alt((
+            map(word("G54"), |_| WorkOffset::G54),
+            map(word("G55"), |_| WorkOffset::G55),
+            map(word("G56"), |_| WorkOffset::G56),
+            map(word("G57"), |_| WorkOffset::G57),
+            map(word("G58"), |_| WorkOffset::G58),
+            map(word("G59"), |_| WorkOffset::G59),
+            map(word("G59.1"), |_| WorkOffset::G59_1),
+            map(word("G59.2"), |_| WorkOffset::G59_2),
+            map(word("G59.3"), |_| WorkOffset::G59_3),
+        )),
     )(i)
 }
 
@@ -67,9 +56,7 @@ mod tests {
         assert_parse!(
             parser = work_offset;
             input = "G54";
-            expected = WorkOffset {
-                offset: WorkOffsetValue::G54
-            }
+            expected = WorkOffset::G54
         );
     }
 
@@ -78,9 +65,7 @@ mod tests {
         assert_parse!(
             parser = work_offset;
             input = "G59.1";
-            expected = WorkOffset {
-                offset: WorkOffsetValue::G59_1
-            }
+            expected = WorkOffset::G59_1
         );
     }
 }

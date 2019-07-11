@@ -10,7 +10,7 @@ pub use self::dwell::Dwell;
 use self::plane_select::plane_select;
 pub use self::plane_select::PlaneSelect;
 use self::work_offset::work_offset;
-pub use self::work_offset::{WorkOffset, WorkOffsetValue};
+pub use self::work_offset::WorkOffset;
 use crate::word::word;
 use nom::{
     branch::alt,

@@ -6,10 +6,9 @@ use nom::{
     IResult,
 };
 
-// TODO: Better name than PlaneSelectValue
-/// Which work offset to use
+/// Which plane to use
 #[derive(Debug, PartialEq, Clone)]
-pub enum PlaneSelectValue {
+pub enum PlaneSelect {
     /// XY plane (`G17`)
     XY = 0,
     /// ZX plane (`G18`)
@@ -24,27 +23,17 @@ pub enum PlaneSelectValue {
     VW = 5,
 }
 
-/// Plane select
-#[derive(Debug, PartialEq, Clone)]
-pub struct PlaneSelect {
-    /// Which plane to work in
-    pub plane: PlaneSelectValue,
-}
-
 pub fn plane_select<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, PlaneSelect, E> {
     context(
         "plane select",
-        map(
-            alt((
-                map(word("G17"), |_| PlaneSelectValue::XY),
-                map(word("G18"), |_| PlaneSelectValue::ZX),
-                map(word("G19"), |_| PlaneSelectValue::YZ),
-                map(word("G17.1"), |_| PlaneSelectValue::UV),
-                map(word("G18.1"), |_| PlaneSelectValue::WU),
-                map(word("G19.1"), |_| PlaneSelectValue::VW),
-            )),
-            |plane| PlaneSelect { plane },
-        ),
+        alt((
+            map(word("G17"), |_| PlaneSelect::XY),
+            map(word("G18"), |_| PlaneSelect::ZX),
+            map(word("G19"), |_| PlaneSelect::YZ),
+            map(word("G17.1"), |_| PlaneSelect::UV),
+            map(word("G18.1"), |_| PlaneSelect::WU),
+            map(word("G19.1"), |_| PlaneSelect::VW),
+        )),
     )(i)
 }
 
@@ -55,27 +44,19 @@ mod tests {
 
     #[test]
     fn parse_integer_plane_select() {
-        let raw = "G17";
-
         assert_parse!(
             parser = plane_select;
-            input = raw;
-            expected = PlaneSelect {
-                plane: PlaneSelectValue::XY
-            }
+            input = "G17";
+            expected = PlaneSelect::XY
         );
     }
 
     #[test]
     fn parse_decimal_plane_select() {
-        let raw = "G17.1";
-
         assert_parse!(
             parser = plane_select;
-            input = raw;
-            expected = PlaneSelect {
-                plane: PlaneSelectValue::UV
-            }
+            input = "G17.1";
+            expected = PlaneSelect::UV
         );
     }
 }

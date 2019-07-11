@@ -71,7 +71,6 @@ mod tests {
     use crate::assert_parse;
     use crate::token::{
         CenterFormatArc, Comment, CutterCompensation, GCode, MCode, TokenType, WorkOffset,
-        WorkOffsetValue,
     };
 
     #[test]
@@ -89,9 +88,7 @@ mod tests {
                             token: TokenType::BlockDelete
                         },
                         Token {
-                            token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-                                offset: WorkOffsetValue::G54,
-                            }))
+                            token: TokenType::GCode(GCode::WorkOffset(WorkOffset::G54))
                         }
                     ],
                     ..Line::default()
@@ -102,9 +99,7 @@ mod tests {
                             token: TokenType::BlockDelete
                         },
                         Token {
-                            token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-                                offset: WorkOffsetValue::G55,
-                            }))
+                            token: TokenType::GCode(GCode::WorkOffset(WorkOffset::G55))
                         }
                     ],
                     ..Line::default()
@@ -125,24 +120,16 @@ mod tests {
             expected = Line {
                 tokens: vec![
                     Token {
-                        token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-                            offset: WorkOffsetValue::G54,
-                        }))
+                        token: TokenType::GCode(GCode::WorkOffset(WorkOffset::G54))
                     },
                     Token {
-                        token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-                            offset: WorkOffsetValue::G55,
-                        }))
+                        token: TokenType::GCode(GCode::WorkOffset(WorkOffset::G55))
                     },
                     Token {
-                        token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-                            offset: WorkOffsetValue::G56,
-                        }))
+                        token: TokenType::GCode(GCode::WorkOffset(WorkOffset::G56))
                     },
                     Token {
-                        token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-                            offset: WorkOffsetValue::G57,
-                        }))
+                        token: TokenType::GCode(GCode::WorkOffset(WorkOffset::G57))
                     }
                 ],
                 ..Line::default()
@@ -219,9 +206,7 @@ mod tests {
             input = " G54 \nG55";
             expected = Line {
                 tokens: vec![Token {
-                    token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-                        offset: WorkOffsetValue::G54,
-                    }))
+                    token: TokenType::GCode(GCode::WorkOffset(WorkOffset::G54))
                 }],
                 ..Line::default()
             };
@@ -266,18 +251,14 @@ mod tests {
         );
     }
 
-    // TODO: Decide if this needs to be supported or not
     #[test]
-    #[ignore]
     fn or_eof() {
         assert_parse!(
             parser = line;
             input = "G55";
             expected = Line {
                 tokens: vec![Token {
-                    token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-                        offset: WorkOffsetValue::G55,
-                    }))
+                    token: TokenType::GCode(GCode::WorkOffset(WorkOffset::G55))
                 }],
                 ..Line::default()
             };
