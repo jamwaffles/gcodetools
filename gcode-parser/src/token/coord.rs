@@ -3,8 +3,8 @@
 use crate::parsers::char_no_case;
 use crate::value::{preceded_decimal_value, Value};
 use nom::{
-    branch::alt, character::complete::space0, combinator::map, error::ParseError, multi::many_m_n,
-    sequence::terminated, IResult,
+    branch::alt, character::complete::space0, combinator::map, error::ParseError,
+    multi::fold_many_m_n, sequence::terminated, IResult,
 };
 
 /// A 9 dimensional `XYZABCUVW` coordinate
@@ -66,41 +66,38 @@ enum CoordPart {
 ///
 /// TODO: Fail when more than one of each axis is encountered
 pub fn coord<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Coord, E> {
-    map(
-        many_m_n(
-            1,
-            9,
-            terminated(
-                alt((
-                    map(preceded_decimal_value(char_no_case('X')), CoordPart::X),
-                    map(preceded_decimal_value(char_no_case('Y')), CoordPart::Y),
-                    map(preceded_decimal_value(char_no_case('Z')), CoordPart::Z),
-                    map(preceded_decimal_value(char_no_case('A')), CoordPart::A),
-                    map(preceded_decimal_value(char_no_case('B')), CoordPart::B),
-                    map(preceded_decimal_value(char_no_case('C')), CoordPart::C),
-                    map(preceded_decimal_value(char_no_case('U')), CoordPart::U),
-                    map(preceded_decimal_value(char_no_case('V')), CoordPart::V),
-                    map(preceded_decimal_value(char_no_case('W')), CoordPart::W),
-                )),
-                space0,
-            ),
+    fold_many_m_n(
+        1,
+        9,
+        terminated(
+            alt((
+                map(preceded_decimal_value(char_no_case('X')), CoordPart::X),
+                map(preceded_decimal_value(char_no_case('Y')), CoordPart::Y),
+                map(preceded_decimal_value(char_no_case('Z')), CoordPart::Z),
+                map(preceded_decimal_value(char_no_case('A')), CoordPart::A),
+                map(preceded_decimal_value(char_no_case('B')), CoordPart::B),
+                map(preceded_decimal_value(char_no_case('C')), CoordPart::C),
+                map(preceded_decimal_value(char_no_case('U')), CoordPart::U),
+                map(preceded_decimal_value(char_no_case('V')), CoordPart::V),
+                map(preceded_decimal_value(char_no_case('W')), CoordPart::W),
+            )),
+            space0,
         ),
-        |parts| {
-            parts.into_iter().fold(Coord::default(), |mut carry, part| {
-                match part {
-                    CoordPart::X(p) => carry.x = Some(p),
-                    CoordPart::Y(p) => carry.y = Some(p),
-                    CoordPart::Z(p) => carry.z = Some(p),
-                    CoordPart::A(p) => carry.a = Some(p),
-                    CoordPart::B(p) => carry.b = Some(p),
-                    CoordPart::C(p) => carry.c = Some(p),
-                    CoordPart::U(p) => carry.u = Some(p),
-                    CoordPart::V(p) => carry.v = Some(p),
-                    CoordPart::W(p) => carry.w = Some(p),
-                };
+        Coord::default(),
+        |mut carry, part| {
+            match part {
+                CoordPart::X(p) => carry.x = Some(p),
+                CoordPart::Y(p) => carry.y = Some(p),
+                CoordPart::Z(p) => carry.z = Some(p),
+                CoordPart::A(p) => carry.a = Some(p),
+                CoordPart::B(p) => carry.b = Some(p),
+                CoordPart::C(p) => carry.c = Some(p),
+                CoordPart::U(p) => carry.u = Some(p),
+                CoordPart::V(p) => carry.v = Some(p),
+                CoordPart::W(p) => carry.w = Some(p),
+            };
 
-                carry
-            })
+            carry
         },
     )(i)
 }
