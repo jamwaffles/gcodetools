@@ -37,9 +37,9 @@ pub enum Block {
     Subroutine(Subroutine),
 }
 
-/// The type of identifier
+/// A block identifier like `O100`, `o110` or `o<touchoff>`
 #[derive(Debug, PartialEq, Clone)]
-pub enum IdentType {
+pub enum BlockIdent {
     /// A number like `o100`
     Numbered(u16),
 
@@ -47,52 +47,24 @@ pub enum IdentType {
     Named(String),
 }
 
-impl From<&str> for IdentType {
-    fn from(ident: &str) -> Self {
-        IdentType::Named(ident.to_string())
-    }
-}
-
-impl From<u16> for IdentType {
-    fn from(num: u16) -> Self {
-        IdentType::Numbered(num)
-    }
-}
-
-impl fmt::Display for IdentType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            IdentType::Numbered(n) => write!(f, "O{}", n),
-            IdentType::Named(n) => write!(f, "O<{}>", n),
-        }
-    }
-}
-
-/// A block identifier like `O100`, `o110` or `o<touchoff>`
-#[derive(Debug, PartialEq, Clone)]
-pub struct BlockIdent {
-    ident: IdentType,
-}
-
-impl From<&str> for BlockIdent {
-    fn from(ident: &str) -> Self {
-        Self {
-            ident: ident.into(),
-        }
+impl<'a> From<&'a str> for BlockIdent {
+    fn from(ident: &'a str) -> Self {
+        BlockIdent::Named(ident.to_string())
     }
 }
 
 impl From<u16> for BlockIdent {
-    fn from(ident: u16) -> Self {
-        Self {
-            ident: ident.into(),
-        }
+    fn from(num: u16) -> Self {
+        BlockIdent::Numbered(num)
     }
 }
 
 impl fmt::Display for BlockIdent {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.ident)
+        match self {
+            BlockIdent::Numbered(n) => write!(f, "O{}", n),
+            BlockIdent::Named(n) => write!(f, "O<{}>", n),
+        }
     }
 }
 
@@ -140,15 +112,11 @@ pub fn block_ident<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, B
                 ident
                     .parse::<u16>()
                     .map_err(|_| "Failed to parse numeric identifier")
-                    .map(|ident| BlockIdent {
-                        ident: IdentType::Numbered(ident),
-                    })
+                    .map(|ident| BlockIdent::Numbered(ident))
             }),
             map(
                 delimited(char('<'), take_until(">"), char('>')),
-                |ident: &'a str| BlockIdent {
-                    ident: IdentType::Named(ident.to_string()),
-                },
+                |ident: &'a str| BlockIdent::Named(ident.to_string()),
             ),
         )),
     )(i)
@@ -347,7 +315,7 @@ mod tests {
             parser = repeat_block;
             input = "o100 repeat [800]\ng91 g1 @-.0025 ^4.5\no100 endrepeat";
             expected = Repeat {
-                identifier: BlockIdent { ident: 100.into() },
+                identifier: 100.into(),
                 condition: Expression::from_tokens(vec![
                     ExpressionToken::Literal(800.0),
                 ]),
@@ -381,7 +349,7 @@ mod tests {
             parser = while_block;
             input = "o101 while [#8 GT #4]\ng0\no101 endwhile";
             expected = While {
-                identifier: BlockIdent { ident: 101.into() },
+                identifier: 101.into(),
                 condition: Expression::from_tokens(vec![
                     ExpressionToken::Parameter(Parameter::Numbered(8)),
                     ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan),
@@ -405,7 +373,7 @@ mod tests {
             parser = while_block;
             input = "    o101 while [#8 GT #4]\n        g0\n    o101 endwhile";
             expected = While {
-                identifier: BlockIdent { ident: 101.into() },
+                identifier: 101.into(),
                 condition: Expression::from_tokens(vec![
                     ExpressionToken::Parameter(Parameter::Numbered(8)),
                     ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan),
@@ -423,7 +391,7 @@ mod tests {
             parser = do_while_block;
             input = "o<ident>do\ng0\no<ident>while [#8 GT #4]";
             expected = DoWhile {
-                identifier: BlockIdent { ident: "ident".into() },
+                identifier: "ident".into(),
                 condition: Expression::from_tokens(vec![
                     ExpressionToken::Parameter(Parameter::Numbered(8)),
                     ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan),
@@ -440,7 +408,7 @@ mod tests {
             parser = do_while_block;
             input = "o10 do\ng0\no10 while [5 gt 2]";
             expected = DoWhile {
-                identifier: BlockIdent { ident: 10.into() },
+                identifier: 10.into(),
                 condition: Expression::from_tokens(vec![
                     ExpressionToken::Literal(5.0),
                     ExpressionToken::BinaryOperator(BinaryOperator::GreaterThan),

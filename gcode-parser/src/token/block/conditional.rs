@@ -163,7 +163,7 @@ mod tests {
             parser = conditional;
             input = "o1 if [1 gt 0] ; comment here\nf500\no1 endif";
             expected = Conditional {
-                identifier: BlockIdent { ident: 1.into() },
+                identifier: 1.into(),
                 branches: vec![
                     Branch {
                         trailing_comment: Some(Comment { text: "comment here".into() }),
@@ -195,7 +195,7 @@ mod tests {
             parser = conditional;
             input = "o1 if [1 gt 0]\nf500\no1 endif";
             expected = Conditional {
-                identifier: BlockIdent { ident: 1.into() },
+                identifier: 1.into(),
                 branches: vec![
                     Branch {
                         trailing_comment: None,
@@ -225,7 +225,7 @@ mod tests {
             parser = conditional;
             input = "    o1 if [1 gt 0]\n        f500\n    o1 endif";
             expected = Conditional {
-                identifier: BlockIdent { ident: 1.into() },
+                identifier: 1.into(),
                 branches: vec![
                     Branch {
                         trailing_comment: None,
@@ -255,7 +255,7 @@ mod tests {
             parser = conditional;
             input = "o1 if [1 gt 0]\nf500\no1 else\nf400\no1 endif";
             expected = Conditional {
-                identifier: BlockIdent { ident: 1.into() },
+                identifier: 1.into(),
                 branches: vec![
                     Branch {
                         trailing_comment: None,
@@ -298,7 +298,7 @@ mod tests {
             parser = conditional;
             input = "o1 if [1 gt 0]\nf500\no1 elseif [2 lt 3]\nf400\no1 endif";
             expected = Conditional {
-                identifier: BlockIdent { ident: 1.into() },
+                identifier: 1.into(),
                 branches: vec![
                     Branch {
                         trailing_comment: None,
@@ -345,7 +345,7 @@ mod tests {
             parser = conditional;
             input = "o1 if [1 gt 0]\nf500\no1 elseif [2 lt 3]\nf400\no1 else\nf200\no1 endif";
             expected = Conditional {
-                identifier: BlockIdent { ident: 1.into() },
+                identifier: 1.into(),
                 branches: vec![
                     Branch {
                         trailing_comment: None,
