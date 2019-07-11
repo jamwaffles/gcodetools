@@ -3,12 +3,8 @@
 use crate::parsers::char_no_case;
 use crate::value::{preceded_decimal_value, Value};
 use nom::{
-    branch::permutation,
-    character::complete::space0,
-    combinator::{map_opt, opt},
-    error::{context, ParseError},
-    sequence::terminated,
-    IResult,
+    branch::alt, character::complete::space0, combinator::map, error::ParseError, multi::many_m_n,
+    sequence::terminated, IResult,
 };
 
 /// A 9 dimensional `XYZABCUVW` coordinate
@@ -53,111 +49,61 @@ impl Default for Coord {
     }
 }
 
-static EMPTY_COORD: Coord = Coord {
-    x: None,
-    y: None,
-    z: None,
-    a: None,
-    b: None,
-    c: None,
-    u: None,
-    v: None,
-    w: None,
-};
-
-/// Parse a coordinate
-pub fn coord<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Coord, E> {
-    context(
-        "coordinate",
-        map_opt(
-            permutation((
-                opt(terminated(
-                    preceded_decimal_value(char_no_case('X')),
-                    space0,
-                )),
-                opt(terminated(
-                    preceded_decimal_value(char_no_case('Y')),
-                    space0,
-                )),
-                opt(terminated(
-                    preceded_decimal_value(char_no_case('Z')),
-                    space0,
-                )),
-                opt(terminated(
-                    preceded_decimal_value(char_no_case('A')),
-                    space0,
-                )),
-                opt(terminated(
-                    preceded_decimal_value(char_no_case('B')),
-                    space0,
-                )),
-                opt(terminated(
-                    preceded_decimal_value(char_no_case('C')),
-                    space0,
-                )),
-                opt(terminated(
-                    preceded_decimal_value(char_no_case('U')),
-                    space0,
-                )),
-                opt(terminated(
-                    preceded_decimal_value(char_no_case('V')),
-                    space0,
-                )),
-                opt(terminated(
-                    preceded_decimal_value(char_no_case('W')),
-                    space0,
-                )),
-            )),
-            |(x, y, z, a, b, c, u, v, w)| {
-                let coord = Coord {
-                    x,
-                    y,
-                    z,
-                    a,
-                    b,
-                    c,
-                    u,
-                    v,
-                    w,
-                };
-
-                if coord == EMPTY_COORD {
-                    None
-                } else {
-                    Some(coord)
-                }
-            },
-        ),
-    )(i)
+#[derive(Debug, PartialEq, Clone)]
+enum CoordPart {
+    X(Value),
+    Y(Value),
+    Z(Value),
+    A(Value),
+    B(Value),
+    C(Value),
+    U(Value),
+    V(Value),
+    W(Value),
 }
 
-// named_attr!(#[doc = "Parse a coordinate"], pub coord<Span, Coord>,
-//     map_opt!(
-//         sep!(
-//             space0,
-//             permutation!(
-//                 preceded!(char_no_case!('X'), ngc_float_value)?,
-//                 preceded!(char_no_case!('Y'), ngc_float_value)?,
-//                 preceded!(char_no_case!('Z'), ngc_float_value)?,
-//                 preceded!(char_no_case!('A'), ngc_float_value)?,
-//                 preceded!(char_no_case!('B'), ngc_float_value)?,
-//                 preceded!(char_no_case!('C'), ngc_float_value)?,
-//                 preceded!(char_no_case!('U'), ngc_float_value)?,
-//                 preceded!(char_no_case!('V'), ngc_float_value)?,
-//                 preceded!(char_no_case!('W'), ngc_float_value)?
-//             )
-//         ),
-//         |(x, y, z, a, b, c, u, v, w)| {
-//             let coord = Coord { x, y, z, a, b, c, u, v, w };
+/// Parse a coordinate
+///
+/// TODO: Fail when more than one of each axis is encountered
+pub fn coord<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Coord, E> {
+    map(
+        many_m_n(
+            1,
+            9,
+            terminated(
+                alt((
+                    map(preceded_decimal_value(char_no_case('X')), CoordPart::X),
+                    map(preceded_decimal_value(char_no_case('Y')), CoordPart::Y),
+                    map(preceded_decimal_value(char_no_case('Z')), CoordPart::Z),
+                    map(preceded_decimal_value(char_no_case('A')), CoordPart::A),
+                    map(preceded_decimal_value(char_no_case('B')), CoordPart::B),
+                    map(preceded_decimal_value(char_no_case('C')), CoordPart::C),
+                    map(preceded_decimal_value(char_no_case('U')), CoordPart::U),
+                    map(preceded_decimal_value(char_no_case('V')), CoordPart::V),
+                    map(preceded_decimal_value(char_no_case('W')), CoordPart::W),
+                )),
+                space0,
+            ),
+        ),
+        |parts| {
+            parts.into_iter().fold(Coord::default(), |mut carry, part| {
+                match part {
+                    CoordPart::X(p) => carry.x = Some(p),
+                    CoordPart::Y(p) => carry.y = Some(p),
+                    CoordPart::Z(p) => carry.z = Some(p),
+                    CoordPart::A(p) => carry.a = Some(p),
+                    CoordPart::B(p) => carry.b = Some(p),
+                    CoordPart::C(p) => carry.c = Some(p),
+                    CoordPart::U(p) => carry.u = Some(p),
+                    CoordPart::V(p) => carry.v = Some(p),
+                    CoordPart::W(p) => carry.w = Some(p),
+                };
 
-//             if coord == EMPTY_COORD {
-//                 None
-//             } else {
-//                 Some(coord)
-//             }
-//         }
-//     )
-// );
+                carry
+            })
+        },
+    )(i)
+}
 
 #[cfg(test)]
 mod tests {
@@ -172,7 +118,7 @@ mod tests {
             input = "X#3";
             expected = Coord {
                 x: Some(Parameter::Numbered(3).into()),
-                ..EMPTY_COORD.clone()
+                ..Coord::default()
             }
         );
     }
@@ -195,9 +141,7 @@ mod tests {
         );
     }
 
-    // TODO: Re-enable once a solution is found for <https://github.com/Geal/nom/issues/988>
     #[test]
-    #[ignore]
     fn parse_wbx() {
         assert_parse!(
             parser = coord;
@@ -206,7 +150,7 @@ mod tests {
                 w: Some(0.0.into()),
                 b: Some(1.0.into()),
                 x: Some(2.0.into()),
-                ..EMPTY_COORD.clone()
+                ..Coord::default()
             }
         );
     }
