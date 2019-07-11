@@ -37,14 +37,10 @@ pub enum Block {
     Subroutine(Subroutine),
 }
 
-/// A block identifier like `O100`, `o110` or `o<touchoff>`
 #[derive(Debug, PartialEq, Clone)]
 pub enum BlockIdent {
-    /// A number like `o100`
-    Numbered(u16),
-
-    /// Named like `o<touchoff>`
     Named(String),
+    Numbered(u16),
 }
 
 impl<'a> From<&'a str> for BlockIdent {
@@ -62,8 +58,8 @@ impl From<u16> for BlockIdent {
 impl fmt::Display for BlockIdent {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            BlockIdent::Numbered(n) => write!(f, "O{}", n),
-            BlockIdent::Named(n) => write!(f, "O<{}>", n),
+            BlockIdent::Named(ident) => write!(f, "<{}>", ident),
+            BlockIdent::Numbered(ident) => write!(f, "{}", ident),
         }
     }
 }
@@ -103,20 +99,20 @@ pub struct Subroutine {
     returns: Option<Expression<f32>>,
 }
 
-// TODO: Use general purpose `numbered_ident` and `local_ident` or whatever methods
-pub fn block_ident<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, BlockIdent, E> {
+pub fn parse_block_ident<'a, E: ParseError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, BlockIdent, E> {
     preceded(
         char_no_case('O'),
         alt((
-            map_res(digit1, |ident: &'a str| {
-                ident
-                    .parse::<u16>()
-                    .map_err(|_| "Failed to parse numeric identifier")
-                    .map(|ident| BlockIdent::Numbered(ident))
+            map_res::<_, _, _, _, String, _, _>(digit1, |ident: &'a str| {
+                Ok(BlockIdent::Numbered(
+                    ident.parse::<u16>().map_err(|e| e.to_string())?,
+                ))
             }),
             map(
                 delimited(char('<'), take_until(">"), char('>')),
-                |ident: &'a str| BlockIdent::Named(ident.to_string()),
+                |ident: &'a str| BlockIdent::Named(ident.into()),
             ),
         )),
     )(i)
@@ -131,7 +127,7 @@ where
     map(
         tuple((
             space0,
-            block_ident,
+            parse_block_ident,
             space0,
             tag_parser,
             space0,
@@ -153,7 +149,7 @@ where
     map(
         tuple((
             space0,
-            block_ident,
+            preceded(char_no_case('o'), block_ident),
             space0,
             tag_parser,
             space0,
@@ -173,7 +169,7 @@ where
     map(
         tuple((
             space0,
-            block_ident,
+            parse_block_ident,
             space0,
             tag_parser,
             space0,
@@ -199,7 +195,7 @@ where
     map(
         tuple((
             space0,
-            block_ident,
+            preceded(char_no_case('o'), block_ident),
             space0,
             tag_parser,
             space0,

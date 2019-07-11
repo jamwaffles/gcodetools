@@ -1,14 +1,14 @@
-use super::{block_ident, BlockIdent};
+use super::{block_close, block_close_expr, block_open_expr, BlockIdent};
 use crate::line::{lines_with_newline, Line};
-use crate::token::{comment, Comment};
+use crate::token::Comment;
 use expression::{gcode::expression, Expression};
 use nom::{
     bytes::complete::{tag, tag_no_case},
-    character::complete::{line_ending, space0, space1},
-    combinator::{map, opt, recognize},
+    character::complete::line_ending,
+    combinator::{map, opt},
     error::{context, ParseError},
     multi::many0,
-    sequence::{delimited, pair, preceded, separated_pair, terminated, tuple},
+    sequence::separated_pair,
     IResult,
 };
 
@@ -44,23 +44,21 @@ pub struct Conditional {
 }
 
 // TODO: Use conditional_block_open
-pub fn elseif_block<'a, E: ParseError<&'a str>>(
-    ident: &'a str,
-) -> impl Fn(&'a str) -> IResult<&'a str, Branch, E> {
+pub fn elseif_block<'a, IP, IOP, E: ParseError<&'a str>>(
+    ident_parser: IP,
+) -> impl Fn(&'a str) -> IResult<&'a str, Branch, E>
+where
+    IP: Fn(&'a str) -> IResult<&'a str, IOP, E>,
+{
     context(
         "elseif branch",
         map(
-            tuple((
-                preceded(space0, tag(ident)),
-                space1,
-                tag_no_case("elseif"),
-                space1,
-                expression,
-                opt(comment),
+            separated_pair(
+                block_close_expr(ident_parser, tag("elseif"), expression),
                 line_ending,
                 lines_with_newline,
-            )),
-            |(_, _, _, _, condition, trailing_comment, _, lines)| Branch {
+            ),
+            |((condition, trailing_comment), lines)| Branch {
                 branch_type: BranchType::ElseIf,
                 condition: Some(condition),
                 lines,
@@ -71,22 +69,21 @@ pub fn elseif_block<'a, E: ParseError<&'a str>>(
 }
 
 // TODO: Use block_open
-pub fn else_block<'a, E: ParseError<&'a str>>(
-    ident: &'a str,
-) -> impl Fn(&'a str) -> IResult<&'a str, Branch, E> {
+pub fn else_block<'a, IP, IOP, E: ParseError<&'a str>>(
+    ident_parser: IP,
+) -> impl Fn(&'a str) -> IResult<&'a str, Branch, E>
+where
+    IP: Fn(&'a str) -> IResult<&'a str, IOP, E>,
+{
     context(
         "else branch",
         map(
-            tuple((
-                preceded(space0, tag(ident)),
-                space1,
-                tag_no_case("else"),
-                // TODO: Support trailing whitespace on all keywordy things
-                preceded(space0, opt(comment)),
+            separated_pair(
+                block_close(ident_parser, tag("else")),
                 line_ending,
                 lines_with_newline,
-            )),
-            |(_, _, _, trailing_comment, _, lines)| Branch {
+            ),
+            |(trailing_comment, lines)| Branch {
                 branch_type: BranchType::Else,
                 condition: None,
                 lines,
@@ -98,32 +95,18 @@ pub fn else_block<'a, E: ParseError<&'a str>>(
 
 // TODO: Use conditional_block_open
 pub fn conditional<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Conditional, E> {
-    let (i, (ident, _, _)) = delimited(
-        space0,
-        tuple((
-            preceded(space0, recognize(block_ident)),
-            space1,
-            tag_no_case("if"),
-        )),
-        space1,
-    )(i)?;
-
-    let (i, (if_block_condition, if_block_comment)) =
-        terminated(pair(expression, opt(comment)), line_ending)(i)?;
+    let (i, (ident, if_block_condition, if_block_comment)) = block_open_expr(tag("if"))(i)?;
 
     let (i, if_block_lines) = lines_with_newline(i)?;
 
-    let (i, elseifs) = many0(elseif_block(ident))(i)?;
+    let (i, elseifs) = many0(elseif_block(tag_no_case(ident.to_string().as_str())))(i)?;
 
-    let (i, else_block) = opt(else_block(ident))(i)?;
+    let (i, else_block) = opt(else_block(tag_no_case(ident.to_string().as_str())))(i)?;
 
     // Closing tag
     let (i, _) = context(
         "if block close",
-        preceded(
-            space0,
-            separated_pair(tag(ident), space1, tag_no_case("endif")),
-        ),
+        block_close(tag_no_case(ident.to_string().as_str()), tag("endif")),
     )(i)?;
 
     let mut branches = vec![Branch {
@@ -139,12 +122,10 @@ pub fn conditional<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, C
         branches.push(e);
     }
 
-    let (_, identifier) = block_ident(ident)?;
-
     Ok((
         i,
         Conditional {
-            identifier,
+            identifier: ident,
             branches,
         },
     ))

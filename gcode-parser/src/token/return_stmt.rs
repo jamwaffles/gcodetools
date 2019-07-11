@@ -1,4 +1,4 @@
-use super::block::{block_ident, BlockIdent};
+use super::block::{parse_block_ident, BlockIdent};
 use expression::{gcode::expression, Expression};
 use nom::{
     bytes::complete::tag_no_case,
@@ -21,7 +21,7 @@ pub fn return_stmt<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, R
         "return stmt",
         map(
             separated_pair(
-                block_ident,
+                parse_block_ident,
                 preceded(space1, tag_no_case("return")),
                 opt(preceded(space1, expression)),
             ),

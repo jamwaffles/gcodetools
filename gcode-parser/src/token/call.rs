@@ -1,4 +1,4 @@
-use crate::token::block::{block_ident, BlockIdent};
+use crate::token::block::{parse_block_ident, BlockIdent};
 use expression::{parser::gcode, Expression};
 use nom::{
     bytes::complete::tag_no_case,
@@ -26,7 +26,7 @@ where
         "subroutine call",
         map(
             separated_pair(
-                block_ident,
+                parse_block_ident,
                 preceded(space0, tag_no_case("call")),
                 many0(preceded(space0, gcode::expression)),
             ),
