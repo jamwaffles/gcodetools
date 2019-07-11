@@ -1,4 +1,4 @@
-use expression::{gcode, Expression, Parameter};
+use expression::{gcode, Expression, ExpressionToken, Parameter};
 use nom::{
     branch::alt,
     character::complete::{digit1, space0},
@@ -11,7 +11,6 @@ use nom::{
 use std::str::FromStr;
 
 // TODO: Feature for double precision/size (*32 -> *64)
-// TODO: Value types for u32 only/expr, i32 only/expr, etc
 /// Any possible valid floating point value (positive or negative)
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
@@ -87,22 +86,12 @@ pub fn decimal_value<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str,
             map(float, |f| Value::Literal(f)),
             map(gcode::parameter, |p| Value::Parameter(p)),
             map(gcode::expression, |e| Value::Expression(e)),
+            map(gcode::function, |f| {
+                Value::Expression(Expression::from_tokens(vec![ExpressionToken::Function(f)]))
+            }),
         )),
     )(i)
 }
-
-// pub fn signed_value<'a, E: ParseError<&'a str>, V>(i: &'a str) -> IResult<&'a str, V, E>
-// where
-//     V: From<i32>,
-// {
-//     context(
-//         "signed value",
-//         map_res::<_, _, _, _, String, _, _>(
-//             recognize(tuple((opt(one_of("-+")), digit1))),
-//             |n: &'a str| Ok(V::from(n.parse::<i32>().map_err(|e| e.to_string())?)),
-//         ),
-//     )(i)
-// }
 
 pub fn unsigned_value<'a, E: ParseError<&'a str>, V>(i: &'a str) -> IResult<&'a str, V, E>
 where
@@ -135,22 +124,6 @@ where
     )
 }
 
-// pub fn preceded_signed_value<'a, P, OP, E: ParseError<&'a str>, V>(
-//     parser: P,
-// ) -> impl Fn(&'a str) -> IResult<&'a str, V, E>
-// where
-//     P: Fn(&'a str) -> IResult<&'a str, OP, E>,
-//     V: From<i32>,
-// {
-//     // TODO: Benchmark against impl below
-//     // map(preceded(terminated(parser, space0), value), |value| value)
-
-//     map(
-//         separated_pair(parser, space0, signed_value),
-//         |(_char, value)| value,
-//     )
-// }
-
 pub fn preceded_unsigned_value<'a, P, OP, E: ParseError<&'a str>, V>(
     parser: P,
 ) -> impl Fn(&'a str) -> IResult<&'a str, V, E>
@@ -171,6 +144,7 @@ where
 mod tests {
     use super::*;
     use crate::parsers::char_no_case;
+    use expression::Function;
 
     #[test]
     fn float_trailing_spaces() {
@@ -191,6 +165,24 @@ mod tests {
             input = "G 1.234  ";
             expected = 1.234.into();
             remaining = "  ";
+        );
+    }
+
+    #[test]
+    fn function_as_expression() {
+        assert_parse!(
+            parser = decimal_value;
+            input = "SIN[1.234]";
+            expected = Value::Expression(
+                Expression::from_tokens(vec![
+                    ExpressionToken::Function(Function::Sin(
+                        vec![
+                            ExpressionToken::Literal(1.234.into()),
+                        ]
+                        .into(),
+                    )),
+                ])
+            );
         );
     }
 

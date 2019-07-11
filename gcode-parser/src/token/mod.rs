@@ -118,10 +118,6 @@ pub struct Unknown {
 /// Parsed GCode token
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
-    /// Position in the source file at which this token occurs
-    // TODO: Re-enable
-    // pub span: Span<'a>,
-
     /// The type and value of this token
     pub token: TokenType,
 }

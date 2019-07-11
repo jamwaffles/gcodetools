@@ -15,7 +15,7 @@ macro_rules! coord {
             y: Some(($y).into()),
             ..Coord::default()
         }
-    }; // TODO: Other permutations of args
+    };
 }
 
 /// Check a test result

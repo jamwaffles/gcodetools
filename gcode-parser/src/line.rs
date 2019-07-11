@@ -181,24 +181,6 @@ mod tests {
         );
     }
 
-    // TODO: Delete. Line func doesn't consume ending anymore
-    // #[test]
-    // fn consume_line_and_ending() {
-    //     assert_parse!(
-    //         parser = line;
-    //         input = "G54\nG55";
-    //         expected = Line {
-    //             tokens: vec![Token {
-    //                 token: TokenType::GCode(GCode::WorkOffset(WorkOffset {
-    //                     offset: WorkOffsetValue::G54,
-    //                 }))
-    //             }],
-    //             ..Line::default()
-    //         };
-    //         remaining = "G55"
-    //     );
-    // }
-
     #[test]
     fn ignore_surrounding_whitespace() {
         assert_parse!(

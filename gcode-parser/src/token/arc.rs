@@ -3,7 +3,7 @@ use crate::value::{preceded_decimal_value, preceded_unsigned_value, UnsignedValu
 use nom::{
     branch::permutation,
     character::complete::space0,
-    combinator::{map_opt, map_res, opt},
+    combinator::{map_res, opt},
     error::{context, ParseError},
     sequence::terminated,
     IResult,
@@ -48,7 +48,7 @@ pub struct RadiusFormatArc {
     /// Number of turns
     ///
     /// Defaults to `1`
-    pub turns: Value,
+    pub turns: UnsignedValue,
 }
 
 impl Default for CenterFormatArc {
@@ -71,7 +71,7 @@ pub fn center_format_arc<'a, E: ParseError<&'a str>>(
 ) -> IResult<&'a str, CenterFormatArc, E> {
     context(
         "center format arc",
-        map_opt(
+        map_res(
             permutation((
                 opt(terminated(
                     preceded_decimal_value(char_no_case('X')),
@@ -119,18 +119,16 @@ pub fn center_format_arc<'a, E: ParseError<&'a str>>(
                     i,
                     j,
                     k,
-                    // TODO: Parse into integer
                     turns: turns.unwrap_or(1.into()),
                 };
 
                 // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
-                // TODO: Return validation error instead of `None`
                 // Require at least one offset coordinate to be present
                 if (&arc.i, &arc.j, &arc.k) == (&None, &None, &None) {
-                    // Err("Invalid center format arc")
-                    None
+                    Err("Invalid center format arc: at least one of I, J or K must be given")
+                // None
                 } else {
-                    Some(arc)
+                    Ok(arc)
                 }
             },
         ),
@@ -144,7 +142,6 @@ pub fn radius_format_arc<'a, E: ParseError<&'a str>>(
     context(
         "radius format arc",
         map_res(
-            // TODO: Needs some sort of sep() to handle whitespace
             permutation((
                 opt(terminated(
                     preceded_decimal_value(char_no_case('X')),
@@ -159,30 +156,26 @@ pub fn radius_format_arc<'a, E: ParseError<&'a str>>(
                     space0,
                 )),
                 terminated(preceded_decimal_value(char_no_case('R')), space0),
-                // TODO: This must be a positive integer, not any `Value`
-                opt(preceded_decimal_value(char_no_case('P'))),
+                opt(preceded_unsigned_value(char_no_case('P'))),
             )),
-            |(x, y, z, radius, _turns): (
+            |(x, y, z, radius, turns): (
                 Option<Value>,
                 Option<Value>,
                 Option<Value>,
                 Value,
-                Option<Value>,
+                Option<UnsignedValue>,
             )| {
                 let arc = RadiusFormatArc {
                     x,
                     y,
                     z,
                     radius,
-                    // TODO: Use parsed value as positive integer
-                    // turns: turns.unwrap_or(Value::Unsigned(1)),
-                    turns: 1.0.into(),
+                    turns: turns.unwrap_or(1.into()),
                 };
 
                 // TODO: Validate actual valid combinations of these coords as per [the docs](http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g2-g3)
-                // TODO: Return validation error instead of `None`
                 if (&arc.x, &arc.y, &arc.z) == (&None, &None, &None) {
-                    Err("Invalid radius format")
+                    Err("Invalid radius format: at least one of X, Y or Z must be given")
                 } else {
                     Ok(arc)
                 }
