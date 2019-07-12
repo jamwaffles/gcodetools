@@ -15,5 +15,5 @@ To profile tests:
 # Any suite in tests/ NOT in release mode
 cargo test --test tinyg_suite --features profile -- --nocapture
 
-./analyse-profile.sh <path to test bin>
+pprof --web ../target/debug/trajectory_planner-02630d1462f0a1b5 ../target/profiles/trajectory_planner-02630d1462f0a1b5.profile
 ```
