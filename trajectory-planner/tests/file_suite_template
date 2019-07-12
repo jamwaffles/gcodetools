@@ -1,0 +1,7 @@
+#[test]
+#[allow(non_snake_case)]
+fn {name}() {{
+    let program = include_str!("{source_data_path}");
+
+    verify(&program);
+}}

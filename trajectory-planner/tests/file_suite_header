@@ -1,0 +1,57 @@
+use std::fs;
+use std::path::Path as FilePath;
+use gcode_parser::{{token::{{Coord, TokenType}}, Program}};
+use trajectory_planner::{{merge_vector9_and_coord, Vector9}};
+use trajectories::{{Path, Trajectory, TrajectoryOptions, PathOptions}};
+
+fn verify(program: &str) {{
+    let parsed = Program::from_str(&program).unwrap();
+
+    let coords: Vec<Coord> = parsed
+        .iter_flat()
+        .cloned()
+        .filter_map(|token| match token.token {{
+            TokenType::Coord(c) => Some(c),
+            _ => None,
+        }})
+        .collect();
+
+    // Simulate the current state/position of the machine
+    let current_position = Vector9::repeat(9.99);
+
+    let waypoints: Vec<Vector9> = coords
+        .iter()
+        .scan(current_position, |current, coord| {{
+            let new = merge_vector9_and_coord(current, &coord);
+
+            *current = new;
+
+            Some(new)
+        }})
+        .collect();
+
+    // Validate (slowly) that no waypoints contain NaNs
+    for point in waypoints.iter() {{
+        for i in point.iter() {{
+            assert!(!i.is_nan());
+        }}
+    }}
+
+    let path = Path::from_waypoints(
+        &waypoints,
+        PathOptions {{
+            max_deviation: 0.001,
+        }},
+    );
+
+    let _trajectory = Trajectory::new(
+        &path,
+        TrajectoryOptions {{
+            velocity_limit: Vector9::repeat(1.0),
+            acceleration_limit: Vector9::repeat(1.0),
+            epsilon: 0.000001,
+            timestep: 0.001,
+        }},
+    )
+    .unwrap();
+}}

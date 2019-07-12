@@ -10,9 +10,9 @@ use std::path::Path as FilePath;
 use trajectories::{Path, Trajectory};
 use trajectories_sys::{path_create, Trajectory as CppTrajectory};
 
-type Vector9 = VectorN<f64, U9>;
+pub type Vector9 = VectorN<f64, U9>;
 
-fn merge_vector9_and_coord(current: &Vector9, coord: &Coord) -> Vector9 {
+pub fn merge_vector9_and_coord(current: &Vector9, coord: &Coord) -> Vector9 {
     let mut new = current.clone();
     let coord_c = coord.clone();
 
