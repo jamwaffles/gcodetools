@@ -29,11 +29,11 @@ harness = false
 bench = false
 
 [dependencies]
-nom = "5.0.0"
+nom = "5.0.1"
 expression = { path = "../expression" }
 
 [dev-dependencies]
-criterion = "0.2.11"
+criterion = "0.3.0"
 
 [build-dependencies]
 glob = "0.3.0"
