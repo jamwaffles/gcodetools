@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 gcode-parser = { path = "../gcode-parser" }
-nalgebra = "0.17.0"
+nalgebra = "0.18.1"
 trajectories = { git = "https://github.com/jamwaffles/trajectories.git" }
 trajectories-sys = { git = "https://github.com/jamwaffles/trajectories.git" }
 
@@ -17,7 +17,7 @@ version = "0.0.3"
 #trajectories-sys = { path = "../../trajectories/trajectories-sys" }
 
 [dev-dependencies]
-pretty_env_logger = "0.3.0"
+pretty_env_logger = "0.3.1"
 
 [features]
 default = []

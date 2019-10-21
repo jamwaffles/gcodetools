@@ -8,9 +8,9 @@ harness = false
 name = "evaluate_expression"
 
 [dependencies]
-nom = { version = "5.0.0", default_features = false, features = [ "std" ] }
+nom = { version = "5.0.1", default_features = false, features = [ "std" ] }
 num-traits = "0.2.8"
 
 [dev-dependencies]
-criterion = "0.2.11"
-maplit = "1.0.1"
+criterion = "0.3.0"
+maplit = "1.0.2"
