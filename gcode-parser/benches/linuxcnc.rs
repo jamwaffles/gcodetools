@@ -11,7 +11,7 @@ fn linuxcnc_skeleton_ngc(c: &mut Criterion) {
         Benchmark::new("skeleton.ngc", move |b| {
             b.iter(|| Program::from_str(program))
         })
-        .throughput(Throughput::Bytes(program.len() as u32)),
+        .throughput(Throughput::Bytes(program.len() as u64)),
     );
 }
 
@@ -23,7 +23,7 @@ fn linuxcnc_b_index_ngc(c: &mut Criterion) {
         Benchmark::new("b-index.ngc", move |b| {
             b.iter(|| Program::from_str(program))
         })
-        .throughput(Throughput::Bytes(program.len() as u32)),
+        .throughput(Throughput::Bytes(program.len() as u64)),
     );
 }
 
@@ -35,7 +35,7 @@ fn linuxcnc_smartprobe(c: &mut Criterion) {
         Benchmark::new("smartprobe.ngc", move |b| {
             b.iter(|| Program::from_str(program))
         })
-        .throughput(Throughput::Bytes(program.len() as u32)),
+        .throughput(Throughput::Bytes(program.len() as u64)),
     );
 }
 

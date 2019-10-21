@@ -11,7 +11,7 @@ fn universal_gcode_sender_serial_stress_test(c: &mut Criterion) {
         Benchmark::new("serial_stress_test.gcode", move |b| {
             b.iter(|| Program::from_str(program))
         })
-        .throughput(Throughput::Bytes(program.len() as u32)),
+        .throughput(Throughput::Bytes(program.len() as u64)),
     );
 }
 
@@ -23,7 +23,7 @@ fn universal_gcode_sender_buffer_stress_test(c: &mut Criterion) {
         Benchmark::new("buffer_stress_test.gcode", move |b| {
             b.iter(|| Program::from_str(program))
         })
-        .throughput(Throughput::Bytes(program.len() as u32)),
+        .throughput(Throughput::Bytes(program.len() as u64)),
     );
 }
 

@@ -23,7 +23,7 @@ m2
         Benchmark::new("10 XYZ rapids", move |b| {
             b.iter(|| Program::from_str(program))
         })
-        .throughput(Throughput::Bytes(program.len() as u32)),
+        .throughput(Throughput::Bytes(program.len() as u64)),
     );
 }
 

@@ -12,7 +12,7 @@ fn huge_tiger(c: &mut Criterion) {
         Benchmark::new("tiger.gcode", move |b| {
             b.iter(|| Program::from_str(program))
         })
-        .throughput(Throughput::Bytes(program.len() as u32)),
+        .throughput(Throughput::Bytes(program.len() as u64)),
     );
 }
 

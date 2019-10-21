@@ -11,7 +11,7 @@ fn tinyg_mudflap_100in(c: &mut Criterion) {
         Benchmark::new("mudflap_100in.gcode", move |b| {
             b.iter(|| Program::from_str(program))
         })
-        .throughput(Throughput::Bytes(program.len() as u32)),
+        .throughput(Throughput::Bytes(program.len() as u64)),
     );
 }
 
@@ -23,7 +23,7 @@ fn tinyg_zoetrope(c: &mut Criterion) {
         Benchmark::new("zoetrope.gcode", move |b| {
             b.iter(|| Program::from_str(program))
         })
-        .throughput(Throughput::Bytes(program.len() as u32)),
+        .throughput(Throughput::Bytes(program.len() as u64)),
     );
 }
 
