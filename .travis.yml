@@ -1,4 +1,4 @@
-dist: xenial
+dist: bionic
 language: rust
 rust:
   - stable
@@ -19,8 +19,8 @@ addons:
     packages:
       - libssl-dev
       - libeigen3-dev
-      - libclang-dev
-      - llvm-dev
+      - libclang-7-dev
+      - llvm-7-dev
 
 before_install:
   - pip install linkchecker --user
