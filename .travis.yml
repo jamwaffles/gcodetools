@@ -19,11 +19,11 @@ addons:
     packages:
       - libssl-dev
       - libeigen3-dev
-      - libclang-7-dev
-      - llvm-7-dev
+      - libclang-dev
+      - llvm-dev
 
 before_install:
-  -  pip install linkchecker --user
+  - pip install linkchecker --user
 
 script:
   - cargo test --release
