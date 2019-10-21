@@ -179,6 +179,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn birthday() {
         // pretty_env_logger::init();
 
