@@ -1,3 +1,4 @@
+use crate::word::decimal_word;
 use crate::word::word;
 use nom::{
     branch::alt,
@@ -27,12 +28,12 @@ pub fn plane_select<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, 
     context(
         "plane select",
         alt((
+            map(decimal_word("G17.1"), |_| PlaneSelect::UV),
+            map(decimal_word("G18.1"), |_| PlaneSelect::WU),
+            map(decimal_word("G19.1"), |_| PlaneSelect::VW),
             map(word("G17"), |_| PlaneSelect::XY),
             map(word("G18"), |_| PlaneSelect::ZX),
             map(word("G19"), |_| PlaneSelect::YZ),
-            map(word("G17.1"), |_| PlaneSelect::UV),
-            map(word("G18.1"), |_| PlaneSelect::WU),
-            map(word("G19.1"), |_| PlaneSelect::VW),
         )),
     )(i)
 }

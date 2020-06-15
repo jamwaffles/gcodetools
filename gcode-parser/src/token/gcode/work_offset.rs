@@ -1,3 +1,4 @@
+use crate::word::decimal_word;
 use crate::word::word;
 use nom::{
     branch::alt,
@@ -33,15 +34,15 @@ pub fn work_offset<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, W
     context(
         "work offset",
         alt((
+            map(decimal_word("G59.1"), |_| WorkOffset::G59_1),
+            map(decimal_word("G59.2"), |_| WorkOffset::G59_2),
+            map(decimal_word("G59.3"), |_| WorkOffset::G59_3),
             map(word("G54"), |_| WorkOffset::G54),
             map(word("G55"), |_| WorkOffset::G55),
             map(word("G56"), |_| WorkOffset::G56),
             map(word("G57"), |_| WorkOffset::G57),
             map(word("G58"), |_| WorkOffset::G58),
             map(word("G59"), |_| WorkOffset::G59),
-            map(word("G59.1"), |_| WorkOffset::G59_1),
-            map(word("G59.2"), |_| WorkOffset::G59_2),
-            map(word("G59.3"), |_| WorkOffset::G59_3),
         )),
     )(i)
 }

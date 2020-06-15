@@ -11,6 +11,7 @@ use self::plane_select::plane_select;
 pub use self::plane_select::PlaneSelect;
 use self::work_offset::work_offset;
 pub use self::work_offset::WorkOffset;
+use crate::word::decimal_word;
 use crate::word::word;
 use nom::{
     branch::alt,
@@ -74,7 +75,7 @@ pub fn gcode<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, GCode, 
             map(word("G0"), |_| GCode::Rapid),
             map(word("G21"), |_| GCode::UnitsMM),
             map(word("G20"), |_| GCode::UnitsInch),
-            map(word("G28.1"), |_| GCode::SetPredefinedPosition),
+            map(decimal_word("G28.1"), |_| GCode::SetPredefinedPosition),
             map(word("G28"), |_| GCode::GotoPredefinedPosition),
             map(work_offset, GCode::WorkOffset),
             map(cutter_compensation, GCode::CutterCompensation),
