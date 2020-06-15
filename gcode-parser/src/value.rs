@@ -40,10 +40,10 @@ impl FromStr for Value {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        s.parse::<f32>().map(|v| Value::Literal(v)).or_else(|_| {
+        s.parse::<f32>().map(Value::Literal).or_else(|_| {
             gcode::expression::<(), f32>(s)
                 .map(|(_i, e)| Value::Expression(e))
-                .map_err(|_e| format!("Expression parse failed"))
+                .map_err(|_e| "Expression parse failed".to_string())
         })
     }
 }
@@ -83,9 +83,9 @@ pub fn decimal_value<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str,
     context(
         "decimal value",
         alt((
-            map(float, |f| Value::Literal(f)),
-            map(gcode::parameter, |p| Value::Parameter(p)),
-            map(gcode::expression, |e| Value::Expression(e)),
+            map(float, Value::Literal),
+            map(gcode::parameter, Value::Parameter),
+            map(gcode::expression, Value::Expression),
             map(gcode::function, |f| {
                 Value::Expression(Expression::from_tokens(vec![ExpressionToken::Function(f)]))
             }),
@@ -116,8 +116,8 @@ pub fn unsigned_value<'a, E: ParseError<&'a str>>(
                     n.parse::<u32>().map_err(|e| e.to_string())?,
                 ))
             }),
-            map(gcode::parameter, |p| UnsignedValue::Parameter(p)),
-            map(gcode::expression, |e| UnsignedValue::Expression(e)),
+            map(gcode::parameter, UnsignedValue::Parameter),
+            map(gcode::expression, UnsignedValue::Expression),
             map(gcode::function, |f| {
                 UnsignedValue::Expression(Expression::from_tokens(vec![ExpressionToken::Function(
                     f,
@@ -201,7 +201,7 @@ mod tests {
                 Expression::from_tokens(vec![
                     ExpressionToken::Function(Function::Sin(
                         vec![
-                            ExpressionToken::Literal(1.234.into()),
+                            ExpressionToken::Literal(1.234),
                         ]
                         .into(),
                     )),
