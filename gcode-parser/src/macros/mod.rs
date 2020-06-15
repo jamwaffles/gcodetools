@@ -16,6 +16,12 @@ macro_rules! coord {
             ..Coord::default()
         }
     };
+    ($x:expr) => {
+        Coord {
+            x: Some(($x).into()),
+            ..Coord::default()
+        }
+    };
 }
 
 /// Check a test result

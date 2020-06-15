@@ -1,11 +1,13 @@
 //! Parse coordinates into a vector
 
-use crate::parsers::char_no_case;
-use crate::value::{preceded_decimal_value, Value};
-use nom::{
-    branch::alt, character::complete::space0, combinator::map, error::ParseError,
-    multi::fold_many_m_n, sequence::terminated, IResult,
-};
+use crate::value::decimal_value;
+use crate::value::Value;
+use nom::character::complete::anychar;
+use nom::error::ErrorKind;
+use nom::sequence::preceded;
+use nom::sequence::separated_pair;
+use nom::Err;
+use nom::{character::complete::space0, error::ParseError, IResult};
 
 /// A 9 dimensional `XYZABCUVW` coordinate
 ///
@@ -49,57 +51,89 @@ impl Default for Coord {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
-enum CoordPart {
-    X(Value),
-    Y(Value),
-    Z(Value),
-    A(Value),
-    B(Value),
-    C(Value),
-    U(Value),
-    V(Value),
-    W(Value),
-}
-
 /// Parse a coordinate
-///
-/// TODO: Fail when more than one of each axis is encountered
 pub fn coord<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Coord, E> {
-    fold_many_m_n(
-        1,
-        9,
-        terminated(
-            alt((
-                map(preceded_decimal_value(char_no_case('X')), CoordPart::X),
-                map(preceded_decimal_value(char_no_case('Y')), CoordPart::Y),
-                map(preceded_decimal_value(char_no_case('Z')), CoordPart::Z),
-                map(preceded_decimal_value(char_no_case('A')), CoordPart::A),
-                map(preceded_decimal_value(char_no_case('B')), CoordPart::B),
-                map(preceded_decimal_value(char_no_case('C')), CoordPart::C),
-                map(preceded_decimal_value(char_no_case('U')), CoordPart::U),
-                map(preceded_decimal_value(char_no_case('V')), CoordPart::V),
-                map(preceded_decimal_value(char_no_case('W')), CoordPart::W),
-            )),
-            space0,
-        ),
-        Coord::default(),
-        |mut carry, part| {
-            match part {
-                CoordPart::X(p) => carry.x = Some(p),
-                CoordPart::Y(p) => carry.y = Some(p),
-                CoordPart::Z(p) => carry.z = Some(p),
-                CoordPart::A(p) => carry.a = Some(p),
-                CoordPart::B(p) => carry.b = Some(p),
-                CoordPart::C(p) => carry.c = Some(p),
-                CoordPart::U(p) => carry.u = Some(p),
-                CoordPart::V(p) => carry.v = Some(p),
-                CoordPart::W(p) => carry.w = Some(p),
-            };
+    let mut c = Coord::default();
+    let mut input = i;
 
-            carry
-        },
-    )(i)
+    for _ in 0..9 {
+        let res = preceded(space0, separated_pair(anychar, space0, decimal_value))(input);
+
+        match res {
+            Ok((i, (ch, value))) => {
+                match ch.to_ascii_lowercase() {
+                    'x' if c.x.is_none() => {
+                        c.x = Some(value);
+                        input = i;
+                    }
+                    'y' if c.y.is_none() => {
+                        c.y = Some(value);
+                        input = i;
+                    }
+                    'z' if c.z.is_none() => {
+                        c.z = Some(value);
+                        input = i;
+                    }
+                    //
+                    'a' if c.a.is_none() => {
+                        c.a = Some(value);
+                        input = i;
+                    }
+                    'b' if c.b.is_none() => {
+                        c.b = Some(value);
+                        input = i;
+                    }
+                    'c' if c.c.is_none() => {
+                        c.c = Some(value);
+                        input = i;
+                    }
+                    //
+                    'u' if c.u.is_none() => {
+                        c.u = Some(value);
+                        input = i;
+                    }
+                    'v' if c.v.is_none() => {
+                        c.v = Some(value);
+                        input = i;
+                    }
+                    'w' if c.w.is_none() => {
+                        c.w = Some(value);
+                        input = i;
+                    }
+                    // ---
+                    'x' if c.x.is_some() => break,
+                    'y' if c.y.is_some() => break,
+                    'z' if c.z.is_some() => break,
+                    //
+                    'a' if c.a.is_some() => break,
+                    'b' if c.b.is_some() => break,
+                    'c' if c.c.is_some() => break,
+                    //
+                    'u' if c.u.is_some() => break,
+                    'v' if c.v.is_some() => break,
+                    'w' if c.w.is_some() => break,
+
+                    _ => (),
+                }
+            }
+            Err(Err::Error(e)) => {
+                if c == Coord::default() {
+                    return Err(Err::Error(E::append(input, ErrorKind::ManyMN, e)));
+                } else {
+                    return Ok((input, c));
+                }
+            }
+            Err(e) => {
+                return Err(e);
+            }
+        }
+    }
+
+    if c != Coord::default() {
+        Ok((input, c))
+    } else {
+        Err(Err::Error(E::from_error_kind(input, ErrorKind::ManyMN)))
+    }
 }
 
 #[cfg(test)]
@@ -107,6 +141,16 @@ mod tests {
     use super::*;
     use crate::assert_parse;
     use expression::Parameter;
+
+    #[test]
+    fn parse_xxyz() {
+        assert_parse!(
+            parser = coord;
+            input = "X0.0 X3.0 Y1.0 Z2.0";
+            expected = coord!(0.0);
+            remaining = " X3.0 Y1.0 Z2.0"
+        );
+    }
 
     #[test]
     fn parse_var() {
